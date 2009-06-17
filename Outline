@@ -1,0 +1,58 @@
+#The Steps
+#-------------------------------------------
+0. Traverse It
+    - Recurse through the directory tree using a Depth First Search
+    - Execute the appropriate actions based on the file content in each directory
+1. Extract It
+	- Make a directory with the archive filename, extract into directory
+	- Recursively extract all other archives within
+2. Handle It
+	- Split (if necessary)
+	- Convert or delete based on format (if necessary)
+	- Delete random files
+	- If there are images, try to identify cover and rename to cover.jpg
+3. Tag It
+	- Try to get a PUID for tracks
+	- Look up other metainformation from current track ID3s
+	- Create a data structure that represents the metainformation for the current album
+	- Get additional information from filenames and the directory structure and augment the data structure
+	- Commit the metainformation to the files
+4. Place It
+	- See if it's in the collection, if it is choose the better version
+	- Apply proper folder hierarchy
+	- (If applicable) Move into the collection
+
+
+#How Those Steps Are Spread Across Our Files
+#-------------------------------------------
+Meta-Documents
+A list of the steps to do and the files we've written           Outline
+A list of things to do                                          TODO
+A place to leave each other notes and record ideas              Discussion
+A record of our stylistic, design and methodology decisions     Notes
+A list of changes made in standard open source style            ChangeLog
+
+Common Files
+Constants, settings and paths                                   configuration.py
+Functions used across multiple files                            functions.py
+Pausing and stopping                                            flowcontrol.py
+
+Procedural Steps and Files
+Main program file, starts the GUI                               handleit.py
+Traverse through folders calling need functions                 traverse.py
+    (If necessary) Extract archives                             extract.py
+    (If necessary) Convert (or delete) unwanted music formats   convert.py
+    (If necessary) Split album based on cue                     split.py
+    (If necessary) Remove unwanted extra files                  clean.py
+    
+Audio Handling
+Wrapper around the Release functionality                        audio.py
+Release which control the flow and handling of its Tracks       release.py
+Track which handles a single audio file and its tags            track.py
+Functions for get music metadata from various sources           getters.py
+Writing and reading ID3 and Vorbis tags                         tagging.py
+
+GUI
+Graphical interface main window                                 MainWindow.py
+Graphical configuration dialog                                  ConfigurationDialog.py
+Log designed to maximize readability and allow filtering        LogFrame.py 
