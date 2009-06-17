@@ -1,0 +1,137 @@
+#TODO
+#-------------------------------------------
+ * Figure Out What to Add to TODO
+    - Think of various input sources and formats input can come in
+    - Think of use cases
+
+
+ * Notice and Where Possible Resolve Potential Problems
+     - Handle invalid filename characters:
+        : / \
+     
+     - Check that there is only one audio format present
+        - If not, reject the folder
+
+     - Check to see if folder contains the correct amount of tracks (totaltracks)
+        - Also check to see that they are sequential (no: 12, 13, 15)
+        - And no repeats
+        - If we just have a duplicate, pick the best to keep and delete the other
+        - If a track is missing, reject the folder
+
+
+ * Find out why Nina Simone doesn't work
+
+
+ * Improve Audio Identification
+     - Attempt to get more data from filename
+        - Artist
+    
+     - Improve getting the release
+        - Via artist & track
+
+
+ * Handle More Cases
+     - Handle multiple discs
+        - Identify when there are multiple discs presents
+        - Group audio files into discs
+        - Create "Disc 1" through "Disc n" folders
+        - Move files into folders
+        - Append " [Disc i]" to album tags
+        - Make sure track numbers and track number totals are correct
+        
+    - Releases with 2 or many artists
+        - If 2, then probably "Artist 1 & Artist 2"
+        - If many, then probably "Various Artists"
+        - How do we reliably identify these cases?
+        - Are there exceptions? (How do we handle them?)
+        
+    - AlbumWrap
+        - Try to identify if AlbumWrap is being used
+            - All audio files in a folder over 20 minutes.
+        - If so, split use mp3splt -w (if that fails try mp3splt -e)
+        
+    - Hidden files on *nix
+        - What should we do with files that start with a "."?
+
+
+ * Add Merging Functionality
+     - If the user has specified a collection to merge sorted music into, then
+       check whether the album is in collection and if so, choose the better version
+        - How do we know the album is already present?
+            - We need a database of the current files. (Could we use Amarok's? Would we want to?)
+        - How do we choose the better version?
+            - If a track is only present in one, preserve that track
+            - If the track is in both, take the one that is longer (if one is significantly longer)
+            - If present in both and about the same length, take the higher bitrate
+ 
+ 
+ * Find a good way to display the contents of DELETES at the end of a run.
+    - This should help the user decide if they want to look in more detail.
+    - One possibility: Show the user all the file types (according to extension)
+      that are present.
+    - If they don't want to look through the files, allow them to permanently 
+      delete all from within the program.
+
+
+ * Use a more robust method to determine file types (than a hard-coded list of extensions to types):
+    - MIME types?
+    
+
+ * Get HandleIt to Run on Windows
+    - The only real problem: the command-line utilities we use. How do replace them on Windows?
+    
+    
+ * Documentation
+    - Expand Release and Track file docstrings.
+        - Explain weighting.
+    - Improve LogFrame, ConfigurationDialog and split file docstrings.
+    - Document the log level argument and particular negative (relative) levels better. 
+
+
+ * GUI
+    - LogFrame
+        - General Goal: Make the output as easy to read and find information in as possible
+        - Add a drop-down menu (QComboBox) with a few preset sets of categories (Possible options: "Brief", "Verbose", "Debugging", "All")
+        - Add an option to color-code entries by category
+        - Add an option to display icons next to each entry indicating category (Yellow-Triangle with ! for failure; a bug for debugging)
+        - Add an option to vary entry font sizes by importance/height in hierarchy
+        - (Possibly) Add a filter a la the one above the old Amarok playlist, that filters for entries with that string present
+        - (Most complicated) Add a tree beside (to the left of) the log, so that users can view only the entries below the selected node
+            Example:
+                * Handling "Archives"
+                |---* Traversing "Archives/Beck - Guero"
+                |   |---* Converting
+                |   |   |---* Converting "Archives/Beck - Guero/01 - One.mpc"
+                |   |   |   |---- Success!
+                |   |   |---* Converting "Archives/Beck - Guero/02 - Two.mpc"
+                |   |   ...
+                |   |---* Deleting extra files 
+            Any of the nodes with asterisks would be clickable then the log would only display that entry and those below it.
+                    
+    - ConfigurationDialog     
+        - Currently, when the basedir path changes all the other fields which are empty are changed relatively
+            - This could be done more intelligently
+            - For instance, if all other fields are not empty but are relative to the current basedir
+              and the basedir changes, they should probably change as well (despite not being empty)
+    
+    - (Possibly?) Make a generalized way (class?) for displaying, storing and retrieving configuration settings
+        - See the method used in LogFrame.__init__ lines 27-35
+        - If we used a more dynamic method then we would have less code and less hardcoding
+        - Also if we add/remove a setting then we wouldn't have change the code in 4 places (configuration, __init__, readCurrent, and applyChanges)
+        - We might not be able to make this work
+        
+    
+ * Get the Full Open-Source Project Experience
+    - Choose a software license. (GPL?)
+    - Create a project website. (SourceForge?)
+    - Package it (exe, deb, rpm, source tarball).
+    - Set up a (public?) version control system?
+    - Fix user-found bugs and implement user-requested features. 
+    - Accept contributer-submitted patches.
+    - Anything else?
+
+        
+ * Small Things
+    - Sanity-check dates
+    
+    

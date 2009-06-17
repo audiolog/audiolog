@@ -1,0 +1,128 @@
+2009-05-24  Rob Nagle
+
+    * release (findConsenus): Added code to remove date candidates which are not
+    between 1600 and the current year + 1, inclusive. Should this be done
+    somewhere else? And should the lower bound be 1600? (Some tracks are from 
+    earlier; almost all are from much later.)
+
+2009-04-24  Rob Nagle
+
+    * test_clean (test_clean): New file and function. Unit testing for
+    clean.standardizeFilenames function.
+    
+    * test_extract (test_extract): New file and function. Unit testing for 
+    extract.extract function.
+
+2009-04-23  Rob Nagle
+
+    * traverse (traverse): Moved code to sort listdir entries.
+    
+    * functions (directory): New function containing code moved from traverse.
+
+2009-04-10  Rob Nagle
+
+    * getters (matchMB): Made the variable matches a set instead of list to 
+    enforce uniqueness. Moved the code to remove matches which are similar to
+    the artist into an entirely separete block (which does two sweeps first 
+    removing matches exactly the same as the artist and, if there are still
+    two or more matches, matches which are aboutEqual to the artist). Then,
+    at the end, we just check if there is only one match, and if there is, 
+    we return it.
+
+2009-04-09  Rob Nagle
+
+    * clean (lowercaseExtensions): Removed; merged into standardizeFilenames.
+    
+    * clean (standardizeFilenames): New function. Lowercases extensions,
+    removes special characters and (mostly cooly) converts underscores and 
+    periods being used in place of spaces into spaces.
+
+    * ConfigurationDialog (browse): When changing other lineEdits relative to
+    baseDir, I used a minor os.path hack to get a trailing slash in platform-
+    independent way instead of just appending a "/" character.
+
+2009-04-07  Rob Nagle
+
+    * functions (aboutEqual): Now uses restrictChars to remove punctuation
+    and whitespace (and everything else but letters and digits).
+    
+    * getters (matchMB): Added a call to restrictChars to eliminate special 
+    characters in the string we are trying to match. I did this because of
+    an error I encountered when a filename with Asian (Chinese?) glyphs was
+    passed as parameter to MusicBrainz. I'm not sure what characters exactly 
+    MB does not want, but because we're are generally doing inexact matching 
+    anyway, because unusual characters rarely if ever help a search and because
+    MB generally can go from less to more but not vice versa, I thought
+    restricting all MB queries to numbers, digits, punctuation and whitespace
+    is not a bad idea.
+    
+    * functions (restrictChars): New function. This function takes six 
+    parameters: the string we are restricting, then four booleans indicating
+    whether to allow letters, digits, whitespace, and punctuation, respectively,
+    and finally a string of additional characters to allow. All but the first
+    of these parameters is optional. The booleans all default to true and the
+    custom string to None.
+     
+
+2009-04-05  Rob Nagle
+    
+    * LogFrame: Added drop-down to select output level. Implemented filtering.
+    
+    * LogFrame (addToLog): New function. Takes an entry, applies filter and
+    potentially adds to textEdit. This used to be a part of appendToLog but I
+    wanted to be able to use this functionality from updateLog as well so I
+    moved it to its own functions.
+    
+    * LogFrame (log): Added log argument.
+
+    * All non-GUI files: Changed calls to log to add a level argument. 
+
+2009-04-04  Rob Nagle
+
+    * Every file: Added file docstring and converted all function docstrings 
+    to standard. (See: Notes)
+
+2009-04-03  Rob Nagle
+    
+    * extract: Significantly restructured file. Instead of using a
+    dictionary of extractor functions, we now use a dictionary of extractor
+    commands. This was done because there was significant duplication of code
+    across the extractor functions. The makeDestDirectory function has also
+    been removed and all functionality now occurs inside the extract function.
+    
+    * convert: Restructured file in a similar fashion to above. 
+    
+    * split (split): Code for moving multiple cue/audio pairs into separate
+    disc directories has been generalized and moved into its own function.
+    
+    * functions (moveDiscsIntoFolders): New. This could be useful in dealing
+    with multiple discs in the audio handling process. 
+
+2009-03-30  Rob Nagle
+
+    * flowcontrol (clear): Function renamed to initialize.
+
+    * traverse (traverse): Reworked if clauses to check for desirable audio
+    sooner, potentially saving time and allowing later clauses to be shorter. 
+
+    * traverse (traverse): Removed debugging statements which printed the
+    contents of subdirectoryPaths, filePaths and filePathsByType. This code was
+    moved to oldCode. It seems clear by now that those container variables are 
+    being populated correctly and the code is now more clear and concise. 
+    
+
+2009-03-29  Rob Nagle
+
+    * LogFrame (__init__, displayAll): Added a "Display All" Button which, when
+    clicked, calls the new displayAll method which sets all category checks.
+    
+    
+2009-03-25  Rob Nagle
+
+    * ChangeLog: Created change which follows open source standards. See:
+    http://www.gnu.org/software/guile/changelogs/guile-changelogs_3.html
+    
+    * TODO: Organized entries into categories, added new entries and added
+    more detail to others. I think it is a good idea to be very specific in TODO
+    entries. This makes it easier for us to implement and to know what the other
+    has in mind.

@@ -1,0 +1,423 @@
+#Discussion
+#-------------------------------------------
+I would like reject and delete to both be able to handle 3 cases:
+    Moving a single file
+    Moving an empty directory
+    Moving a directory with contents
+
+Possible sources of meta-information:
+    - Tags
+    - MusicBrainz
+    - Filenames (to the extent we are willing and able to try to pull out info)
+
+
+
+# Configuration class
+#---------------------------------------------
+Configuration class
+    dictionary to dictionary (with lists of their keys in order beside them)
+    retrieve and store methods
+    
+    
+ConfigurationFrame class
+
+    ConfigurationFrame("SETTINGS")
+    
+    def __init__(self, settingsGroup:
+        self.checkboxes = {}
+        for setting in configuraton.Configuration.getKeys(settingsGroup):
+           checkbox = ...
+           
+           self.checkboxes[setting] = checkboxes
+    
+    def apply(self):
+
+        for checkbox in self.checkboxes:
+            configuration.Configuration[checkbox.text()] = checkbox.isChecked()
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def getMB(track, field, filt):
+    """Construct and execute a MusicBrainz query."""
+
+    query = mb.Query()
+    
+    if field == "artist":
+        params = mb.ArtistFilter(name = filt, limit = 1)
+        result = getMB(query.getArtists, params)
+        
+        if len(result) > 0:
+            return result[0].getArtist().getName()
+        else:
+            return ""
+        
+    elif field == "release":        
+        params = mb.ReleaseFilter(title = filt, artistName = track.track["artist"], limit = 1)
+        result = getMB(query.getReleases, params)
+        
+        if len(result) > 0:
+            return result[0].getRelease().getTitle()
+        else:
+            return ""
+    
+    elif field == "date":
+        params = mb.ReleaseFilter(title = track.track["release"], artistName = track.track["artist"], limit = 1)
+        result = getMB(query.getReleases, params)
+        
+        if len(result) > 0:
+            if result[0].getRelease().getEarliestReleaseDate():
+                return result[0].getRelease().getEarliestReleaseDate().split("-")[0]
+            else:
+                return ""
+        else:
+            return ""
+    
+    elif field == "tracktotal":
+        params = mb.ReleaseFilter(title = track.track["release"], artistName = track.track["artist"], limit = 1)
+        result = getMB(query.getReleases, params)
+        
+        if len(result) > 0:
+            tracktotal = result[0].getRelease().getTracksCount()
+            return unicode(tracktotal).rjust(2, u"0")
+        else:
+            return ""
+    
+    elif field == "title":
+        params = mb.TrackFilter(title = tag, artistName = track.track["artist"], releaseTitle = track.track["release"])
+        result = getMB(query.getTracks, params)
+        
+        if len(result) > 0:
+            return result[0].getTrack().getTitle()
+        else:
+            return ""
+    
+    elif field == "tracknumber":
+        params = mb.TrackFilter(title = track.track["title"], artistName = track.track["artist"], releaseTitle = track.track["release"])
+        result = getMB(query.getTracks, params)
+        
+        if len(result) > 0:
+            tracknumber = result[0].getTrack().getReleases()[0].getTracksOffset() + 1  # Track numbers are zero-indexed.
+            return unicode(tracknumber).rjust(2, u"0") 
+        else:
+            return ""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def getMB(track, field, filt=None):
+    """Construct and execute a MusicBrainz query."""
+
+    query = mb.Query()
+    queryFunctions = {"artist"     : query.getArtists,
+                      "release"    : query.getReleases,
+                      "date"       : query.getReleases,
+                      "tracktotal" : query.getReleases,
+                      "title"      : query.getTracks,
+                      "tracknumber": query.getTracks}
+    
+    # Construct filter
+    if field == "artist":
+        params = mb.ArtistFilter(name = filt, limit = 1)
+    elif field == "release":        
+        params = mb.ReleaseFilter(title = filt, artistName = track.track["artist"], limit = 1)
+    elif field == "date":
+        params = mb.ReleaseFilter(title = track.track["release"], artistName = track.track["artist"], limit = 1)
+    elif field == "tracktotal":
+        params = mb.ReleaseFilter(title = track.track["release"], artistName = track.track["artist"], limit = 1)
+    elif field == "title":
+        params = mb.TrackFilter(title = tag, artistName = track.track["artist"], releaseTitle = track.track["release"])
+    elif field == "tracknumber":
+        params = mb.TrackFilter(title = track.track["title"], artistName = track.track["artist"], releaseTitle = track.track["release"])
+    
+    result = queryMB(queryFunctions[field], params)
+    
+    # Return results, if they are valid
+    if len(result) > 0:
+        if field == "artist":
+            return result[0].getArtist().getName()
+        elif field == "release":
+            return result[0].getRelease().getTitle()
+        elif field == "date":
+            if result[0].getRelease().getEarliestReleaseDate():
+                return result[0].getRelease().getEarliestReleaseDate().split("-")[0]
+        elif field == "tracktotal":
+            tracktotal = result[0].getRelease().getTracksCount()
+            return unicode(tracktotal).rjust(2, u"0")
+        elif field == "title":
+            return result[0].getTrack().getTitle()
+        elif field == "tracknumber":
+            tracknumber = result[0].getTrack().getReleases()[0].getTracksOffset() + 1  # Track numbers are zero-indexed.
+            return unicode(tracknumber).rjust(2, u"0")
+    return ""  # De facto else clause
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def getmbTag(track, field):
+    """Return the metainformation for field by looking it up in MusicBrainz."""
+    
+    query = mb.Query()
+    
+    if field == "artist":
+        tag = tagging.getTag(track.filePath, "artist")
+        if not tag:
+            log("\t\tArtist tag is empty. Unable to fetch artist from MusicBrainz.", "Failures")
+            return ""
+        
+        params = mb.ArtistFilter(name = tag, limit = 1)
+        result = getMB(query.getArtists, params)
+        
+        if len(result) > 0:
+            return result[0].getArtist().getName()
+        else:
+            return ""
+        
+    elif field == "release":
+        tag = tagging.getTag(track.filePath, "album")
+        if not tag:
+            log("\t\tAlbum tag is empty. Unable to fetch album from MusicBrainz.", "Failures")
+            return ""
+        
+        params = mb.ReleaseFilter(title = tag, artistName = track.track["artist"], limit = 1)
+        result = getMB(query.getReleases, params)
+        
+        if len(result) > 0:
+            return result[0].getRelease().getTitle()
+        else:
+            return ""
+    
+    elif field == "date":
+        params = mb.ReleaseFilter(title = track.track["release"], artistName = track.track["artist"], limit = 1)
+        result = getMB(query.getReleases, params)
+        
+        if len(result) > 0:
+            if result[0].getRelease().getEarliestReleaseDate():
+                return result[0].getRelease().getEarliestReleaseDate().split("-")[0]
+            else:
+                return ""
+        else:
+            return ""
+    
+    elif field == "tracktotal":
+        params = mb.ReleaseFilter(title = track.track["release"], artistName = track.track["artist"], limit = 1)
+        result = getMB(query.getReleases, params)
+        
+        if len(result) > 0:
+            tracktotal = result[0].getRelease().getTracksCount()
+            return unicode(tracktotal).rjust(2, u"0")
+        else:
+            return ""
+    
+    elif field == "title":
+        tag = tagging.getTag(track.filePath, "title")
+        if not tag:
+            log("\t\tTitle tag is empty. Unable to fetch title from MusicBrainz.", "Failures")
+            return ""
+        
+        params = mb.TrackFilter(title = tag, artistName = track.track["artist"], releaseTitle = track.track["release"])
+        result = getMB(query.getTracks, params)
+        
+        if len(result) > 0:
+            return result[0].getTrack().getTitle()
+        else:
+            return ""
+    
+    elif field == "tracknumber":
+        params = mb.TrackFilter(title = track.track["title"], artistName = track.track["artist"], releaseTitle = track.track["release"])
+        result = getMB(query.getTracks, params)
+        
+        if len(result) > 0:
+            tracknumber = result[0].getTrack().getReleases()[0].getTracksOffset() + 1  # Track numbers are zero-indexed.
+            return unicode(tracknumber).rjust(2, u"0") 
+        else:
+            return ""
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def getmbTag(track, field):
+    """Return the metainformation for field by looking it up in MusicBrainz."""
+    
+    tag = None
+    
+    if field == "artist":
+        tag = tagging.getTag(track.filePath, "artist")
+        if not tag:
+            log("\t\tArtist tag is empty. Unable to fetch artist from MusicBrainz.", "Failures")
+            return ""
+        
+    elif field == "release":
+        tag = tagging.getTag(track.filePath, "album")
+        if not tag:
+            log("\t\tAlbum tag is empty. Unable to fetch album from MusicBrainz.", "Failures")
+            return ""
+    
+    elif field == "title":
+        tag = tagging.getTag(track.filePath, "title")
+        if not tag:
+            log("\t\tTitle tag is empty. Unable to fetch title from MusicBrainz.", "Failures")
+            return ""
+    
+    return getMB(track, field, tag)
