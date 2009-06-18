@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """A collection of commonly used functions.
 
 This file contains functions which are not specific to one step of the handling
@@ -27,10 +29,10 @@ def moveWithContext(currentItemPath, destDirectoryPath):
     Final path: "/media/Ext/Rejects/Rock/College Rock/Morissey/disco.rar" """
     
     if not validatePath(currentItemPath):
-        log("Could not move with context" + quote(currentItemPath) + " -- not a valid path.", -2, "Failures")
+        log("Could not move with context " + quote(currentItemPath) + " -- not a valid path.", -2, "Failures")
         return
     else:
-        log("Moving with context" + quote(currentItemPath), -2, "Actions")
+        log("Moving with context " + quote(currentItemPath), -2, "Actions")
     
     newItemPath = currentItemPath.replace(configuration.PATHS["CURRENT"], destDirectoryPath)
     newDirectoryPath = os.path.dirname(newItemPath)
@@ -164,7 +166,7 @@ def deleteItems(itemPaths, actuallyDelete=None):
 # Path and file functions
 #-------------------------------------------
 
-def directory(directoryPath):
+def getDirectoriesAndFiles(directoryPath):
     """Return a list of subdirectory paths and a dict of file paths by type."""
 
     ls = os.listdir(directoryPath)

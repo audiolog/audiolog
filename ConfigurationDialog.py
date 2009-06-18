@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Dialog box for viewing and editing HandleIt configuration.
 
 This configuration dialog box uses to tabs to group and display related 
@@ -24,9 +26,9 @@ class ConfigurationDialog(QDialog):
     
     def __init__(self, parent):
         super(ConfigurationDialog, self).__init__(parent)
-        self.setWindowTitle("Configure HandleIt")
+        self.setWindowTitle("Configure Azul")
         
-        self.configFileName = ".handleit"
+        self.configFileName = ".azul"
 
         # Tabs
         self.pathsFrame = PathsFrame(self)

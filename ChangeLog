@@ -1,3 +1,14 @@
+2009-06-17  Matt Hubert
+
+    * MainWindow (MainWindow): Re-branded HandleIt as Azul. Cleaned up some spaces,
+    spammed various files with encoding: utf-8.
+    
+    * GUI: Deleted. Code already in MainWindow.
+    
+    * functions (directory): Now called getDirectoriesAndFiles.
+    
+    * Miscellaneous: Added spaces to log messages, cleaned up small things.
+
 2009-05-24  Rob Nagle
 
     * release (findConsenus): Added code to remove date candidates which are not
@@ -62,7 +73,6 @@
     and finally a string of additional characters to allow. All but the first
     of these parameters is optional. The booleans all default to true and the
     custom string to None.
-     
 
 2009-04-05  Rob Nagle
     

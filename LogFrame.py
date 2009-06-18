@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Log designed to be highly configurable and readable.
 
 The currently primary method of filtering messages is by category.

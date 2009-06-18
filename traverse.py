@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Top-level handling control functions.
 
 Handling begins when the GUI invokes handleIt with a list of directories to act
@@ -51,7 +53,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
     if not functions.validatePath(directoryPath, isDirectory=True):
         return
     
-    subdirectoryPaths, filePathsByType = functions.directory(directoryPath)
+    subdirectoryPaths, filePathsByType = functions.getDirectoriesAndFiles(directoryPath)
     
     # If appropriate, rename and recurse into subdirectories
     if configuration.SETTINGS["RECURSE"] and subdirectoryPaths:
@@ -77,8 +79,8 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         traverse(directoryPath, rescan=True)
         return
         
-    if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to ogg
-        log("Converting audio to OGG then scanning again", 2, "Actions")
+    if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to Ogg
+        log("Converting audio to Ogg then scanning again", 2, "Actions")
         convert.convert(filePathsByType["bad_audio"])
         traverse(directoryPath, rescan=True)
         return

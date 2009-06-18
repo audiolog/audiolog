@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Functions for reading and writing MP3 and Ogg Vorbis tags.
 
 This file provides only three functions which are called from other files:
@@ -85,7 +87,7 @@ def openAudioFile(filePath):
     elif extension == ".ogg":
         return Ogg(filePath)
     else:
-        log("Attempt to open " + quote(filePath) + "failed. \nFile must be an MP3 or OGG.", -1, "Errors")
+        log("Attempt to open " + quote(filePath) + "failed. \nFile must be an MP3 or Ogg.", -1, "Errors")
         raise NotImplementedError
 
 
