@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Functions for accessing various audio metainformation sources.
 
 This file contains functions for gather audio metainformation from MusicDNS,
@@ -34,7 +36,7 @@ def fetchPUID(filePath):
     if not configuration.SETTINGS["GET_PUID"]:
         return False
     elif ext(filePath) not in configuration.typeToExts["good_audio"]:
-        log(quote(filePath) + " is not a supported filetype for getPUID. It must be MP3 or OGG.", "Failures")
+        log(quote(filePath) + " is not a supported filetype for getPUID. It must be MP3 or Ogg.", "Failures")
         return False
     
     log("Running getPUID on " + quote(os.path.basename(filePath)), -1, "Actions")
@@ -158,7 +160,7 @@ def matchMB(track, field, string):
         log("MB matched a substring to a " + field + ": " + quote(match), -1, "Debugging") 
         return match
     else:
-        log(str(len(matches)) + "possible %ss found." % field, -2, "Debugging")
+        log(str(len(matches)) + " possible %ss found." % field, -2, "Debugging")
         if matches:
             log("Possible " + field + "s: " + str(matches), -2, "Debugging")
         log("Unable to match a substring to a %s." % field, -1, "Debugging")

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Provides the Track class represent one audio file.
 
 Multiple Track objects are created by a Release object. Then, for each field
@@ -117,6 +119,8 @@ class Track(object):
         if not os.path.exists(newPath):
             log("Renaming " + quote(oldBaseName) + " to " + quote(newBaseName), 5, "Details")
             shutil.move(self.filePath, newPath)
+        elif newBaseName == oldBaseName:
+            log("Old filename is correct. No renaming necessary.", 5, "Details")
         else:
             log("Cannot rename " + quote(oldBaseName) + ". There already exists a file with the target filename.", 5, "Errors")
             log("Target filename: " + quote(newBaseName), 6, "Debugging")
