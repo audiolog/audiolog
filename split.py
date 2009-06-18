@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Support for splitting audio in which one disc of audio is in one file.
 
 This file provides functions to split audio in one of two ways: based on a CUE

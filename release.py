@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Provides the Release class which oversees the tagging of one disc of audio.
 
 The Release, along with the Track objects it contains, control the entirety of 

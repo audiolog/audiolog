@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Extraction support for multiple archive formats.
 
 This is file provides one function, extract, which takes a list of archive

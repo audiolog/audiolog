@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Audio conversion support for multiple audio formats.
 
 The convert function is called by traverse if audio in an undesirable format

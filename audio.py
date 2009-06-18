@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Wrapper around the functionality provided by release.
 
 This file instantiates a release object then invokes its mainloop. If the

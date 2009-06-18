@@ -1,10 +1,16 @@
+2009-06-17  Rob Nagle
+
+    * multiple files: Added encoding utf-8 to all Python files which did
+    not yet have it.
+    
 2009-06-17  Matt Hubert
     
-    * Track (rename): Added check to not attempt to rename file if it is already
-    correct (which ended up rejecting the release).
+    * Track (rename): Added check to not attempt to rename file if it is
+    already correct (which ended up rejecting the release).
     
-    * MainWindow (MainWindow): Re-branded HandleIt as Azul. Cleaned up some spaces,
-    spammed various files with encoding: utf-8. Fixed "Exit" so it actually works.
+    * MainWindow (MainWindow): Re-branded HandleIt as Azul. Cleaned up some
+    spaces, spammed various files with encoding: utf-8. Fixed "Exit" so it
+    actually works.
     
     * GUI: Deleted. Code already in MainWindow.
     

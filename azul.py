@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """HandleIt program launcher.
 
 This file has only one function: to start the GUI."""

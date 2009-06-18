@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 import os
@@ -39,6 +38,6 @@ def test_standardizeFilenames():
             for (givenName, expectedName) in itemNamePairs:
                 givenPath = os.path.join(baseDirPath, givenName)
                 expectedPath = os.path.join(baseDirPath, expectedName)
-                assert clean.standardizeFilenames([givenPath]) == [expectedPath]
+                assert clean.standardizeFilenames([givenPath], False) == [expectedPath]
                 
     

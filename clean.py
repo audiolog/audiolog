@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Functions to apply filename standards and to handle images and misc files.
 
 This file has two main purposes: to handle images and miscellaneous files and 
@@ -35,7 +37,7 @@ def cleanDir(filePaths):
     
     functions.deleteItems(filePaths)
             
-def standardizeFilenames(itemPaths):
+def standardizeFilenames(itemPaths, rename=True):
     """Take file or dir paths; rename them to meet standards; return new paths.
     
     The current standards being enforced in order of appearance:
@@ -82,7 +84,7 @@ def standardizeFilenames(itemPaths):
         newItemPath = os.path.join(directoryPath, newItemName)
         if newItemPath != itemPath:
             log("Renaming " + quote(itemName) + " to " + quote(newItemName), -1, "Debugging") 
-            shutil.move(itemPath, newItemPath)
+            if rename: shutil.move(itemPath, newItemPath)
             itemPaths[i] = newItemPath
             
     return itemPaths

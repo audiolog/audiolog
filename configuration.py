@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """All the global settings which affect how the program runs.
 
 These settings are accessed throughout the program to determine what to do,

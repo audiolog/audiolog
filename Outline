@@ -38,7 +38,7 @@ Functions used across multiple files                            functions.py
 Pausing and stopping                                            flowcontrol.py
 
 Procedural Steps and Files
-Main program file, starts the GUI                               handleit.py
+Main program file, starts the GUI                               azul.py
 Traverse through folders calling need functions                 traverse.py
     (If necessary) Extract archives                             extract.py
     (If necessary) Convert (or delete) unwanted music formats   convert.py

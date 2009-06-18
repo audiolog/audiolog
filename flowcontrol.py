@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Communication between threads and flow control.
 
 This file contains functions to stop or pause the handler thread.
