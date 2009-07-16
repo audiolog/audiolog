@@ -13,7 +13,6 @@ If the user makes changes and clicks Cancel, the current values in
 configuration are read back into the dialog widgets."""
 
 import os
-import pickle
 from functools import partial
 
 from PyQt4.QtCore import *
@@ -28,8 +27,6 @@ class ConfigurationDialog(QDialog):
         super(ConfigurationDialog, self).__init__(parent)
         self.setWindowTitle("Configure Azul")
         
-        self.configFileName = ".azul"
-
         # Tabs
         self.pathsFrame = PathsFrame(self)
         self.optionsFrame = OptionsFrame(self)
@@ -55,27 +52,27 @@ class ConfigurationDialog(QDialog):
     def readCurrent(self):
         """Read the current values in configuration into dialog widgets."""
         
-        config = self.loadConfigFile(self.configFileName)
+        configuration.loadConfigFile()
         
         # Actions
-        self.optionsFrame.extractCheck.setChecked(config["ACTIONS"]["EXTRACT"])
-        self.optionsFrame.imageCheck.setChecked(config["ACTIONS"]["IMAGE"])
-        self.optionsFrame.cleanCheck.setChecked(config["ACTIONS"]["CLEAN"])
-        self.optionsFrame.convertCheck.setChecked(config["ACTIONS"]["CONVERT"])
-        self.optionsFrame.splitCheck.setChecked(config["ACTIONS"]["SPLIT"])
-        self.optionsFrame.audioCheck.setChecked(config["ACTIONS"]["AUDIO"])
+        self.optionsFrame.extractCheck.setChecked(configuration.ACTIONS["EXTRACT"])
+        self.optionsFrame.imageCheck.setChecked(configuration.ACTIONS["IMAGE"])
+        self.optionsFrame.cleanCheck.setChecked(configuration.ACTIONS["CLEAN"])
+        self.optionsFrame.convertCheck.setChecked(configuration.ACTIONS["CONVERT"])
+        self.optionsFrame.splitCheck.setChecked(configuration.ACTIONS["SPLIT"])
+        self.optionsFrame.audioCheck.setChecked(configuration.ACTIONS["AUDIO"])
         
         # Settings
-        self.optionsFrame.recurseCheck.setChecked(config["SETTINGS"]["RECURSE"])
-        self.optionsFrame.deleteCheck.setChecked(config["SETTINGS"]["DELETE"])
-        self.optionsFrame.getPUIDCheck.setChecked(config["SETTINGS"]["GET_PUID"])
+        self.optionsFrame.recurseCheck.setChecked(configuration.SETTINGS["RECURSE"])
+        self.optionsFrame.deleteCheck.setChecked(configuration.SETTINGS["DELETE"])
+        self.optionsFrame.getPUIDCheck.setChecked(configuration.SETTINGS["GET_PUID"])
         
         # Paths
-        self.pathsFrame.baseDirPath.setText(config["PATHS"]["BASE_DIR"])
-        self.pathsFrame.rejectsPath.setText(config["PATHS"]["REJECTS"])
-        self.pathsFrame.deletesPath.setText(config["PATHS"]["DELETES"])
-        self.pathsFrame.sortedPath.setText(config["PATHS"]["SORTED"])
-        self.pathsFrame.toScanPath.setText(config["PATHS"]["TO_SCAN"][0])
+        self.pathsFrame.baseDirPath.setText(configuration.PATHS["BASE_DIR"])
+        self.pathsFrame.rejectsPath.setText(configuration.PATHS["REJECTS"])
+        self.pathsFrame.deletesPath.setText(configuration.PATHS["DELETES"])
+        self.pathsFrame.sortedPath.setText(configuration.PATHS["SORTED"])
+        self.pathsFrame.toScanPath.setText(configuration.PATHS["TO_SCAN"][0])
 
     def applyChanges(self):
         """Read the content of dialog widgets into configuration then hide dialog."""
@@ -99,34 +96,16 @@ class ConfigurationDialog(QDialog):
         configuration.PATHS["DELETES"] = str(self.pathsFrame.deletesPath.text())
         configuration.PATHS["SORTED"] = str(self.pathsFrame.sortedPath.text())
         
-        toScanPath = str(self.pathsFrame.toScanPath.text())
-        if toScanPath and toScanPath not in self.parent().directoryPathsToScan:
-            self.parent().directoryPathsToScan.append(toScanPath)
-            configuration.PATHS["TO_SCAN"][0] = toScanPath
+        configuration.PATHS["TO_SCAN"][0] = str(self.pathsFrame.toScanPath.text())
         
-        self.saveConfigFile(self.configFileName, {"ACTIONS": configuration.ACTIONS, "SETTINGS": configuration.SETTINGS, "PATHS": configuration.PATHS})
+        #toScanPath = str(self.pathsFrame.toScanPath.text())
+        #if toScanPath and toScanPath not in self.parent().directoryPathsToScan:
+            #self.parent().directoryPathsToScan.append(toScanPath)
+            #configuration.PATHS["TO_SCAN"][0] = toScanPath
+        
+        configuration.saveConfigFile()
         
         self.hide()
-    
-    def loadConfigFile(self, fileName):
-        """Unserialize the configuration at fileName and return it."""
-        
-        try:
-            f = open(fileName, "r")
-        except: # File probably doesn't exist yet.
-            return {"ACTIONS": configuration.ACTIONS, "SETTINGS": configuration.SETTINGS, "PATHS": configuration.PATHS} # Use the default values.
-        
-        config = pickle.load(f)
-        f.close()
-        
-        return config
-   
-    def saveConfigFile(self, fileName, config):
-        """Serialize configuration and save it to fileName."""
-        
-        f = open(fileName, "w")
-        pickle.dump(config, f)
-        f.close()
 
     def cancel(self):
         """Hide dialog; read from configuration to roll back changes in widgets."""

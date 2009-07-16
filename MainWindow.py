@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
     def manageFlow(self):
         """Start a thread if one is not running; toggle pause if one is."""
 
-        if not self.directoryPathsToScan:
+        if not self.directoryPathsToScan and not configuration.loadConfigFile():
             self.confDialog.show()
             return
         
@@ -86,7 +86,7 @@ class MainWindow(QMainWindow):
             self.running = True
             self.logFrame.clearLog()
 
-            args = {"directoryPathsToScan": self.directoryPathsToScan}
+            args = {"directoryPathsToScan": configuration.PATHS["TO_SCAN"]}
             self.handlerThread = threading.Thread(target=traverse.handleIt, kwargs=args)
             self.handlerThread.setDaemon(True)
             self.handlerThread.start()

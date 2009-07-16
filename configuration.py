@@ -11,6 +11,9 @@ not be taken; the categories of messages which the LogFrame is currently
 displaying; and multiple audio encoding qualities on a scale of 1 to 10."""
 
 import os
+import pickle
+
+configFileName = ".azul"
 
 # Types to Extensions
 typeToExts = {"archive"   : [".zip", ".rar", ".tar", ".gz", ".bz2", ".ace", ".7z"],
@@ -69,3 +72,28 @@ ENCODING_QUALITY = {
     "MEDIUM": 6,
     "LOW"   : 3
 }
+
+def loadConfigFile():
+    global ACTIONS, SETTINGS, PATHS
+    """Unserialize the configuration at fileName and return it."""
+    
+    try:
+        f = open(configFileName, "r")
+    except: # File probably doesn't exist yet.
+        return False
+    
+    config = pickle.load(f)
+    f.close()
+    
+    ACTIONS = config["ACTIONS"]
+    SETTINGS = config["SETTINGS"]
+    PATHS = config["PATHS"]
+    
+    return True
+   
+def saveConfigFile():
+    """Serialize configuration and save it to fileName."""
+    
+    f = open(configFileName, "w")
+    pickle.dump({"ACTIONS": ACTIONS, "SETTINGS": SETTINGS, "PATHS": PATHS}, f)
+    f.close()

@@ -1,3 +1,8 @@
+2009-07-15 Matt Hubert
+
+    * ConfigurationDialog, MainWindow, configuration: Fix #2808103 -
+	Configuration file isn't read on startup
+
 2009-06-17  Rob Nagle
 
     * multiple files: Added encoding utf-8 to all Python files which did

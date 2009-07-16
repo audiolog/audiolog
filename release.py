@@ -98,8 +98,8 @@ class Release(object):
         listed.sort(reverse=True)
         
         # Display the results
-        topScore, topValue = listed[0] 
-        log(str(listed), 6, "Debugging")  
+        topScore, topValue = listed[0]
+        log(str(listed), 6, "Debugging")
         log("topScore: " + str(topScore), 6, "Debugging")
         log("topValue: " + topValue, 6, "Debugging")
         
