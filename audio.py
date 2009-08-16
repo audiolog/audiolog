@@ -19,7 +19,7 @@ def handleAudio(directoryPath, audioFilePaths):
         releaseManager.run()
     except Manager.ReleaseManagerError, e:
         logger.log("Attempt to identify and tag audio failed.", "Errors")
-        logger.log(e__str__(), "Errors")
+        logger.log(e.__str__(), "Errors")
         functions.rejectItem(directoryPath)
     else:
         logger.log("Attempt to identify and tag audio succeeded.", "Successes")

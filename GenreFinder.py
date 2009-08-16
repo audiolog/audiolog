@@ -13,8 +13,8 @@ class GenreFinder(AbstractReleaseFinder):
         self.getters = [(self.getTag, 1)]               # In AbstractFinder
         # We can some usual getters (like Wikipedia) here...
         
-    def do(self, release):
-        """Overload do and always return True (successful)."""
+    def run(self, release):
+        """Overload run and always return True (successful)."""
         
-        AbstractReleaseFinder.do(self, release)
+        AbstractReleaseFinder.run(self, release)
         return True

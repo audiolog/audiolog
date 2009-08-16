@@ -21,7 +21,7 @@ class TitleFinder(AbstractTrackFinder):
     - Track total
     - Track number
     """
-        
+    
     fieldName = "title"
         
     def __init__(self):
