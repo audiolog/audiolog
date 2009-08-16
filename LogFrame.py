@@ -4,13 +4,12 @@
 
 The currently primary method of filtering messages is by category.
 The current message categories are:
-    Action
-    Success
-    Failure
+    Actions
+    Successes
+    Failures
     Errors
     Commands (to be run at console)
     Debugging"""
-
 
 from functools import partial
 
@@ -18,6 +17,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import configuration
+import logger
 
 class LogFrame(QFrame):
     """A versatile TextEdit for displaying program messages."""
@@ -37,29 +37,32 @@ class LogFrame(QFrame):
         self.textLog.setWordWrapMode(QTextOption.NoWrap)
         self.textLog.setMinimumHeight(360)
         self.setMinimumWidth(800)
-        self.connect(emitter, SIGNAL("AppendToLog"), self.appendToLog)
-        self.connect(emitter, SIGNAL("ClearLog"), self.clearLog)
+        self.connect(logger.emitter, SIGNAL("AppendToLog"), self.appendToLog)
+        self.connect(logger.emitter, SIGNAL("ClearLog"), self.clearLog)
         
         # Options Frame
         self.optionsFrame = QGroupBox("Logging Options", self)
         self.colorCodeCheck = QCheckBox("Color-Code by Category")
         self.connect(self.colorCodeCheck, SIGNAL("stateChanged(int)"), self.updateLog)
-        self.levelLabel = QLabel("Level:")
+        self.levelLabel = QLabel("Depth:")
         self.levelCombo = QComboBox()
         self.levelCombo.addItem("1 (Almost Nothing)")
         self.levelCombo.addItem("2")
         self.levelCombo.addItem("3")
-        self.levelCombo.addItem("4 (Recommended)")
+        self.levelCombo.addItem("4")
         self.levelCombo.addItem("5")
         self.levelCombo.addItem("6")
-        self.levelCombo.addItem("7")
-        self.levelCombo.addItem("8 (Everything)")
-        self.levelCombo.setCurrentIndex(3)
+        self.levelCombo.addItem("7 (Recommended)")
+        self.levelCombo.addItem("8")
+        self.levelCombo.addItem("9")
+        self.levelCombo.addItem("10 (Everything)")
+        self.levelCombo.setCurrentIndex(6)
         self.connect(self.levelCombo, SIGNAL("currentIndexChanged(int)"), self.updateLog)
         optionsFrameLayout = QGridLayout(self.optionsFrame)
         optionsFrameLayout.addWidget(self.colorCodeCheck, 0, 0, 1, 2)
         optionsFrameLayout.addWidget(self.levelLabel, 1, 0)
         optionsFrameLayout.addWidget(self.levelCombo, 1, 1)
+        self.level = 7
         
         # Control Frame
         self.controlFrame = QGroupBox("Categories to Display", self)
@@ -140,26 +143,3 @@ class LogFrame(QFrame):
         
         for checkbox in self.checkboxes:
             checkbox.setChecked(True)
-
-def log(message, level, category):
-    """Emit AppendToLog signal."""
-    
-    global lastLevel
-    
-    if level < 0:
-        level = lastLevel-level
-    else:
-        lastLevel = level
-    
-    if message[0] == "\n":
-        message = "\n" + "    "*level + message
-    else:
-        message = "    "*level + message
-        
-    if message[-1] != "." and message[-1] != "\n":
-        message += "."
-        
-    emitter.emit(SIGNAL("AppendToLog"), message, level, category)
-
-emitter = QObject()
-lastLevel = 0

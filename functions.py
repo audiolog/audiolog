@@ -11,9 +11,11 @@ import os
 import shutil
 import subprocess
 import string
+import datetime
 
 import configuration
-from LogFrame import log
+import logger
+from utils import *
 
 #-------------------------------------------
 # Accepting, rejecting and deleting functions
@@ -27,24 +29,27 @@ def moveWithContext(currentItemPath, destDirectoryPath):
     Current file: "/media/Ext/Download/Rock/College Rock/Morrissey/disco.rar" 
     Destination directory: REJECTS folder "/media/Ext/Rejects/"
     Final path: "/media/Ext/Rejects/Rock/College Rock/Morissey/disco.rar" """
-    
+
+    logger.startSection()
     if not validatePath(currentItemPath):
-        log("Could not move with context " + quote(currentItemPath) + " -- not a valid path.", -2, "Failures")
+        logger.log("Could not move with context " + quote(currentItemPath) + " -- not a valid path.", "Failures")
         return
     else:
-        log("Moving with context " + quote(currentItemPath), -2, "Actions")
+        logger.log("Moving with context %s." % quote(currentItemPath), "Actions")
     
     newItemPath = currentItemPath.replace(configuration.PATHS["CURRENT"], destDirectoryPath)
     newDirectoryPath = os.path.dirname(newItemPath)
     
     if not os.path.exists(newDirectoryPath):
         os.makedirs(newDirectoryPath)
-    
+
+    logger.startSection()
     if not os.path.exists(newItemPath):
-        log("Moving to" + quote(newItemPath), -3, "Details")
+        logger.log("Moving to %s." % quote(newItemPath), "Details")
         shutil.move(currentItemPath, newItemPath)
     else:
-        log("Could not move. Destination path " + quote(newItemPath) + " already exists", -3, "Failures")
+        logger.log("Could not move. Destination path %s already exists." % quote(newItemPath), "Failures")
+    logger.endSection(2)
     
     # Remove the old containing directory if it's empty
     try: 
@@ -60,8 +65,9 @@ def acceptItem(itemPath, destDirectoryRelPath, depth=1):
         itemPath can point to a file or directory.
         destDirectoryRelPath is a path relative to the SORTED directory.
         depth is provided only when the function recursively calls itself."""
-    
-    log("Accepting " + quote(itemPath), -depth, "Actions")
+
+    logger.startSection()
+    logger.log("Accepting %s." % quote(itemPath), "Actions")
 
     # Create destination directory
     destDirectoryPath = os.path.join(configuration.PATHS["SORTED"], destDirectoryRelPath)
@@ -81,19 +87,25 @@ def acceptItem(itemPath, destDirectoryRelPath, depth=1):
             pass
 
     else:                                               # File
-        log("Moving: " + quote(itemPath), -depth-1, "Details")
-        log("Into directory: " + quote(destDirectoryPath), -depth-1, "Details")
+        logger.startSection()
+        logger.log("Moving: " + quote(itemPath), "Details")
+        logger.log("Into directory: " + quote(destDirectoryPath), "Details")
         try:
             shutil.move(itemPath, destDirectoryPath)
         except:
-            log("Move failed.", -depth-1, "Errors")
+            logger.log("Move failed.", "Errors")
+        logger.endSection()
+        
+    logger.endSection()
 
 
 def rejectItem(itemPath):
     """Move a file or directory to the REJECTS folder."""
-    
-    log("Rejecting " + quote(itemPath), -1, "Actions")
+
+    logger.startSection()
+    logger.log("Rejecting %s." % quote(itemPath), "Actions")
     moveWithContext(itemPath, configuration.PATHS["REJECTS"])
+    logger.endSection()
 
 
 def rejectItems(itemPaths):
@@ -105,31 +117,35 @@ def rejectItems(itemPaths):
 
 def actuallyDelete(itemPath):
     """Actually delete the item at itemPath."""
+
     
     if not validatePath(itemPath):
-        log("Could not delete " + quote(itemPath) + " -- not a valid path.", -2, "Failures")
+        logger.log("Could not delete %s -- not a valid path." % quote(itemPath), "Failures")
         return
     else:
-        log("Actually deleting " + quote(itemPath), -2, "Actions")
+        logger.log("Actually deleting %s." % quote(itemPath), "Actions")
+    logger.startSection()
     
     # Make sure we want to do this
     certainty = raw_input("Are you sure? (y) ")
     if certainty.lower() != "y":
         print "Deletion aborted"
         return
-    
+
+    logger.startSection()
     if os.path.isdir(itemPath):                 # Directory
         try: 
             os.rmdir(itemPath)
         except OSError:                         # TODO: Handle non-empty dirs
             s = "Attempt to delete the folder " + quote(itemPath) + " failed. "
             s += "It's probably not empty."
-            log(s, -3, "Errors")
+            logger.log(s, "Errors")
     else:                                       # File
         try: 
             os.remove(itemPath)
         except OSError:
-            log("Attempt to delete the file " + quote(itemPath) + " failed.", -3, "Errors")
+            logger.log("Attempt to delete the file " + quote(itemPath) + " failed.", "Errors")
+    logger.endSection()
 
 def deleteItem(itemPath, actuallyDelete=None):
     """Either delete or move to DELETES the file or directory at itemPath.
@@ -141,8 +157,9 @@ def deleteItem(itemPath, actuallyDelete=None):
         If actuallyDelete is not provided:
             The global deletion mode stored at configuration.SETTINGS["DELETE"]
             is used, where True and False have the same meanings as above."""
-    
-    log("Deleting" + quote(itemPath), -1, "Actions")    
+
+    logger.startSection()
+    logger.log("Deleting %s." % quote(itemPath), "Actions")
     
     if actuallyDelete is None: 
         actuallyDelete = configuration.SETTINGS["DELETE"]
@@ -151,6 +168,7 @@ def deleteItem(itemPath, actuallyDelete=None):
         actuallyDelete(itemPath)                
     else:
         moveWithContext(itemPath, configuration.PATHS["DELETES"])
+    logger.endSection()
                 
 def deleteItems(itemPaths, actuallyDelete=None):
     """Either delete or move to DELETES a list of items.
@@ -193,7 +211,7 @@ def moveDiscsIntoFolders(discContents):
     Takes a list of lists of paths. Each sublist contains the paths of the
     files that should be moved into that disc directory. The lists should be
     in order."""
-    
+
     directoryPath = os.path.dirname(discContents[0][0])
     numDiscs = len(discContents)
     numDigits = int(log10(numDiscs)+1)  # In case there are 10 (or more) discs
@@ -202,26 +220,30 @@ def moveDiscsIntoFolders(discContents):
         # Create disc directory
         discDirectoryName = "Disc " + str(i+1).rjust(numDigits, "0")
         discDirectoryPath = os.path.join(directoryPath, discDirectoryName)
-        log("Creating " + quote(discDirectoryPath), -1, "Details")
+        logger.log("Creating %s." % quote(discDirectoryPath), "Details")
         os.mkdir(discDirectoryPath)
         
         # Move files into disc directory
         for filePath in discContents[i]:
             newFilePath = filePath.replace(directoryPath, discDirectoryPath)
-            log("Moving " + quote(filePath) + " to " + quote(newFilePath), -1, "Details")
+            logger.log("Moving %s to %s." % (quote(filePath), quote(newFilePath)), "Details")
             shutil.move(filePath, newFilePath)
 
 def validatePath(itemPath, isDirectory=False, isFile=False):
     """Ensure the path exists and, if specified, is a file or directory."""
-    
+
+    logger.startSection()
     if not os.path.exists(itemPath):
-        log(quote(itemPath) + " does not exist or cannot be accessed.", -1, "Failures")
+        logger.log(quote(itemPath) + " does not exist or cannot be accessed.", "Failures")
+        logger.endSection()
         return False
     elif isDirectory and not os.path.isdir(itemPath):
-        log(quote(itemPath) + " is not a directory.", -1, "Failures")
+        logger.log(quote(itemPath) + " is not a directory.", "Failures")
+        logger.endSection()
         return False
     elif isFile and not os.path.isfile(itemPath):
-        log(quote(itemPath) + " is not a file", -1, "Failures")
+        logger.log(quote(itemPath) + " is not a file", "Failures")
+        logger.endSection()
         return False
     else:
         return True
@@ -252,51 +274,21 @@ def containingDir(filePath):
     dirPath = os.path.dirname(filePath)
     dirName = os.path.split(dirPath)[1]
     return dirName
-    
-def ext(filePath, lower=True):
-    """Return the extension of the file path or name, lowercased by default."""
-    
-    extension = os.path.splitext(filePath)[1]
-    if lower: 
-        extension = extension.lower()
-    return extension
 
-def quote(string):
-    """Return the string in quotes.
-    
-    This is used on file names and paths whenever they are shown to the user."""
-    
-    return '"%s"' % string
-    
-def aboutEqual(str1, str2):
-    """Return True if the strings are nearly or exactly equal, else False.
-    
-    To do this we lowercase both strings, strip them of punctuation and
-    whitespace, then compare for equality."""
-        
-    str1 = restrictChars(str1.lower(), True, True, False, False)
-    str2 = restrictChars(str2.lower(), True, True, False, False)
-    
-    return str1 == str2
-    
-def restrictChars(s, letters=True, digits=True, whitespace=True, punctuation=True, custom=None):
-    """Take a string and return that string stripped of all non-valid characters.
-    
-    This function is called before queries to MusicBrainz because MB barfs
-    when fed weird characters."""
-    
-    validChars = ""
-    if letters: validChars += string.letters
-    if digits: validChars += string.digits
-    if whitespace: validChars += string.whitespace
-    if punctuation: validChars += string.punctuation
-    if custom: validChars += custom
+#-------------------------------------------
+# Tagging functions
+#-------------------------------------------
 
-    t = ""
-    for ch in s:
-        if ch in validChars:
-            t += ch
-    
-    return t
-    
-    
+def isDate(date):
+    if date < 1600 or date > datetime.date.today().year + 1:
+        return False
+    else:
+        return True
+
+def isTrackNumber(number):
+    if number < 1 or number > 99:
+        return False
+    else:
+        return True
+
+

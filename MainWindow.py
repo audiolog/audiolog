@@ -1,10 +1,11 @@
+
 # -*- coding: utf-8 -*-
 
 """The HandleIt GUI main window.
 
 This file contains two classes: MainWindow, which subclasses QMainWindow, and 
 MenuBar, which subclasses QMenuBar. All other GUI files - currently LogFrame
-and ConfigurationDialog - are accessed through the main window. """
+and ConfigurationDialog - are accessed through the main window."""
 
 import threading
 from functools import partial
@@ -15,9 +16,9 @@ from PyQt4.QtGui import *
 import configuration
 import traverse
 import flowcontrol
+from LogFrame import LogFrame
 
 from ConfigurationDialog import ConfigurationDialog
-from LogFrame import LogFrame
 
 class MainWindow(QMainWindow):
     """The HandleIt GUI main window."""

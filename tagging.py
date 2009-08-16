@@ -25,9 +25,8 @@ from mutagen.oggvorbis import OggVorbis as Ogg
 from mutagen.easyid3 import EasyID3
 
 import functions
-from functions import ext
-from functions import quote
-from LogFrame import log
+import logger
+from utils import *
 
 #-------------------------------------------
 # MP3 Track Number and Total Helper Functions
@@ -56,7 +55,9 @@ def setMP3TrackTotal(filePath, value):
         trackData = u"/".join([listed[0], value])
         setTag(filePath, "tracknumber", trackData, False)
     else:
-        log("Failed to write tracktotal to " + quote(os.path.basename(filePath)), -1, "Failures")
+        logger.startSection()
+        logger.log("Failed to write tracktotal to " + quote(os.path.basename(filePath)), "Failures")
+        logger.setSection()
         
 def setMP3TrackNumber(filePath, value):
     combinedTrackData = getTag(filePath, "tracknumber", False)
@@ -73,6 +74,7 @@ def setMP3TrackNumber(filePath, value):
 
 def validField(field):
     """Convert MusicBrainz terminology to valid Mutagen terminology."""
+    
     if field == "release": 
         return "album"
     else: 
@@ -87,7 +89,9 @@ def openAudioFile(filePath):
     elif extension == ".ogg":
         return Ogg(filePath)
     else:
-        log("Attempt to open " + quote(filePath) + "failed. \nFile must be an MP3 or Ogg.", -1, "Errors")
+        logger.startSection()
+        logger.log("Attempt to open %s failed. File must be an MP3 or Ogg." % quote(filePath), "Errors")
+        logger.endSection()
         raise NotImplementedError
 
 
@@ -135,4 +139,6 @@ def clearTags(filePath):
         audioFile["tracknumber"] = u"00"
         audioFile.save()
     except mutagen.id3.error:
-        log("There was an error clearing the old ID3 tags.", -1, "Errors")
+        logger.startSection()
+        logger.log("There was an error clearing the old ID3 tags.", "Errors")
+        logger.endSection()

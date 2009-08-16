@@ -11,9 +11,8 @@ The currently supported formats are: zip, rar, tar, gzip, bzip2, and ace."""
 import os
 
 import functions
-from functions import ext
-from functions import quote
-from LogFrame import log
+import logger
+from utils import *
 
 extractorCommands = {".zip": 'unzip "$a" -d "$d"',
                      ".rar": 'unrar x "$a" "$d"',
@@ -40,14 +39,16 @@ def extract(archivePaths):
         command = extractorCommands[ext(archivePath)]
         command = command.replace("$a", archivePath)
         command = command.replace("$d", destDirectoryPath)
-        log("Attempting to extract " + quote(os.path.basename(archivePath)), 3, "Details")
-        log(command, 4, "Commands")
+        logger.log("Attempting to extract " + quote(os.path.basename(archivePath)), "Details")
+        logger.startSection()
+        logger.log(command, "Commands")
         result = os.system(command)
         
         if result != 0:
-            log("Unable to extract " + quote(archivePath), 4, "Errors") 
+            logger.log("Unable to extract " + quote(archivePath), "Errors")
             functions.deleteItem(destDirectoryPath)
             functions.rejectItem(archivePath)
         else:
-            log("Extraction succeeded.", 4, "Successes")
+            logger.log("Extraction succeeded.", "Successes")
             functions.deleteItem(archivePath)
+        logger.endSection()

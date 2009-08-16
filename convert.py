@@ -10,8 +10,8 @@ support is certain to be a popular demand if we release this publicly."""
 import os
 
 import functions
+import logger
 import configuration as c
-from LogFrame import log
 
 convertorCommands = {
     ".wav" : 'oggenc -q ' + str(c.ENCODING_QUALITY["HIGH"]) + ' "$$.wav"',
@@ -30,17 +30,20 @@ def convert(audioFilePaths):
         filePathWithoutExtension, extension = os.path.splitext(audioFilePath)
         command = convertorCommands[extension]
         command = command.replace("$$", filePathWithoutExtension)
-        log("Attempting to convert " + quote(os.path.basename(audioFilePath)), 3, "Details")
-        log(command, 4, "Commands")
+        logger.log("Attempting to convert " + quote(os.path.basename(audioFilePath)), "Details")
+        logger.startSection()
+        logger.log(command, "Commands")
         result = os.system(command)
         
         if result == 0:
-            log("Attempt to convert succeeded.", 4, "Successes")
+            logger.log("Attempt to convert succeeded.", 4, "Successes")
             functions.deleteItem(audioFilePath)
         else:
-            log("Attempt to convert failed.", 4, "Errors")
+            logger.log("Attempt to convert failed.", 4, "Errors")
             functions.rejectItem(audioFilePath)
         
         if extension == ".ape" or extension == ".mpc":
             functions.deleteItem(filePathWithoutExtension + ".wav", True)
+
+        logger.endSection()
         

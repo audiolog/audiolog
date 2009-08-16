@@ -1,7 +1,18 @@
-2009-07-15 Matt Hubert
+2009-08-15  Matt Hubert and Rob Nagle
+
+    * Everything: Extensive refactoring and architectural changes. Everything
+    relating to metadata finding and analyzing was completely re-written
+    to be more extensible and robust. Now metadata fields can be retrieved
+    using almost any combination of previously known data through MusicBrainz.
+    Additionally, fields can be retrieved in any order to take advantage of
+    data obtained from previous fields.
+    
+    Fixed bugs #2808110, #2808121, #2808117.
+
+2009-07-15  Matt Hubert
 
     * ConfigurationDialog, MainWindow, configuration: Fix #2808103 -
-	Configuration file isn't read on startup
+    Configuration file isn't read on startup
 
 2009-06-17  Rob Nagle
 

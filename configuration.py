@@ -56,7 +56,7 @@ ACTIONS = {
 }
 
 # Logging 
-LOGGING = {
+"""LOGGING = {
     "Actions"  : True,
     "Successes": False,
     "Failures" : True,
@@ -64,7 +64,17 @@ LOGGING = {
     "Details"  : False,
     "Commands" : False,
     "Debugging": False
+}"""
+LOGGING = {
+    "Actions"  : True,
+    "Successes": True,
+    "Failures" : True,
+    "Errors"   : True,
+    "Details"  : True,
+    "Commands" : True,
+    "Debugging": True
 }
+    
 
 # Encoding Qualities
 ENCODING_QUALITY = {

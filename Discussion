@@ -37,6 +37,19 @@ ConfigurationFrame class
             
 
 
+# Dependencies
+#---------------------------------------------
+Extracting
+    tar
+    unrar
+    unace
+Converting
+    oggenc (Provided by package "vorbis-tools")
+    mpc123
+    mac (No known package, must be compiled)
+getPUID
+    lame
+
 
 
 

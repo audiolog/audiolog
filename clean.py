@@ -14,9 +14,8 @@ import shutil
 
 import configuration
 import functions
-
-from functions import quote
-from LogFrame import log
+import logger
+from utils import *
 
 def handleImages(imagePaths):
     """Delete or rename images based on quantity.
@@ -83,7 +82,7 @@ def standardizeFilenames(itemPaths, rename=True):
         newItemName = root + extension.lower()
         newItemPath = os.path.join(directoryPath, newItemName)
         if newItemPath != itemPath:
-            log("Renaming " + quote(itemName) + " to " + quote(newItemName), -1, "Debugging") 
+            logger.log("Renaming " + quote(itemName) + " to " + quote(newItemName), "Debugging")
             if rename: shutil.move(itemPath, newItemPath)
             itemPaths[i] = newItemPath
             

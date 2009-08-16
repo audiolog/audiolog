@@ -24,20 +24,21 @@ import clean
 import convert
 import split
 import audio
+import logger
 
-from functions import ext
-from functions import quote
+from utils import *
 from flowcontrol import emitter
-from LogFrame import log
 
 def handleIt(directoryPathsToScan):
     """Call traverse on directories; when run ends for any reason inform GUI."""
     
     try:
         for directoryPath in directoryPathsToScan:  
-            log("Traversing " + quote(directoryPath), 0, "Actions")
+            logger.log("Traversing " + quote(directoryPath), "Actions")
+            logger.startSection()
             configuration.PATHS["CURRENT"] = directoryPath
             traverse(directoryPath, True)
+            logger.endSection()
     except flowcontrol.StopException:
         emitter.emit(SIGNAL("RunEnded"), "stopped")
     except:
@@ -63,43 +64,61 @@ def traverse(directoryPath, initialCall=False, rescan=False):
 
     # Execute proper actions
     if not rescan:
-        log("\nHandling " + quote(directoryPath), 1, "Actions")    
+        logger.log("\nHandling %s." % quote(directoryPath), "Actions")
+        logger.startSection()
     
     if configuration.ACTIONS["IMAGE"] and "image" in filePathsByType:           # Rename/delete image(s)
-        log("Handling images", 2, "Actions")
+        logger.log("Handling images.", "Actions")
+        logger.startSection()
         clean.handleImages(filePathsByType["image"])
+        logger.endSection()
         
     if configuration.ACTIONS["CLEAN"] and "other" in filePathsByType:           # Delete extra files
-        log("Deleting extra files", 2, "Actions")
+        logger.log("Deleting extra files.", "Actions")
+        logger.startSection()
         clean.cleanDir(filePathsByType["other"])
+        logger.endSection()
     
     if configuration.ACTIONS["EXTRACT"] and "archive" in filePathsByType:       # Extract archives
-        log("Extracting archives then scanning directory again", 2, "Actions")
+        logger.log("Extracting archives then scanning directory again.", "Actions")
+        logger.startSection()
         extract.extract(filePathsByType["archive"])
-        traverse(directoryPath, rescan=True)
+        logger.endSection(2)
+        traverse(directoryPath, initialCall=initialCall, rescan=True)
         return
         
     if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to Ogg
-        log("Converting audio to Ogg then scanning again", 2, "Actions")
+        logger.log("Converting audio to Ogg then scanning again.", "Actions")
+        logger.startSection()
         convert.convert(filePathsByType["bad_audio"])
-        traverse(directoryPath, rescan=True)
+        logger.endSection(2)
+        traverse(directoryPath, initialCall=initialCall, rescan=True)
         return
     
     if not "good_audio" in filePathsByType:                                     # Continue if audio present
         if not initialCall:
-            log("No audio found in " + quote(directoryPath), 2, "Actions")
+            logger.log("No audio found in %s." % quote(directoryPath), "Actions")
+            logger.startSection()
             functions.deleteItem(directoryPath)
+            logger.endSection(2)
         return
                                                    
     if configuration.ACTIONS["SPLIT"] and "cue" in filePathsByType:             # Split based on cue
-        log("Splitting audio into tracks then scanning again", 2, "Actions")
+        logger.log("Splitting audio into tracks then scanning again.", "Actions")
+        logger.startSection()
         split.split(filePathsByType["cue"], filePathsByType["good_audio"])
-        traverse(directoryPath)
+        logger.endSection(2)
+        traverse(directoryPath, initialCall=initialCall, rescan=True)
         return
         
     if configuration.ACTIONS["AUDIO"]:                                          # Handle audio
-        log("Applying filename conventions", 2, "Actions")
+        logger.log("Applying filename conventions.", "Actions")
+        logger.startSection()
         audioPaths = clean.standardizeFilenames(filePathsByType["good_audio"])
-        log("Handling audio", 2, "Actions")
+        logger.endSection()
+        
+        logger.log("Handling audio.", "Actions")
+        logger.startSection()
         audio.handleAudio(directoryPath, audioPaths)
+        logger.endSection(2)
 
