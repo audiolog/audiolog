@@ -1,5 +1,17 @@
+# -*- coding: utf-8 -*-
 import os
 import string
+
+def translateForFilename(fileName):
+    """Replace special filesystem characters with dashes when renaming files.
+    This would have been nice as str.translate, but unfortunately that doesn't
+    work for Unicode."""
+    
+    fileName = fileName.replace("/", "-")
+    fileName = fileName.replace("\\", "-")
+    fileName = fileName.replace(":", "-")
+    
+    return fileName
 
 def ext(filePath, lower=True):
     """Return the extension of the file path or name, lowercased by default."""

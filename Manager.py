@@ -198,8 +198,8 @@ class ReleaseManager(object):
         
         metadata = self.release.metadata
         genre = metadata.get("genre", "[None]")
-        return os.path.join(genre, metadata["artist"],
-            "%s - %s" % (metadata["date"], metadata["release"]) )
+        return os.path.join(translateForFilename(genre), translateForFilename(metadata["artist"]),
+            "%s - %s" % (metadata["date"], translateForFilename(metadata["release"])) )
 
 class Release(object):
     """Represents one audio release.
@@ -265,7 +265,7 @@ class Track(object):
         """Rename the file to [tracknumber] - [title].[ext]."""
 
         newBaseName = self.metadata["tracknumber"].rjust(2, u"0")
-        newBaseName += " - " + self.metadata["title"]
+        newBaseName += " - " + translateForFilename(self.metadata["title"])
         oldBaseName, ext = os.path.splitext(self.fileName)
         newPath = self.filePath.replace(oldBaseName, newBaseName)
         if not os.path.exists(newPath):

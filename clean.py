@@ -27,7 +27,7 @@ def handleImages(imagePaths):
         imagePath = imagePaths[0]
         imageName = os.path.basename(imagePath)
         root, ext = os.path.splitext(imageName)
-        shutil.move(imagePath, imagePath.replace(root, "cover"))
+        shutil.move(imagePath, translateForFilename(imagePath.replace(root, "cover")))
     else:
         functions.deleteItems(imagePaths)
 
