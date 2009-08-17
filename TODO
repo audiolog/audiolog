@@ -4,6 +4,7 @@
     - Think of various input sources and formats input can come in
     - Think of use cases
 
+ * Use durations when searching for tracks
 
  * Notice and Where Possible Resolve Potential Problems
      - Handle invalid filename characters:
@@ -18,6 +19,7 @@
         - If we just have a duplicate, pick the best to keep and delete the other
         - If a track is missing, reject the folder
 
+ * If a track is repeated, select the better version
 
  * Find out why Nina Simone doesn't work
 

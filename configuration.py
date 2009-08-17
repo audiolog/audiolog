@@ -12,8 +12,14 @@ displaying; and multiple audio encoding qualities on a scale of 1 to 10."""
 
 import os
 import pickle
+import platform
 
-configFileName = ".azul"
+LOCAL_OS = platform.system()
+
+if LOCAL_OS == "Windows":
+    configFileName = "azul.conf"
+else:
+    configFileName = ".azul"
 
 # Types to Extensions
 typeToExts = {"archive"   : [".zip", ".rar", ".tar", ".gz", ".bz2", ".ace", ".7z"],

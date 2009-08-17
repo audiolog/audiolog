@@ -36,13 +36,16 @@ class TrackNumberFinder(AbstractTrackFinder):
             Can Use: A release, an artist"""
         
         logger.log("Searching for tracknumber in MusicBrainz using the currently known data.", "Actions")
-        
-        # Required condition
-        if not "title" in track.metadata:
-            return None
-        
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, None, track, ["title", "artist", "release"])
+
+        if not "title" in track.metadata:
+            logger.log("Attempt failed because our currently known data does not include the field we need -- the track title.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, None, track, ["title", "artist", "release"])
+            if result:
+                result = result.zfill(2)
+            
         logger.endSection()
         return result
     
@@ -50,17 +53,21 @@ class TrackNumberFinder(AbstractTrackFinder):
         """Query MB using known data and the current tag."""
         
         logger.log("Attempting to match the current tracknumber tag value with MusicBrainz using the currently known data.", "Actions")
-        tracknumberTag = tagging.getTag(track.filePath, "tracknumber")
-        
-        if not tracknumberTag:
-            return None
-        
-        # Required condition
-        if not "title" in track.metadata:
-            return None
-        
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, tracknumberTag, track, ["title", "artist", "release", "tracknumber"])
+
+        tracknumberTag = tagging.getTag(track.filePath, "tracknumber")
+
+        if not tracknumberTag:
+            logger.log("Attempt failed because current tag is empty.", "Failures")
+            result = None
+        elif not "title" in track.metadata:
+            logger.log("Attempt failed because our currently known data does not include the field we need -- the track title.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, tracknumberTag, track, ["title", "artist", "release", "tracknumber"])
+            if result:
+                result = result.zfill(2)
+        
         logger.endSection()
         return result
     
@@ -71,6 +78,6 @@ class TrackNumberFinder(AbstractTrackFinder):
         match = tracknum.search(track.fileName)
         if match:
             digits = match.group()
-            return unicode(digits).rjust(2, u"0")
+            return unicode(digits).zfill(2)
         else:
             return None

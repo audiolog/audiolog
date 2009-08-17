@@ -56,7 +56,7 @@ def setMP3TrackTotal(filePath, value):
         setTag(filePath, "tracknumber", trackData, False)
     else:
         logger.startSection()
-        logger.log("Failed to write tracktotal to " + quote(os.path.basename(filePath)), "Failures")
+        logger.log("Failed to write tracktotal to %s." % quote(os.path.basename(filePath)), "Failures")
         logger.setSection()
         
 def setMP3TrackNumber(filePath, value):
@@ -89,9 +89,9 @@ def openAudioFile(filePath):
     elif extension == ".ogg":
         return Ogg(filePath)
     else:
-        logger.startSection()
+        #logger.startSection()
         logger.log("Attempt to open %s failed. File must be an MP3 or Ogg." % quote(filePath), "Errors")
-        logger.endSection()
+        #logger.endSection()
         raise NotImplementedError
 
 
@@ -139,6 +139,6 @@ def clearTags(filePath):
         audioFile["tracknumber"] = u"00"
         audioFile.save()
     except mutagen.id3.error:
-        logger.startSection()
+        #logger.startSection()
         logger.log("There was an error clearing the old ID3 tags.", "Errors")
-        logger.endSection()
+        #logger.endSection()

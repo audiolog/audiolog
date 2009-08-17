@@ -233,20 +233,19 @@ def validatePath(itemPath, isDirectory=False, isFile=False):
     """Ensure the path exists and, if specified, is a file or directory."""
 
     logger.startSection()
+    
+    result = False
     if not os.path.exists(itemPath):
         logger.log(quote(itemPath) + " does not exist or cannot be accessed.", "Failures")
-        logger.endSection()
-        return False
     elif isDirectory and not os.path.isdir(itemPath):
         logger.log(quote(itemPath) + " is not a directory.", "Failures")
-        logger.endSection()
-        return False
     elif isFile and not os.path.isfile(itemPath):
         logger.log(quote(itemPath) + " is not a file", "Failures")
-        logger.endSection()
-        return False
     else:
-        return True
+        result = True
+
+    logger.endSection()
+    return result
 
 def filePathsByExt(filePaths):
     """Take a list of file paths; return a dictionary of extensions to paths."""
@@ -290,5 +289,4 @@ def isTrackNumber(number):
         return False
     else:
         return True
-
 

@@ -30,18 +30,21 @@ class TrackTotalFinder(AbstractReleaseFinder):
     def getMBKnownData(self, track):
         """Query MB using known data.
         
-        To find a date we...
+        To find a tracktotal we...
             Need: A release
             Can Use: A date, an artist"""
         
         logger.log("Searching for tracktotal in MusicBrainz using the currently known data.", "Actions")
-        
-        # Required condition
-        if not "release" in track.metadata:
-            return None
-        
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, None, track, ["release", "artist", "date"])
+        
+        if not "release" in track.metadata:
+            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, None, track, ["release", "artist", "date"])
+            if result:
+                result = result.zfill(2)
+
         logger.endSection()
         return result
     
@@ -49,38 +52,43 @@ class TrackTotalFinder(AbstractReleaseFinder):
         """Query MB using known data and the current tag."""
         
         logger.log("Attempting to match the current tracktotal tag value with MusicBrainz using the currently known data.", "Actions")
+        logger.startSection()
         
         tracktotalTag = tagging.getTag(track.filePath, "tracktotal")
         
         if not tracktotalTag:
-            return None
-        
-        # Required condition
-        if not "release" in track.metadata:
-            return None
-        
-        logger.startSection()
-        result = getters.mbInterface(self.fieldName, tracktotalTag, track, ["release", "artist", "date", "tracktotal"])
+            logger.log("Attempt failed because current tag is empty.", "Failures")
+            result = None
+        elif not "release" in track.metadata:
+            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, tracktotalTag, track, ["release", "artist", "date", "tracktotal"])
+            if result:
+                result = result.zfill(2)
+            
         logger.endSection()
         return result
     
     def getNumTracksInDir(self, track):
-        """Return number of tracks in directory as unicode."""
+        """Return number of tracks in directory as left-zero-padded unicode string."""
         
-        return unicode(len(track.parent.tracks))
+        return unicode(len(track.parent.tracks)).zfill(2)
     
     def getMBNumTracksInDir(self, track):
         """See if the number of tracks in the directory matches with MB."""
         
         logger.log("Attempting to match the number of tracks in the directory with MusicBrainz using the currently known data.", "Actions")
-        
-        # Required condition
-        if not "release" in track.metadata:
-            return None
-            
-        numTracks = self.getNumTracksInDir(track)
-        
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, numTracks, track, ["release", "artist", "date", "tracktotal"])
+        
+        if not "release" in track.metadata:
+            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            result = None
+        else:
+            numTracks = self.getNumTracksInDir(track)
+            result = getters.mbInterface(self.fieldName, numTracks, track, ["release", "artist", "date", "tracktotal"])
+            if result:
+                result = result.zfill(2)
+
         logger.endSection()
         return result

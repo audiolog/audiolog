@@ -51,18 +51,20 @@ class LogFrame(QFrame):
         self.levelCombo.addItem("3")
         self.levelCombo.addItem("4")
         self.levelCombo.addItem("5")
-        self.levelCombo.addItem("6")
-        self.levelCombo.addItem("7 (Recommended)")
+        self.levelCombo.addItem("6 (Recommended)")
+        self.levelCombo.addItem("7")
         self.levelCombo.addItem("8")
         self.levelCombo.addItem("9")
         self.levelCombo.addItem("10 (Everything)")
-        self.levelCombo.setCurrentIndex(6)
+        #self.levelCombo.addItem("11")
+        #self.levelCombo.addItem("12 (Everything)")
+        self.levelCombo.setCurrentIndex(5)
         self.connect(self.levelCombo, SIGNAL("currentIndexChanged(int)"), self.updateLog)
         optionsFrameLayout = QGridLayout(self.optionsFrame)
         optionsFrameLayout.addWidget(self.colorCodeCheck, 0, 0, 1, 2)
         optionsFrameLayout.addWidget(self.levelLabel, 1, 0)
         optionsFrameLayout.addWidget(self.levelCombo, 1, 1)
-        self.level = 7
+        self.level = 6
         
         # Control Frame
         self.controlFrame = QGroupBox("Categories to Display", self)
@@ -98,7 +100,7 @@ class LogFrame(QFrame):
     def addToLog(self, message, level, category):
         """Add to end of log while filtering and color-coding."""
         
-        colors = {"Actions"  : Qt.blue,
+        colors = {"Actions"  : Qt.black,
                   "Successes": Qt.green,
                   "Failures" : Qt.yellow,
                   "Errors"   : Qt.red,

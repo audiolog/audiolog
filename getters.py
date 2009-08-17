@@ -126,16 +126,12 @@ def getMBPUID(track, field):
         logger.log("Cannot perform lookup because we never found a PUID.", "Failures")
         return None
     
-    logger.log("Attempting to match the MusicDNS information with MusicBrainz.", "Actions")
-    logger.startSection()
-    
     query = mb.Query()
     params = [mb.TrackFilter(puid=track.PUID[2], limit=1)]
     result = queryMB(query.getTracks, params)
     
-    logger.endSection()
-    
     if not result:
+        logger.log("MusicBrainz did not recognize the PUID.", "Failures") 
         return None
     
     if field == "artist":
@@ -252,7 +248,7 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
     logger.startSection()
     
     # If that doesn't work, split string based on delimiters list
-    delimiters = r"[/()\-~+\[\]\{\}*]"   # In regular expression format
+    delimiters = r"[/()\-~+_\[\]\{\}*]"   # In regular expression format
     substrings = re.split(delimiters, match)
     
     # Strip whitespace and remove empty strings

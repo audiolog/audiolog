@@ -1,3 +1,25 @@
+2009-08-16  Robert Nagle
+
+    * Miscellaneous: Cleaned up old logging statements and other small things
+    throughout code.
+
+    * TrackNumberFinder, TrackTotalFinder (getters): All getters now return
+    tracknumber and tracktotals as two character left-zero-padded strings.
+    Fixed bug #2838618.
+
+    * Finders (getters): Changed logging statements in all finders. Before, if
+    a precondition (like the presence of an current tag) was not met, a getter
+    returned without logging anything. Now a message describing the search is
+    always logged and if a precondition is not met then a message is logged
+    describing why.
+
+    * configuration: Added a new variable LOCAL_OS which contains the string
+    returned by platform.system() which will usually be "Windows" or "Linux".
+
+    * configuration: Made the configuration filename conditional upon the
+    local OS. If the OS is Windows, the filename is "azul.conf", otherwise
+    (I'm using we're on a Unix-like system) it's ".azul".
+    
 2009-08-15  Matt Hubert and Rob Nagle
 
     * Everything: Extensive refactoring and architectural changes. Everything

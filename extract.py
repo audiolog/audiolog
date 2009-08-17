@@ -39,7 +39,7 @@ def extract(archivePaths):
         command = extractorCommands[ext(archivePath)]
         command = command.replace("$a", archivePath)
         command = command.replace("$d", destDirectoryPath)
-        logger.log("Attempting to extract " + quote(os.path.basename(archivePath)), "Details")
+        logger.log("Attempting to extract %s." % quote(os.path.basename(archivePath)), "Details")
         logger.startSection()
         logger.log(command, "Commands")
         result = os.system(command)

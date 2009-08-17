@@ -82,7 +82,7 @@ def standardizeFilenames(itemPaths, rename=True):
         newItemName = root + extension.lower()
         newItemPath = os.path.join(directoryPath, newItemName)
         if newItemPath != itemPath:
-            logger.log("Renaming " + quote(itemName) + " to " + quote(newItemName), "Debugging")
+            logger.log("Renaming %s to %s." % (quote(itemName), quote(newItemName)), "Debugging")
             if rename: shutil.move(itemPath, newItemPath)
             itemPaths[i] = newItemPath
             

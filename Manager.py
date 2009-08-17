@@ -40,12 +40,14 @@ illustrated below. Each component uses the component(s) in the box below it.
 
 """
 
+import shutil
+
 import flowcontrol
 import logger
 import getters
 import functions
 import tagging
-import shutil
+import configuration
 from utils import *
 
 from ArtistFinder import ArtistFinder
@@ -105,14 +107,15 @@ class ReleaseManager(object):
                 logger.endSection()
                 
                 if not success:
-                    logger.log("Failed to determine the %s. Will try again next round.\n\n" % field, "Failures")
+                    logger.log("\nFailed to determine the %s. Will try again next round.\n\n" % field, "Failures")
                     self.nextRoundQueue.append(finder)
                 else:
-                    logger.log("Successfully determined the %s.\n\n" % field, "Successes")
+                    logger.log("\nSuccessfully determined the %s.\n\n" % field, "Successes")
             
             if self.queue == self.nextRoundQueue:
-                logger.log("No progress has been made. The metadata gathering process has failed.\n", "Failures")
-                raise ReleaseManagerError, "Unable to determine all metadata fields."
+                logger.log("No progress has been made. The metadata gathering process has failed.\n", "Errors")
+                failedFields = [finder.fieldName for finder in self.queue]
+                raise ReleaseManagerError, "Unable to determine: %s" % failedFields
             else:
                 self.queue = self.nextRoundQueue
                 self.nextRoundQueue = []
@@ -207,8 +210,13 @@ class Release(object):
         - the Track objects representing the tracks"""
     
     def __init__(self, directoryPath, audioFilePaths):
-        
+        getPUID = configuration.SETTINGS["GET_PUID"]:
+        if getPUID:
+            logger.log("Fingerprinting audio files and searching for matches in MusicDNS database.", "Actions")
+            logger.startSection()
         self.tracks = [Track(self, filePath) for filePath in audioFilePaths]
+        if getPUID:
+            logger.endSection()
         self.metadata = {}
         self.directoryPath = directoryPath
         self.directoryName = os.path.basename(directoryPath)

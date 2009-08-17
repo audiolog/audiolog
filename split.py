@@ -28,30 +28,36 @@ def split(cuePaths, audioFilePaths):
     directoryPath = os.path.dirname(cuePaths[0])
     
     if numCues != len(audioFilePaths):
-        logger.log("There are unequal numbers of cues and audio files in " + quote(directoryPath), "Errors")
+        logger.log("There are unequal numbers of cues and audio files in %s." % quote(directoryPath), "Errors")
         functions.rejectItem(directoryPath)
         return
 
     if numCues == 1:
-        logger.log("Splitting " + quote(os.path.basename(audioFilePaths[0])) + " based on " + quote(os.path.basename(cuePaths[0])), "Details")
+        cuePath = cuePaths[0]
+        audioFilePath = audioFilePaths[0]
+        
+        logger.log("Splitting %s based on %s." % (quote(os.path.basename(audioFilePath)), quote(os.path.basename(cuePath))), "Details")
         logger.startSection()
-        splitCommand = 'mp3splt -d "%s" -c "%s" "%s"' % (directoryPath, cuePaths[0], audioFilePaths[0])
+        
+        splitCommand = 'mp3splt -d "%s" -c "%s" "%s"' % (directoryPath, cuePath, audioFilePath)
         logger.log(splitCommand, "Commands")
-        result = os.system(splitCommand)        
+        result = os.system(splitCommand)
+
         if result == 0:
-            logger.log("Successfully split " + quote(audioFilePaths[0]), "Successes")
+            logger.log("Successfully split %s." % quote(audioFilePath), "Successes")
             logger.startSection()
-            functions.deleteItem(cuePaths[0])
-            functions.deleteItem(audioFilePaths[0])
+            functions.deleteItem(cuePath)
+            functions.deleteItem(audioFilePath)
+
         else:
-            logger.log("Unable to split " + quote(audioFilePaths[0]), "Failures")
-            logger.endSection()
-            functions.rejectItem(cuePaths[0])
-            functions.rejectItem(audioFilePaths[0])
+            logger.log("Unable to split %s." % quote(audioFilePath), "Failures")
+            logger.startSection()
+            functions.rejectItem(cuePath)
+            functions.rejectItem(audioFilePath)
         logger.endSection(2)
                            
     else: 
-        logger.log("Multiple cue/audio pairs in " + quote(directoryName), "Details")
+        logger.log("Multiple cue/audio pairs in %s." % quote(directoryName), "Details")
         pairs = [(audioFilePaths[i], cuePaths[i]) for i in range(numCues)]
         logger.startSection()
         functions.moveDiscsIntoFolders(pairs)

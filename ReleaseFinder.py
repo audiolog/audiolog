@@ -40,14 +40,15 @@ class ReleaseFinder(AbstractReleaseFinder):
             Can Use: Tracktotal"""
         
         logger.log("Searching for release in MusicBrainz using the currently known data.", "Actions")
-        
-        # Required condition
-        if not (("artist" in track.metadata) and 
-                ("date" in track.metadata or "title" in track.metadata)):
-            return None
-        
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, None, track, ["artist", "date", "tracks", "tracktotal"])
+        
+        if not (("artist" in track.metadata) and
+                ("date" in track.metadata or "title" in track.metadata)):
+            logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist AND the (date OR track titles).", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, None, track, ["artist", "date", "tracks", "tracktotal"])
+        
         logger.endSection()
         return result
     
@@ -55,17 +56,21 @@ class ReleaseFinder(AbstractReleaseFinder):
         """Query MB using known data and the current tag."""
         
         logger.log("Attempting to match the current release tag value with MusicBrainz using the currently known data.", "Actions")
+        logger.startSection()
         
         releaseTag = tagging.getTag(track.filePath, "release")
+        
         if not releaseTag:
-            return None
+            logger.log("Attempt failed because current tag is empty.", "Failures")
+            result = None
+        elif not ("artist" in track.metadata or
+                  "date" in track.metadata or
+                  "title" in track.metadata):
+            logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist or the date or the track titles.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, releaseTag, track, ["artist", "date", "tracks", "tracktotal"])
         
-        # Required condition
-        if not ("artist" in track.metadata or "date" in track.metadata or "title" in track.metadata):
-            return None
-        
-        logger.startSection()
-        result = getters.mbInterface(self.fieldName, releaseTag, track, ["artist", "date", "tracks", "tracktotal"])
         logger.endSection()
         return result
 
@@ -87,14 +92,17 @@ class ReleaseFinder(AbstractReleaseFinder):
         We look for the release name in the folder and file name."""
         
         logger.log("Attempting to match the filepath release tag value with MusicBrainz using the currently known data.", "Actions")
-        
-        # Required condition
-        if not ("artist" in track.metadata or "date" in track.metadata or "title" in track.metadata):
-            return None
-        
-        folderFilePath = self.getFilenameForMB(track)
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, folderFilePath, track, ["artist", "date", "tracks", "tracktotal"])
+        
+        if not ("artist" in track.metadata or
+                "date" in track.metadata or
+                "title" in track.metadata):
+            logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist or the date or the track titles.", "Failures")
+            result = None
+        else:
+            folderFilePath = self.getFilenameForMB(track)
+            result = getters.mbInterface(self.fieldName, folderFilePath, track, ["artist", "date", "tracks", "tracktotal"])
+        
         logger.endSection()
         return result
     

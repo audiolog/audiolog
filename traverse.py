@@ -34,7 +34,7 @@ def handleIt(directoryPathsToScan):
     
     try:
         for directoryPath in directoryPathsToScan:  
-            logger.log("Traversing " + quote(directoryPath), "Actions")
+            logger.log("Traversing %s." % quote(directoryPath), "Actions")
             logger.startSection()
             configuration.PATHS["CURRENT"] = directoryPath
             traverse(directoryPath, True)
@@ -100,7 +100,8 @@ def traverse(directoryPath, initialCall=False, rescan=False):
             logger.log("No audio found in %s." % quote(directoryPath), "Actions")
             logger.startSection()
             functions.deleteItem(directoryPath)
-            logger.endSection(2)
+            logger.endSection()
+        logger.endSection()
         return
                                                    
     if configuration.ACTIONS["SPLIT"] and "cue" in filePathsByType:             # Split based on cue
@@ -120,5 +121,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         logger.log("Handling audio.", "Actions")
         logger.startSection()
         audio.handleAudio(directoryPath, audioPaths)
-        logger.endSection(2)
+        logger.endSection()
+
+    logger.endSection()
 

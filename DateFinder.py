@@ -36,30 +36,33 @@ class DateFinder(AbstractReleaseFinder):
             Might Use: Tracknames"""
         
         logger.log("Searching for date in MusicBrainz using the currently known data.", "Actions")
-        
-        # Required condition
-        if not "release" in track.metadata:
-            return None
-        
         logger.startSection()
-        result = getters.mbInterface("date", None, track, ["release", "artist", "tracktotal"])
+        
+        if not "release" in track.metadata:
+            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface("date", None, track, ["release", "artist", "tracktotal"])
+
         logger.endSection()
         return result
     
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
-        
+
         logger.log("Attempting to match the current date tag value with MusicBrainz using the currently known data.", "Actions")
-        
-        dateTag = tagging.getTag(track.filePath, "date")
-        if not dateTag:
-            return None
-        
-        # Required condition
-        if not "release" in track.metadata:
-            return None
-        
         logger.startSection()
-        result = getters.mbInterface("date", dateTag, track, ["release", "artist", "tracktotal", "date"])
+
+        dateTag = tagging.getTag(track.filePath, "date")
+
+        if not dateTag:
+            logger.log("Attempt failed because current tag is empty.", "Failures")
+            result = None
+        elif not "release" in track.metadata:
+            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface("date", dateTag, track, ["release", "artist", "tracktotal", "date"])
+        
         logger.endSection()
         return result

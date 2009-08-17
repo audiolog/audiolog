@@ -30,16 +30,16 @@ def convert(audioFilePaths):
         filePathWithoutExtension, extension = os.path.splitext(audioFilePath)
         command = convertorCommands[extension]
         command = command.replace("$$", filePathWithoutExtension)
-        logger.log("Attempting to convert " + quote(os.path.basename(audioFilePath)), "Details")
+        logger.log("Attempting to convert %s." % quote(os.path.basename(audioFilePath)), "Details")
         logger.startSection()
         logger.log(command, "Commands")
         result = os.system(command)
         
         if result == 0:
-            logger.log("Attempt to convert succeeded.", 4, "Successes")
+            logger.log("Attempt to convert succeeded.", "Successes")
             functions.deleteItem(audioFilePath)
         else:
-            logger.log("Attempt to convert failed.", 4, "Errors")
+            logger.log("Attempt to convert failed.", "Errors")
             functions.rejectItem(audioFilePath)
         
         if extension == ".ape" or extension == ".mpc":

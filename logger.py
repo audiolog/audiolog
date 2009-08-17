@@ -9,19 +9,16 @@ def log(message, category):
     """Send message to LogFrame and, if on, the log buffer."""
     
     global lastLevel, bufferOn, logBuffer, emitter
-    #print "level, message:", (lastLevel, message)
     
     if message[0] == "\n":
-        message = "\n" + "    "*(lastLevel-3) + message[1:]
+        message = "\n" + "    "*(lastLevel) + message[1:]
     else:
-        message = "    "*(lastLevel-3) + message
+        message = "    "*(lastLevel) + message
     
     if bufferOn:
         logBuffer.append(message)
         
-    if lastLevel-3 < 0: level = 0
-    else: level = lastLevel-3 
-    emitter.emit(SIGNAL("AppendToLog"), message, level, category)
+    emitter.emit(SIGNAL("AppendToLog"), message, lastLevel, category)
 
 def startSection():
     """Increase indentation level."""

@@ -21,7 +21,7 @@ class TitleFinder(AbstractTrackFinder):
     - Track total
     - Track number
     """
-    
+        
     fieldName = "title"
         
     def __init__(self):
@@ -41,11 +41,10 @@ class TitleFinder(AbstractTrackFinder):
         logger.startSection()
         if track.PUID:
             result = track.PUID[1]
-            logger.log("Returning: %s" % result, "Successes")
         else:
+            logger.log("MusicDNS results are empty.", "Failures")
             result = None
-            logger.log("MusicDNS results are empty. Returning: None", "Failures")
-        
+            
         logger.endSection()
         return result
     
@@ -67,29 +66,34 @@ class TitleFinder(AbstractTrackFinder):
             Can Use: date, artist, tracktotal"""
 
         logger.log("Searching for title in MusicBrainz using the currently known data.", "Actions")
+        logger.startSection()
         
         if not ("release" in track.metadata and "tracknumber" in track.metadata):
-            return None
+            logger.log("Attempt failed because our currently known data does not include the fields we need -- the release and track number.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, None, track, ["release", "tracknumber", "date", "artist", "tracktotal"]) # We can use these extra fields because we are searching for a release, not a track.
         
-        logger.startSection()
-        result = getters.mbInterface(self.fieldName, None, track, ["release", "tracknumber", "date", "artist", "tracktotal"]) # We can use these extra fields because we are searching for a release, not a track.
         logger.endSection()
-        
         return result
     
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
         
         logger.log("Attempting to match the current title tag value with MusicBrainz using the currently known data.", "Actions")
-        titleTag = tagging.getTag(track.filePath, "title")
-        if not titleTag:
-            return None
-
-        if not ("release" in track.metadata and "tracknumber" in track.metadata):
-            return None
-        
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, titleTag, track, ["release", "tracknumber", "artist"]) # Here we're searching for a track.
+
+        titleTag = tagging.getTag(track.filePath, "title")
+
+        if not titleTag:
+            logger.log("Attempt failed because current tag is empty.", "Failures")
+            result = None
+        if not ("release" in track.metadata and "tracknumber" in track.metadata):
+            logger.log("Attempt failed because our currently known data does not include the fields we need -- the release and track number.", "Failures")
+            result = None
+        else:
+            result = getters.mbInterface(self.fieldName, titleTag, track, ["release", "tracknumber", "artist"]) # Here we're searching for a track.
+        
         logger.endSection()
         return result
     
@@ -107,13 +111,15 @@ class TitleFinder(AbstractTrackFinder):
         """Try to match the file name to a title using MB."""
         
         logger.log("Attempting to match the filepath release tag value with MusicBrainz using the currently known data.", "Actions")
-        if not ("release" in track.metadata and "tracknumber" in track.metadata):
-            return None
-        
-        fileName = self.getFilenameForMB(track)
-
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, fileName, track, ["release", "tracknumber", "artist"]) # Here we're searching for a track.
+        
+        if not ("release" in track.metadata and "tracknumber" in track.metadata):
+            logger.log("Attempt failed because our currently known data does not include the fields we need -- the release and track number.", "Failures")
+            result = None
+        else:
+            fileName = self.getFilenameForMB(track)
+            result = getters.mbInterface(self.fieldName, fileName, track, ["release", "tracknumber", "artist"]) # Here we're searching for a track.
+        
         logger.endSection()
         return result
     
