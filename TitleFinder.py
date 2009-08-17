@@ -129,11 +129,12 @@ class TitleFinder(AbstractTrackFinder):
         
         if "tracknumber" in track.metadata: # If we know the tracknumber, try to remove it...
             tracknumber = track.metadata["tracknumber"]
-            fileName = fileName.replace(tracknumber, "")
-        else: # ...otherwise, if the name starts with 1 or 2 digits, remove them.
-            tracknum = re.compile("(?<!\d)\d{1,2}(?=\D)")
-            match = tracknum.search(fileName)
-            if match:
-                fileName = fileName.replace(match.group(), "")
+            regex = re.compile("(?<!\d)[ _]*" + tracknumber + "(([ _]+(-|\)|\.)?)|([ _]*(-|\)|\.)))")
+        else: # ...otherwise, if the name starts with 1 or 2 digits, remove them plus the delimeter.
+            regex = re.compile("(?<!\d)[ _]*\d{1,2}(([ _]+(-|\)|\.)?)|([ _]*(-|\)|\.)))")
         
-        return fileName
+        match = regex.search(fileName)
+        if match:
+            fileName = fileName.replace(match.group(), "")
+        
+        return fileName.strip()

@@ -210,11 +210,13 @@ class Release(object):
         - the Track objects representing the tracks"""
     
     def __init__(self, directoryPath, audioFilePaths):
-        getPUID = configuration.SETTINGS["GET_PUID"]:
+        getPUID = configuration.SETTINGS["GET_PUID"]
         if getPUID:
             logger.log("Fingerprinting audio files and searching for matches in MusicDNS database.", "Actions")
             logger.startSection()
+        
         self.tracks = [Track(self, filePath) for filePath in audioFilePaths]
+        
         if getPUID:
             logger.endSection()
         self.metadata = {}

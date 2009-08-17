@@ -1,3 +1,7 @@
+2009-08-16  Matt Hubert
+
+    * TitleFinder: Fix #2838624 - getFilenameForMB should remove delimiters
+
 2009-08-16  Robert Nagle
 
     * Miscellaneous: Cleaned up old logging statements and other small things
