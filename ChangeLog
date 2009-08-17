@@ -1,6 +1,9 @@
 2009-08-16  Matt Hubert
 
     * TitleFinder: Fix #2838624 - getFilenameForMB should remove delimiters
+    
+    * Manager, clean, utils: Handle renaming files with filesystem-special
+    charactes (/ \ and :).
 
 2009-08-16  Robert Nagle
 
