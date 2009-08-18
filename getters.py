@@ -397,6 +397,11 @@ def mbQueryConstructor(field, match, prequeryFilter, postqueryFilter):
     if not results:
         return None
     
+    results = filterMBResults(field, results)
+    
+    if not results:
+        return None # I guess we removed all of the results...
+    
     logger.log("Applying postquery filter to MB results.", "Actions")
     logger.startSection()
     result = postProcessMB(results, **postqueryFilter)
@@ -480,6 +485,17 @@ def applyMBParams(queryFilter, params, match=None):
     
     return queryFilter(**newParams)
 
+def filterMBResults(field, results):
+    """Filter results that don't have the necessary information."""
+    
+    # Currently the only filtering we do is if we're looking for a date...
+    if field == "date":
+        for result in results:
+            if not result.getRelease().getEarliestReleaseDate():
+                results.remove(result)
+    
+    return results
+
 def postProcessMB(results, date=None, tracknumber=None, tracks=None):
     """Apply the postquery filter to the result returned by the MB query."""
     
@@ -503,10 +519,19 @@ def postProcessMB(results, date=None, tracknumber=None, tracks=None):
                 return None
         
         if tracknumber: # We have a release and track number and we want a track title.
-            finalResult = o_o(dateResult, finalResult)
-            releaseID = finalResult.getRelease().id
-            release = queryMB(query.getReleaseById, [releaseID, mb.ReleaseIncludes(tracks = True)])
-            return release.getTracks()[int(tracknumber) - 1]
+            if not dateResult:
+                for result in results:
+                    releaseID = result.getRelease().id
+                    release = queryMB(query.getReleaseById, [releaseID, mb.ReleaseIncludes(tracks = True)])
+                    if len(release.getTracks()) >= int(tracknumber):
+                        return release.getTracks()[int(tracknumber) - 1]
+            else:
+                releaseID = dateResult.getRelease().id
+                release = queryMB(query.getReleaseById, [releaseID, mb.ReleaseIncludes(tracks = True)])
+                if len(release.getTracks()) >= int(tracknumber):
+                    return release.getTracks()[int(tracknumber) - 1]
+            
+            return None
         
         if tracks and "title" in tracks[0].metadata: # Only should be used for looking up releases.
             success = False

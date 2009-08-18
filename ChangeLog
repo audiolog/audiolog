@@ -1,3 +1,10 @@
+2009-08-17  Matt Hubert
+
+	* getters: Made finding dates more robust. Now releases that don't
+	have a date get filtered out, and finding a title with only a date will
+	look through all applicable releases to find it. Fixes a crash if a
+	release has less tracks than in the directory.
+
 2009-08-16  Matt Hubert
 
     * TitleFinder: Fix #2838624 - getFilenameForMB should remove delimiters
