@@ -7,30 +7,11 @@
  * Use durations when searching for tracks
 
  * Notice and Where Possible Resolve Potential Problems
-     - Handle invalid filename characters:
-        : / \
      
      - Check that there is only one audio format present
         - If not, reject the folder
 
-     - Check to see if folder contains the correct amount of tracks (totaltracks)
-        - Also check to see that they are sequential (no: 12, 13, 15)
-        - And no repeats
-        - If we just have a duplicate, pick the best to keep and delete the other
-        - If a track is missing, reject the folder
-
  * If a track is repeated, select the better version
-
- * Find out why Nina Simone doesn't work
-
-
- * Improve Audio Identification
-     - Attempt to get more data from filename
-        - Artist
-    
-     - Improve getting the release
-        - Via artist & track
-
 
  * Handle More Cases
      - Handle multiple discs
@@ -75,7 +56,7 @@
       delete all from within the program.
 
 
- * Use a more robust method to determine file types (than a hard-coded list of extensions to types):
+ * Use a more robust method (than a hard-coded list of extensions to types) to determine file types:
     - MIME types?
     
 
@@ -84,8 +65,6 @@
     
     
  * Documentation
-    - Expand Release and Track file docstrings.
-        - Explain weighting.
     - Improve LogFrame, ConfigurationDialog and split file docstrings.
     - Document the log level argument and particular negative (relative) levels better. 
 

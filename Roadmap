@@ -1,0 +1,36 @@
+These are some of the biggest tasks left to do.
+We can decide generally what order we would like to implement these and arrange them into releases.
+
+
+Estimate certainty of results and enforce a minimum threshold.
+
+Merge into an existing collection.
+
+Select the better of two copies of the same song.
+
+Master MB sanity check.
+
+Get Azul running on Windows. (Find Windows alternatives to Linux-only commandline apps.)
+
+Identify and split AlbumWrap and MP3Wrap single-file-releases.
+
+Log full state of tags, filenames and MusicDNS results at start of metadata gathering process.
+
+For rejected releases, write relevant and useful
+
+Process individual songs as well as full releases.
+
+Give users much greater ability to configure how Azul works.
+
+Create new UI which is simple, pretty and effective at communicating what is happening. 
+
+Handle multi-disc releases.
+
+Handle mulit-artist releases.
+
+Use extensive testing to quantify success rate, decide weights and provide regression testing.
+
+Increase success rate.
+    Decrease music we cannot sort (negatives).
+    Decrease music we sort incorrectly (false positives).
+    Increase music we sort correctly (positives).
