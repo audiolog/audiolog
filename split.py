@@ -54,10 +54,12 @@ def split(cuePaths, audioFilePaths):
             logger.startSection()
             functions.rejectItem(cuePath)
             functions.rejectItem(audioFilePath)
+            
         logger.endSection(2)
                            
     else: 
         logger.log("Multiple cue/audio pairs in %s." % quote(directoryName), "Details")
+        logger.log("Moving each pair into its own folder.", "Details")
         pairs = [(audioFilePaths[i], cuePaths[i]) for i in range(numCues)]
         logger.startSection()
         functions.moveDiscsIntoFolders(pairs)

@@ -103,12 +103,13 @@ def fetchPUID(filePath):
         logger.log("%s is not a supported filetype for getPUID. It must be MP3 or Ogg." % quote(filePath), "Failures")
         return False
     
-    logger.log("Generating an audio fingerprint for %s, then searching for a match in the MusicDNS database." % quote(os.path.basename(filePath)), "Actions")
+    logger.log("Generating an audio fingerprint for %s." % quote(os.path.basename(filePath)), "Details")
     command = os.path.join(os.getcwd(), "getPUID")
     p = subprocess.Popen([command, '""%s""' % filePath], stdout = subprocess.PIPE)
     output = p.communicate()[0]  # Gets the output from the command
     output = output.splitlines() # Turns it from a string to a tuple
 
+    logger.log("Searching for a match in the MusicDNS database.", "Details")
     logger.startSection()
     if output and (output[0] == "Success."):
         logger.log("MusicDNS found a match.", "Successes")
@@ -142,7 +143,7 @@ def getMBPUID(track, field):
 def mbInterface(field, match=None, track=None, relevantFields=[]):
     """Interface for Finders to access MusicBrainz."""
     
-    logger.log("Constructing filter.", "Actions")
+    #logger.log("Constructing filter.", "Actions")
     prequeryFilter, postqueryFilter, match = filterConstructor(match, track, relevantFields, field)
     #logger.startSection()
     #logger.log("prequeryFilter: %s" % str(prequeryFilter), "Debugging")
@@ -372,7 +373,7 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
     
     if len(matches) == 1:
         match = matches.pop()
-        logger.log("MB matched a substring to a " + field + ": " + quote(match), "Debugging")
+        logger.log("MB matched a substring to a %s: %s" % (field, quote(match)), "Debugging")
         return match
     else:
         logger.log("%d substrings matched." % len(matches), "Debugging")
@@ -387,8 +388,9 @@ def mbQueryConstructor(field, match, prequeryFilter, postqueryFilter):
     
     Starts with finding which query function to use and finishing with
     extracting the correct data."""
-    
-    logger.log("Creating query function and filter.", "Actions")
+
+    logger.log("Constructing MusicBrainz query.", "Actions")
+    #logger.log("Creating query function and filter.", "Actions")
     query, queryFunction, queryFilter = getMBFunction(field, match)
     queryFilter = applyMBParams(queryFilter, prequeryFilter, match)
     
@@ -485,6 +487,29 @@ def applyMBParams(queryFilter, params, match=None):
     
     return queryFilter(**newParams)
 
+def queryMB(func, params, depth=1):
+    """Query the MusicBrainz database robustly."""
+
+    if depth == 1:
+        logger.log("Querying MusicBrainz database.", "Details")
+        logger.startSection()
+
+    time.sleep(depth**2)
+
+    try:
+        result = func(*params)
+    except mb.WebServiceError, e:
+        if depth < 6:
+            logger.log("Recieved WebServiceError: %s. Waiting, then trying again." % quote(e.__str__()), "Failures")
+            result = queryMB(func, params, depth+1)
+        else:
+            logger.log("Recieved WebServiceError 5 times. Returning None.", "Errors")
+            result = None
+
+    if depth == 1:
+        logger.endSection()
+    return result
+    
 def filterMBResults(field, results):
     """Filter results that don't have the necessary information."""
     
@@ -563,28 +588,6 @@ def postProcessMB(results, date=None, tracknumber=None, tracks=None):
     
     return o_o(dateResult, finalResult)
 
-def queryMB(func, params, depth=1):
-    """Query the MusicBrainz database robustly."""
-    
-    if depth == 1:
-        logger.log("Querying MusicBrainz database.", "Details")
-        logger.startSection()
-    
-    time.sleep(depth**2)
-    
-    try:
-        result = func(*params)
-    except mb.WebServiceError, e:
-        if depth < 6:
-            logger.log("Recieved WebServiceError: %s. Waiting, then trying again." % quote(e.__str__()), "Failures")
-            result = queryMB(func, params, depth+1)
-        else:
-            logger.log("Recieved WebServiceError 5 times. Returning None.", "Errors")
-            result = None
-
-    if depth == 1:
-        logger.endSection()
-    return result
 
 def parseMBResult(result, field):
     """Pull from the result the data field and return it.

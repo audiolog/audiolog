@@ -57,7 +57,7 @@ def setMP3TrackTotal(filePath, value):
     else:
         logger.startSection()
         logger.log("Failed to write tracktotal to %s." % quote(os.path.basename(filePath)), "Failures")
-        logger.setSection()
+        logger.endSection()
         
 def setMP3TrackNumber(filePath, value):
     combinedTrackData = getTag(filePath, "tracknumber", False)

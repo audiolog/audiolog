@@ -121,6 +121,8 @@ class LogFrame(QFrame):
             configuration.LOGGING[str(checkbox.text())] = checkbox.isChecked()
         self.colorCode = self.colorCodeCheck.isChecked()
         self.level = self.levelCombo.currentIndex() + 1
+        if self.level == 10:
+            self.level = 1000   # Show everything.
         self.textLog.setTextColor(Qt.black)
         
         # Clear log and append messages of the checked categories

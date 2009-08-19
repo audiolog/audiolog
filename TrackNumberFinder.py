@@ -26,7 +26,7 @@ class TrackNumberFinder(AbstractTrackFinder):
         self.getters = [(self.getTag, 1), 
                         (self.getMBKnownData, 2), 
                         (self.getMBTagWithKnownData, 3),
-                        (self.getFilename, 1)]
+                        (self.getFilename, 1.5)]
     
     def getMBKnownData(self, track):
         """Query MB using known data.

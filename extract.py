@@ -51,4 +51,5 @@ def extract(archivePaths):
         else:
             logger.log("Extraction succeeded.", "Successes")
             functions.deleteItem(archivePath)
+            
         logger.endSection()

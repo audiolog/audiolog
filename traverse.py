@@ -68,19 +68,19 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         logger.startSection()
     
     if configuration.ACTIONS["IMAGE"] and "image" in filePathsByType:           # Rename/delete image(s)
-        logger.log("Handling images.", "Actions")
+        logger.log('\nRenaming cover image to "cover" and deleting other images.', "Actions")
         logger.startSection()
         clean.handleImages(filePathsByType["image"])
         logger.endSection()
         
     if configuration.ACTIONS["CLEAN"] and "other" in filePathsByType:           # Delete extra files
-        logger.log("Deleting extra files.", "Actions")
+        logger.log("\nDeleting miscellaneous files.", "Actions")
         logger.startSection()
         clean.cleanDir(filePathsByType["other"])
         logger.endSection()
     
     if configuration.ACTIONS["EXTRACT"] and "archive" in filePathsByType:       # Extract archives
-        logger.log("Extracting archives then scanning directory again.", "Actions")
+        logger.log("\nExtracting archives then scanning directory again.", "Actions")
         logger.startSection()
         extract.extract(filePathsByType["archive"])
         logger.endSection(2)
@@ -88,7 +88,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         return
         
     if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to Ogg
-        logger.log("Converting audio to Ogg then scanning again.", "Actions")
+        logger.log("\nConverting audio to Ogg then scanning again.", "Actions")
         logger.startSection()
         convert.convert(filePathsByType["bad_audio"])
         logger.endSection(2)
@@ -97,7 +97,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
     
     if not "good_audio" in filePathsByType:                                     # Continue if audio present
         if not initialCall:
-            logger.log("No audio found in %s." % quote(directoryPath), "Actions")
+            logger.log("\nNo audio found in %s." % quote(directoryPath), "Actions")
             logger.startSection()
             functions.deleteItem(directoryPath)
             logger.endSection()
@@ -105,7 +105,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         return
                                                    
     if configuration.ACTIONS["SPLIT"] and "cue" in filePathsByType:             # Split based on cue
-        logger.log("Splitting audio into tracks then scanning again.", "Actions")
+        logger.log("\nSplitting audio into tracks then scanning again.", "Actions")
         logger.startSection()
         split.split(filePathsByType["cue"], filePathsByType["good_audio"])
         logger.endSection(2)
@@ -113,12 +113,12 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         return
         
     if configuration.ACTIONS["AUDIO"]:                                          # Handle audio
-        logger.log("Applying filename conventions.", "Actions")
+        logger.log("\nCleaning up filenames.", "Actions")
         logger.startSection()
         audioPaths = clean.standardizeFilenames(filePathsByType["good_audio"])
         logger.endSection()
         
-        logger.log("Handling audio.", "Actions")
+        logger.log("\nIdentifying audio then writing tags and filenames.", "Actions")
         logger.startSection()
         audio.handleAudio(directoryPath, audioPaths)
         logger.endSection()

@@ -71,19 +71,26 @@ class ReleaseManager(object):
         self.nextRoundQueue = []
         
     def run(self):
-        """Find data, check sanity, write tags and filenames."""
+        """Fingerprint audio, find metadata, check sanity, write tags and filenames."""
 
-        logger.log("Gathering metadata.", "Actions")
+        if configuration.SETTINGS["GET_PUID"]:
+            logger.log("\nFingerprinting audio files and searching for matches in MusicDNS database.", "Actions")
+            logger.startSection()
+            for track in self.release.tracks:
+                track.getPUID()
+            logger.endSection()
+
+        logger.log("\nGathering metadata.", "Actions")
         logger.startSection()
         self.gatherMetadata()
         logger.endSection()
 
-        logger.log("Checking for errors in the results.", "Actions")
+        logger.log("\nChecking for errors in the results.", "Actions")
         logger.startSection()
         self.checkSanity()
         logger.endSection()
 
-        logger.log("Writing the results to tags and filenames.", "Actions")
+        logger.log("\nWriting the results to tags and filenames.", "Actions")
         logger.startSection()
         self.writeResults()
         logger.endSection()
@@ -101,16 +108,16 @@ class ReleaseManager(object):
             for finder in self.queue:
                 field = finder.fieldName
                 
-                logger.log("Attempting to determine the %s." % field, "Actions")
+                logger.log("\nAttempting to determine the %s from %d sources." % (field, len(finder.getters)), "Actions")
                 logger.startSection()
                 success = finder.run(self.release)
                 logger.endSection()
                 
                 if not success:
-                    logger.log("\nFailed to determine the %s. Will try again next round.\n\n" % field, "Failures")
+                    logger.log("Failed to determine the %s. Will try again next round.\n" % field, "Failures")
                     self.nextRoundQueue.append(finder)
                 else:
-                    logger.log("\nSuccessfully determined the %s.\n\n" % field, "Successes")
+                    logger.log("Successfully determined the %s.\n" % field, "Successes")
             
             if self.queue == self.nextRoundQueue:
                 logger.log("No progress has been made. The metadata gathering process has failed.\n", "Errors")
@@ -210,15 +217,7 @@ class Release(object):
         - the Track objects representing the tracks"""
     
     def __init__(self, directoryPath, audioFilePaths):
-        getPUID = configuration.SETTINGS["GET_PUID"]
-        if getPUID:
-            logger.log("Fingerprinting audio files and searching for matches in MusicDNS database.", "Actions")
-            logger.startSection()
-        
         self.tracks = [Track(self, filePath) for filePath in audioFilePaths]
-        
-        if getPUID:
-            logger.endSection()
         self.metadata = {}
         self.directoryPath = directoryPath
         self.directoryName = os.path.basename(directoryPath)
@@ -244,6 +243,11 @@ class Track(object):
         self.metadata = {}
         self.filePath = filePath
         self.fileName = os.path.basename(filePath)
+        self.PUID = None
+
+    def getPUID(self):
+        """Run the getPUID program and store the result."""
+        
         self.PUID = getters.fetchPUID(self.filePath)
 
     def storeData(self, field, data):

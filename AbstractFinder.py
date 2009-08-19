@@ -25,6 +25,14 @@ from utils import *
 
 class AbstractFinder(object):
     """Base class for all Finders."""
+
+    def logResults(self, results):
+        """Logs the results in a tabular format."""
+        
+        logger.log("\nResults:", "Debugging")
+        for (candidate, weight, name, fileName) in results:
+            logger.log("     %s%s%s" % (name.ljust(30), fileName.ljust(80), candidate) , "Debugging")
+        
     
     def findConsensus(self, data):
         """Take data from getters and find the value with the highest score."""
@@ -92,9 +100,6 @@ class AbstractReleaseFinder(AbstractFinder):
     
     def run(self, release):
         """Gather release data and find a consensus."""
-
-        logger.log("Gathering %s data from %d sources." % (self.fieldName, len(self.getters)), "Actions")
-        logger.startSection()
         
         data = []
         for track in release.tracks:
@@ -104,17 +109,14 @@ class AbstractReleaseFinder(AbstractFinder):
                     flowcontrol.checkpoint()
                     logger.log(" ", "Actions")   # Acts as a newline
                     data.append((getter(track), weight, getter.__name__, quote(track.fileName)))
-            #logger.log(" ", "Actions")
             logger.endSection()
         
-        logger.log("\nResults:", "Debugging")
-        for (candidate, weight, name, fileName) in data:
-            logger.log("     %s%s%s" % (name.ljust(30), fileName.ljust(60), candidate) , "Debugging")
-        logger.endSection()
+        self.logResults(data)
 
         logger.log("\nFinding the result which recieved the most points.", "Actions")
         logger.startSection()
         consenus = self.findConsensus(data)
+        logger.log(" ", "Actions")
         logger.endSection()
         
         if consenus:
@@ -136,19 +138,14 @@ class AbstractTrackFinder(AbstractFinder):
             logger.log("Attempting to determine %s for %s." % (self.fieldName, quote(track.fileName)), "Actions")
             logger.startSection()
 
-            logger.log("Gathering data from %d sources." % len(self.getters), "Actions")
-            logger.startSection()
             data = []
             for (getter, weight) in self.getters:
                 flowcontrol.checkpoint()
                 data.append((getter(track), weight, getter.__name__, quote(track.fileName)))
                 logger.log(" ", "Actions")   # Acts as a newline
                 
-            logger.log("\nResults:", "Debugging")
-            for (candidate, weight, name, fileName) in data:
-                    logger.log("     %s%s%s" % (name.ljust(30), fileName.ljust(60), candidate) , "Debugging")
-            logger.endSection()
-            
+            self.logResults(data)
+                
             logger.log("\nFinding the result which recieved the most points.", "Actions")
             logger.startSection()
             consensus = self.findConsensus(data)
