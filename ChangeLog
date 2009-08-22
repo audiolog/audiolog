@@ -1,3 +1,14 @@
+2009-08-22  Matt Hubert
+
+    * getters: Fixed unicode problem with getPUID.
+
+2009-08-20  Rob Nagle
+
+    * All: Added copyright and GPL notice to all code files.
+
+    * Roadmap: Created new document for listing planned major features and
+    ordering them chronologically and break them into releases.
+
 2009-08-19  Matt Hubert
 
     * azul, COPYING, AUTHORS: Added GPL License.
@@ -16,7 +27,7 @@
     * Manager, clean, utils: Handle renaming files with filesystem-special
     charactes (/ \ and :).
 
-2009-08-16  Robert Nagle
+2009-08-16  Rob Nagle
 
     * Miscellaneous: Cleaned up old logging statements and other small things
     throughout code.

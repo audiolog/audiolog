@@ -129,7 +129,7 @@ def fetchPUID(filePath):
     logger.startSection()
     if output and (output[0] == "Success."):
         logger.log("MusicDNS found a match.", "Successes")
-        result = output[1:]
+        result = [unicode(o, "UTF_8") for o in output[1:]] # Convert all strings to UTF-8
     else:
         logger.log("MusicDNS failed to find a match.", "Failures")
         result = None

@@ -102,7 +102,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         logger.endSection(2)
         traverse(directoryPath, initialCall=initialCall, rescan=True)
         return
-        
+    
     if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to Ogg
         logger.log("\nConverting audio to Ogg then scanning again.", "Actions")
         logger.startSection()
@@ -119,7 +119,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
             logger.endSection()
         logger.endSection()
         return
-                                                   
+    
     if configuration.ACTIONS["SPLIT"] and "cue" in filePathsByType:             # Split based on cue
         logger.log("\nSplitting audio into tracks then scanning again.", "Actions")
         logger.startSection()
