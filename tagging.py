@@ -100,16 +100,18 @@ def openAudioFile(filePath):
     """Return, based on extension, an MP3 or Ogg Mutagen object."""
     
     extension = ext(filePath)    
-    if extension == ".mp3":
-        return MP3(filePath, ID3=EasyID3)
-    elif extension == ".ogg":
-        return Ogg(filePath)
-    else:
-        #logger.startSection()
-        logger.log("Attempt to open %s failed. File must be an MP3 or Ogg." % quote(filePath), "Errors")
-        #logger.endSection()
-        raise NotImplementedError
-
+    try:
+        if extension == ".mp3":
+            return MP3(filePath, ID3=EasyID3)
+        elif extension == ".ogg":
+            return Ogg(filePath)
+        else:
+            #logger.startSection()
+            logger.log("Attempt to open %s failed. File must be an MP3 or Ogg." % quote(filePath), "Errors")
+            #logger.endSection()
+            raise NotImplementedError
+    except HeaderNotFoundError:
+        logger.log("Attempt to open %s failed. File seems corrupted." % quote(filePath), "Errors")
 
 #-------------------------------------------
 # Public Functions
