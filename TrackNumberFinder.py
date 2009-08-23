@@ -22,6 +22,7 @@ import tagging
 import getters
 import logger
 
+from AbstractFinder import AbstractFinder
 from AbstractFinder import AbstractTrackFinder
 
 class TrackNumberFinder(AbstractTrackFinder):
@@ -95,3 +96,11 @@ class TrackNumberFinder(AbstractTrackFinder):
             return unicode(digits).zfill(2)
         else:
             return None
+
+    def getTag(self, track):
+        """Get tag and left-zero-pad it."""
+        
+        tag = AbstractFinder.getTag(self, track)
+        if tag:
+            tag.zfill(2)
+        return tag

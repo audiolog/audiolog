@@ -25,17 +25,18 @@ if any archives are found in a directory.
 The currently supported formats are: zip, rar, tar, gzip, bzip2, and ace."""
 
 import os
+import subprocess
 
 import functions
 import logger
 from utils import *
 
-extractorCommands = {".zip": 'unzip "$a" -d "$d"',
-                     ".rar": 'unrar x "$a" "$d"',
-                     ".tar": 'tar -xf "$a" "$d"',
-                     ".gz" : 'tar -zxf "$a" "$d"',
-                     ".bz2": 'tar -jxf "$a" "$d"',
-                     ".ace": 'unace x -y "$a" "$d/"'}
+extractorCommands = {".zip": ['unzip', '$a', '-d', '$d'],
+                     ".rar": ['unrar', 'x', '$a', '$d'],
+                     ".tar": ['tar', '-xf', '$a', '$d'],
+                     ".gz" : ['tar', '-zxf', '$a', '$d'],
+                     ".bz2": ['tar', '-jxf', '$a', '$d'],
+                     ".ace": ['unace', 'x', '-y', '$a', '$d/']}
 
 def extract(archivePaths):
     """Extract archives using appropriate utility.
@@ -53,14 +54,20 @@ def extract(archivePaths):
             os.mkdir(destDirectoryPath)   
         
         command = extractorCommands[ext(archivePath)]
-        command = command.replace("$a", archivePath)
-        command = command.replace("$d", destDirectoryPath)
+        for (i, arg) in enumerate(command):
+            if arg == "$a":
+                command[i] = archivePath
+            elif arg == "$d":
+                command[i] = destDirectoryPath
+        
         logger.log("Attempting to extract %s." % quote(os.path.basename(archivePath)), "Details")
         logger.startSection()
-        logger.log(command, "Commands")
-        result = os.system(command)
+        logger.log(" ".join(command), "Commands")
         
-        if result != 0:
+        p = subprocess.Popen(command)
+        p.wait()
+        
+        if p.returncode != 0:
             logger.log("Unable to extract " + quote(archivePath), "Errors")
             functions.deleteItem(destDirectoryPath)
             functions.rejectItem(archivePath)

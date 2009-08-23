@@ -25,6 +25,7 @@ import getters
 import logger
 
 from AbstractFinder import AbstractReleaseFinder
+from AbstractFinder import FilepathString
 
 class ReleaseFinder(AbstractReleaseFinder):
     """Gatherer of release data from all available sources.
@@ -124,6 +125,8 @@ class ReleaseFinder(AbstractReleaseFinder):
     
         folderFilePath = os.path.join(functions.containingDir(track.filePath), track.fileName)
         folderFilePath = os.path.splitext(folderFilePath)[0]
+        
+        folderFilePath = FilepathString(folderFilePath)
         
         if "date" in track.metadata: # If we know the date, try to remove it...
             date = track.metadata["date"]

@@ -121,7 +121,7 @@ def fetchPUID(filePath):
     
     logger.log("Generating an audio fingerprint for %s." % quote(os.path.basename(filePath)), "Details")
     command = os.path.join(os.getcwd(), "getPUID")
-    p = subprocess.Popen([command, '""%s""' % filePath], stdout = subprocess.PIPE)
+    p = subprocess.Popen([command, filePath], stdout = subprocess.PIPE)
     output = p.communicate()[0]  # Gets the output from the command
     output = output.splitlines() # Turns it from a string to a tuple
 
@@ -252,15 +252,45 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
     With a filter (like the artist or date) then only "The Better Life" will
     match and the search will succeed."""
     
-    match = functions.restrictChars(match) # Remove special characters
+    match = functions.restrictChars(match) # Remove special characters.
     
-    # First, try to fetch result with the full string.
-    result = mbQueryConstructor(field, match, prequeryFilter, postqueryFilter)
-    if result:
-        logger.log("MB found a %s match for the full string %s." % (field, quote(match)), "Debugging")
-        return result
+    if "Filepath" in str(match.__class__):
+        logger.log("Splitting into directory and file names and attempting to match each." % (field, quote(dirName)), "Debugging")
+        dirName, fileName = os.path.split(match)
+        
+        # First, try to fetch result with the full string(s).
+        if dirName:
+            dirResult = mbQueryConstructor(field, dirName, prequeryFilter, postqueryFilter)
+            if dirResult:
+                logger.log("MB found a %s match for the directory name %s." % (field, quote(dirName)), "Debugging")
+        
+        if fileName:
+            fileResult = mbQueryConstructor(field, fileName, prequeryFilter, postqueryFilter)
+            if fileResult:
+                logger.log("MB found a %s match for the file name %s." % (field, quote(fileName)), "Debugging")
+        
+        if xor(dirResult, fileResult):
+            # Only one matched; return it.
+            return o_o(dirResult, fileResult)
+        
+        elif dirResult and fileResult:
+            # Both full strings matched. dirResult generally has better odds of
+            # returning what we want for an artist or release.
+            return dirResult
+            
+        else:
+            # Neither matched.
+            logger.log("Neither the full directory or full file name matched.", "Debugging")        
     
-    logger.log("MB did not find a %s match for the full string %s." % (field, quote(match)), "Debugging")
+    else:
+        result = mbQueryConstructor(field, match, prequeryFilter, postqueryFilter)
+        if result:
+            logger.log("MB found a %s match for the full string %s." % (field, quote(match)), "Debugging")
+            return result
+        else:
+            logger.log("MB did not find a %s match for the full string %s." % (field, quote(match)), "Debugging")
+    
+    # No full string matched. Try substrings.
     logger.log("Searching for a match in substrings.", "Debugging")
     logger.startSection()
     
@@ -389,14 +419,14 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
     
     if len(matches) == 1:
         match = matches.pop()
-        logger.log("MB matched a substring to a %s: %s" % (field, quote(match)), "Debugging")
+        logger.log("MB matched a string to a %s: %s" % (field, quote(match)), "Debugging")
         return match
     else:
-        logger.log("%d substrings matched." % len(matches), "Debugging")
+        logger.log("%d strings matched." % len(matches), "Debugging")
         if matches:
             logger.log("Unable to select one correct match.", "Debugging")
             logger.log("Matches: " + str(matches), "Debugging")
-        logger.log("Unable to match a substring to a %s." % field, "Debugging")
+        logger.log("Unable to match a string to a %s." % field, "Debugging")
         return ""
 
 def mbQueryConstructor(field, match, prequeryFilter, postqueryFilter):

@@ -25,6 +25,7 @@ import logger
 import functions
 
 from AbstractFinder import AbstractReleaseFinder
+from AbstractFinder import FilepathString
 
 class ArtistFinder(AbstractReleaseFinder):
     """Gatherer of artist data from all available sources.
@@ -126,9 +127,11 @@ class ArtistFinder(AbstractReleaseFinder):
     
     def getFilenameForMB(self, track):
         """Return filename and containing dir with year removed."""
-    
+        
         folderFilePath = os.path.join(functions.containingDir(track.filePath), track.fileName)
         folderFilePath = os.path.splitext(folderFilePath)[0]
+        
+        folderFilePath = FilepathString(folderFilePath)
         
         if "date" in track.metadata: # If we know the date, try to remove it...
             date = track.metadata["date"]

@@ -1,3 +1,17 @@
+2009-08-22  Matt Hubert and Rob Nagle
+
+    * TrackNumberFinder: Fixed padding on getTag.
+    
+    * ReleaseFinder, ArtistFinder, getters: Start splitting folderFilePaths
+    on filesystem delimiters.
+    
+    * extract, split, clean: Replaced all os.system with subprocess which
+    allows for better platform independence and filename sanitization.
+    
+    * logging: Improved logging.
+    
+    * Miscellaneous: Fixed random bugs and crashes.
+
 2009-08-22  Matt Hubert
 
     * getters: Fixed unicode problem with getPUID.

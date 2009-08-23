@@ -21,6 +21,7 @@ from PyQt4.QtCore import *
 emitter = QObject()
 lastLevel = 0
 bufferOn = False
+openSections = []
 logBuffer = []
 
 def log(message, category):
@@ -38,17 +39,29 @@ def log(message, category):
         
     emitter.emit(SIGNAL("AppendToLog"), message, lastLevel, category)
 
-def startSection():
+def startSection(sectionName=None):
     """Increase indentation level."""
     
-    global lastLevel
+    global lastLevel, openSections
     lastLevel += 1
+    if sectionName:
+        if sectionName in openSections:
+            print "Section has been opened twice:", sectionName
+    openSections.append(sectionName)
 
-def endSection(num=1):
+def endSection(sectionName=None, num=1):
     """Decrease indentation level."""
     
-    global lastLevel
+    global lastLevel, openSections
+    if type(sectionName) == type(3):
+        num = sectionName
+        sectionName = None
     lastLevel -= num
+    if sectionName:
+        if not sectionName in openSections:
+            print "Closing section which is not open:", sectionName
+    else:
+        openSections.remove(sectionName)
 
 def startBuffer():
     """Start writing all log messages to buffer."""
@@ -68,3 +81,24 @@ def endBuffer():
     global bufferOn, logBuffer
     bufferOn = False
     logBuffer = []
+
+def logWrap(msg):
+    """Log message describing function; wrap call in start and end sections."""
+
+    def logWrapInner(fn):
+        def wrapped(*args):
+            msgd = re.sub(r"\*\d", lambda i: str(args[int(i.group()[1:])]), msg)     # Allows message to contain, parameters to log-wrapped function
+            print msgd
+            print "start"
+            result = fn(*args)
+            print "end"
+            return result
+        return wrapped
+    return logWrapInner
+
+def replaceWithArg(match):
+    matched = match.group()
+    digit = matched[1:]
+    num = int(digit)
+    arg = args[num]
+    return str(arg)

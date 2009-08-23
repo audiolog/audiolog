@@ -169,7 +169,7 @@ def actuallyDelete(itemPath):
     
     logger.endSection(2)
 
-def deleteItem(itemPath, actuallyDelete=None):
+def deleteItem(itemPath, actuallyDeleteFlag=None):
     """Either delete or move to DELETES the file or directory at itemPath.
     
     The deletion method is chosen as follows:
@@ -180,18 +180,18 @@ def deleteItem(itemPath, actuallyDelete=None):
             The global deletion mode stored at configuration.SETTINGS["DELETE"]
             is used, where True and False have the same meanings as above."""
 
-    logger.startSection()
+    logger.startSection("deleteItem")
     logger.log("Deleting %s." % quote(itemPath), "Actions")
     
-    if actuallyDelete is None: 
-        actuallyDelete = configuration.SETTINGS["DELETE"]
+    if actuallyDeleteFlag is None:
+        actuallyDeleteFlag = configuration.SETTINGS["DELETE"]
         
-    if actuallyDelete:
-        actuallyDelete(itemPath)                
+    if actuallyDeleteFlag:
+        actuallyDelete(itemPath)
     else:
         moveWithContext(itemPath, configuration.PATHS["DELETES"])
     
-    logger.endSection()
+    logger.endSection("deleteItem")
                 
 def deleteItems(itemPaths, actuallyDelete=None):
     """Either delete or move to DELETES a list of items.

@@ -24,16 +24,20 @@ These formats are currently always converted into Ogg Vorbis but MP3 encoding
 support is certain to be a popular demand if we release this publicly."""
 
 import os
+import subprocess
 
 import functions
 import logger
 import configuration as c
+from utils import *
 
 convertorCommands = {
-    ".wav" : 'oggenc -q ' + str(c.ENCODING_QUALITY["HIGH"]) + ' "$$.wav"',
-    ".flac": 'oggenc -q ' + str(c.ENCODING_QUALITY["HIGH"]) + ' "$$.flac"',
-    ".ape" : 'mac "$$.ape" "$$.wav" -d; \noggenc -q ' + str(c.ENCODING_QUALITY["HIGH"]) + ' "$$.wav"',
-    ".mpc" : 'mpc123 -w "$$.wav" "$$.mpc"; \noggenc -q ' + str(c.ENCODING_QUALITY["MEDIUM"]) + ' "$$.wav"'
+    ".wav" : [['oggenc', '-q', str(c.ENCODING_QUALITY["HIGH"]), '$$.wav']],
+    ".flac": [['oggenc', '-q', str(c.ENCODING_QUALITY["HIGH"]), '$$.flac']],
+    ".ape" : [['mac', '$$.ape', '$$.wav', '-d'],
+              ['oggenc', '-q', str(c.ENCODING_QUALITY["HIGH"]), '$$.wav']],
+    ".mpc" : [['mpc123', '-w', '$$.wav', '$$.mpc'],
+              ['oggenc', '-q', str(c.ENCODING_QUALITY["MEDIUM"]), '$$.wav']]
 }
 
 def convert(audioFilePaths):
@@ -44,19 +48,31 @@ def convert(audioFilePaths):
     
     for audioFilePath in audioFilePaths:
         filePathWithoutExtension, extension = os.path.splitext(audioFilePath)
-        command = convertorCommands[extension]
-        command = command.replace("$$", filePathWithoutExtension)
-        logger.log("Attempting to convert %s." % quote(os.path.basename(audioFilePath)), "Details")
-        logger.startSection()
-        logger.log(command, "Commands")
-        result = os.system(command)
+        commands = convertorCommands[extension]
         
-        if result == 0:
-            logger.log("Attempt to convert succeeded.", "Successes")
-            functions.deleteItem(audioFilePath)
-        else:
+        success = True
+        for command in commands:
+            for (i, arg) in enumerate(command):
+                command[i] = arg.replace("$$", filePathWithoutExtension)
+            
+            logger.log("Attempting to convert %s." % quote(os.path.basename(audioFilePath)), "Details")
+            logger.startSection()
+            logger.log(" ".join(command), "Commands")
+            
+            p = subprocess.Popen(command)
+            p.wait()
+            
+            if p.returncode != 0:
+                success = False
+                break
+        
+        if not success:
             logger.log("Attempt to convert failed.", "Errors")
             functions.rejectItem(audioFilePath)
+        
+        else:
+            logger.log("Attempt to convert succeeded.", "Successes")
+            functions.deleteItem(audioFilePath)
         
         if extension == ".ape" or extension == ".mpc":
             functions.deleteItem(filePathWithoutExtension + ".wav", True)

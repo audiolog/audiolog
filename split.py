@@ -26,6 +26,7 @@ program mp3splt."""
 
 import os
 import shutil
+import subprocess
 from math import log10
 
 import functions
@@ -55,11 +56,13 @@ def split(cuePaths, audioFilePaths):
         logger.log("Splitting %s based on %s." % (quote(os.path.basename(audioFilePath)), quote(os.path.basename(cuePath))), "Details")
         logger.startSection()
         
-        splitCommand = 'mp3splt -d "%s" -c "%s" "%s"' % (directoryPath, cuePath, audioFilePath)
-        logger.log(splitCommand, "Commands")
-        result = os.system(splitCommand)
+        splitCommand = ['mp3splt', '-d', directoryPath, '-c', cuePath, audioFilePath]
+        logger.log(" ".join(splitCommand), "Commands")
+        
+        p = subprocess.Popen(splitCommand)
+        p.wait()
 
-        if result == 0:
+        if p.returncode == 0:
             logger.log("Successfully split %s." % quote(audioFilePath), "Successes")
             logger.startSection()
             functions.deleteItem(cuePath)

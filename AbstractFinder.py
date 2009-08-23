@@ -178,3 +178,6 @@ class AbstractTrackFinder(AbstractFinder):
             self.storeData(track, consensus)
         return True
 
+class FilepathString(str):
+    pass
+
