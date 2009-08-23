@@ -1,23 +1,5 @@
 To Do at This Point
 
-Essential
-    - Allow the Genre field to be blank.
-
-    - Actually write the tags and filenames.
-
-Nice    
-    - Log this process verbose-as-fuck-ly, described below.
-        We should log:
-            The full filepath and tag info for every track at the beginning.
-            Any PUIDs we get.
-            Every single step in the data gathering including the state of all variables.
-            The results we recieve from each source.
-                (If we make this in an easily parsable format, we can learn how often certain sources are correct.)
-            An errors we recieve, with helpful messages.
-            The full filepath and tag info for every track at the end.
-        Also on logging: Using a buffer and making the level/indentation work.
-
-
 Not Essential
     - Master MB sanity check.
     
@@ -53,7 +35,9 @@ Done
     
     - Sanity checks
 
+    - Allow the Genre field to be blank.
 
+    - Actually write the tags and filenames.
 
 
 Vocab

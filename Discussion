@@ -43,12 +43,23 @@ Extracting
     tar
     unrar
     unace
+
 Converting
     oggenc (Provided by package "vorbis-tools")
     mpc123
     mac (No known package, must be compiled)
+
 getPUID
     lame
+    oggdec
+
+Metadat
+    Mutagen
+    python-MB2
+
+GUI
+    Qt
+    PyQt
 
 
 
@@ -63,9 +74,13 @@ getPUID
 
 
 
-
-
-
+Attempting to match the filepath with MusicBrainz.
+Attempting to fuzzily match the string "Ambrosia - One eighty/05 - Ambrosia - Rock n' a hard place" on release.
+Constructing MusicBrainz query.
+Querying MusicBrainz database.
+MB did not find a release match for the full string "Ambrosia - One eighty/05 - Ambrosia - Rock n' a hard place".
+Searching for a match in substrings.
+    Substrings: ['Ambrosia', 'One eighty', '05', 'Ambrosia', "Rock n' a hard place"]
 
 
 

@@ -6,15 +6,19 @@ Estimate certainty of results and enforce a minimum threshold.
 
 Merge into an existing collection.
 
+Scan, standardize and error-check an existing collection.
+
 Select the better of two copies of the same song.
 
 Master MB sanity check.
 
 Get Azul running on Windows. (Find Windows alternatives to Linux-only commandline apps.)
 
+"Azul It" option in right-click menu in file browser on Windows and Linux (KDE and Gnome).
+
 Identify and split AlbumWrap and MP3Wrap single-file-releases.
 
-Log full state of tags, filenames and MusicDNS results at start of metadata gathering process.
+Log full initial state of tags, filenames and MusicDNS results.
 
 For rejected releases, write relevant and useful
 

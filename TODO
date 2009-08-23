@@ -112,7 +112,26 @@
     - Anything else?
 
         
- * Small Things
-    - Sanity-check dates
-    
-    
+        
+    - Set weights of various sources in Finders.
+    One idea for how we might do that:
+        So, weights are a bit weird. The basic idea is to weight the sources we are more confident are correct.
+        But deciding the relative weights of the sources is uncertain. What exactly are we trying to do?
+
+        Here's my idea, based on your genetic algorithm comment, on how to decide the weights of the sources.
+        We sort ourselves 100 archives (say) and determine what all the correct results for these should be.
+        We then run Azul on them, and for each specific source (i.e. ArtistFinder.getTag) we see how many times
+        out of 100 that is was correct. This is its weight.
+
+        I like this system because the sources are weighted based on their true, empirical accuracy.
+        I'm still not sure whether this is a good for the relative weights...
+        Could one quite accurate source overpower two not so accurate sources? Yes. Should it? Uh...
+        Regardless, using empirical data to decide the weights is probably a good idea. (A bit of overhead, though.)
+
+        - Think about how we might estimate the certainty that the top-scoring candidate is correct.
+        Three ideas for how we might do that:
+            1. Do not filter out the sources that returned None, and if None wins, then we aren't certain enough.
+            2. Filter out Nones (as we currently do), then total up the points from the non-None sources.
+            Enforce that for a candidate to win it must have x% of the all the points in play. (Maybe 50%)
+            3. Look at how many points are possible (if all the sources on all the tracks returned the same result).
+            Enforce some minimum percent of that. (Which would be much lower than above. Maybe 20%)

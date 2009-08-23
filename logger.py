@@ -44,10 +44,10 @@ def startSection(sectionName=None):
     
     global lastLevel, openSections
     lastLevel += 1
-    if sectionName:
-        if sectionName in openSections:
-            print "Section has been opened twice:", sectionName
-    openSections.append(sectionName)
+    #if sectionName:
+    #    if sectionName in openSections:
+    #        print "Section has been opened twice:", sectionName
+    #openSections.append(sectionName)
 
 def endSection(sectionName=None, num=1):
     """Decrease indentation level."""
@@ -57,11 +57,11 @@ def endSection(sectionName=None, num=1):
         num = sectionName
         sectionName = None
     lastLevel -= num
-    if sectionName:
-        if not sectionName in openSections:
-            print "Closing section which is not open:", sectionName
-    else:
-        openSections.remove(sectionName)
+    #if sectionName:
+    #    if not sectionName in openSections:
+    #        print "Closing section which is not open:", sectionName
+    #else:
+    #    openSections.remove(sectionName)
 
 def startBuffer():
     """Start writing all log messages to buffer."""
