@@ -68,9 +68,9 @@ def moveWithContext(currentItemPath, destDirectoryPath):
         logger.log("Could not move. Destination path %s already exists." % quote(newItemPath), "Failures")
     
     # Remove the old containing directory if it's empty
-    try: 
+    try:
         os.rmdir(os.path.dirname(currentItemPath))
-    except OSError: 
+    except OSError:
         pass
 
     logger.endSection(2)
