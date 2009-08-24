@@ -147,12 +147,17 @@ def actuallyDelete(itemPath):
         return
     
     # Make sure we want to do this
+    """
+    Need to code this into the GUI first.
+    At the moment it isn't dangerous because it only deletes files that it creates.
+    
     certainty = raw_input("Are you sure? (y) ")
     if certainty.lower() != "y":
         print "Deletion aborted."
         logger.log("Deletion aborted.", "Details")
         logger.endSection(2)
         return
+    """
 
     if os.path.isdir(itemPath):                 # Directory
         try: 

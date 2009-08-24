@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #  Azul Music Organizer
 #  Copyright © 2009  Matt Hubert <matt@cfxnetworks.com> and Robert Nagle <rjn945@gmail.com>
