@@ -23,7 +23,6 @@ run getPUID.
 """
 
 import os
-import getters
 import subprocess
 
 # First, try all of the dependency commands.
@@ -48,7 +47,7 @@ for category in dependencies:
 try:
     import PyQt4
 except:
-    print "You do not have PyQT installed. You will not be able to run Azul."
+    print "You do not have PyQt installed. You will not be able to run Azul."
     print "Download it from:"
     print "http://www.riverbankcomputing.co.uk/software/pyqt/intro"
     print
@@ -69,7 +68,7 @@ try:
     import musicbrainz2
 except:
     print "You do not have MusicBrainz2 installed. You will not be able to gather metainformation from the Internet."
-    print "Install it by running `setup.py` in the python-musicbrainz2 folder included with Azul."
+    print "Install it by running `python setup.py install` in the python-musicbrainz2 folder included with Azul."
     print "Alternatively, you can check it out from MusicBrainz's Subversion repository:"
     print "svn checkout http://svn.musicbrainz.org/python-musicbrainz2/trunk python-musicbrainz2"
     print "DO NOT download the python-musicbrainz2 0.6.0 library from their website or install it using your package manager."
@@ -81,19 +80,24 @@ except:
 try:
     if musicbrainz2 and musicbrainz2.__version__ < '0.7.0':
         print "Your copy of MusicBrainz2 is too old and will not work with Azul."
-        print "Please install the copy provided with Azul in the python-musicbrainz2 folder and run `setup.py`."
+        print "Please install the copy provided with Azul in the python-musicbrainz2 folder and run `python setup.py install`."
         print
         error = True
         fatal = True
 except NameError:
     pass
 
-if not getters.fetchPUID("test.mp3"):
-    print "getPUID does not work on your system, potentially because of an error message above."
-    print "You will not be able to use the MusicDNS service, and can disable \"Fetch PUIDs\" from Azul's configuration."
-    print "You will, however, still be able to sort most music."
-    print
-    error = True
+try:
+    import getters
+
+    if not getters.fetchPUID("test.mp3"):
+        print "getPUID does not work on your system, potentially because of an error message above."
+        print "You will not be able to use the MusicDNS service, and can disable \"Fetch PUIDs\" from Azul's configuration."
+        print "You will, however, still be able to sort most music."
+        print
+        error = True
+except:
+    pass # This happened because we didn't have musicbrainz2, but that was already handled earlier.
 
 if not error:
     print "Congratulations! Your system is ready to sort some music!"

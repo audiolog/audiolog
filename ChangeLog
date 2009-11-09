@@ -1,3 +1,10 @@
+2009-08-25  Matt Hubert
+
+    * setup: Fixed a crash if python-musicbrainz2 doesn't exist.
+
+    * utils: Made o_o even more awesome. I know, I didn't think it was
+    possible either.
+
 2009-08-23  Matt Hubert
 
     * functions: Removed confirmation for actually deleting because it's

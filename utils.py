@@ -84,7 +84,4 @@ def xor(a, b):
 def o_o(a, b=None):
     """Oh really?"""
     
-    if a:
-        return a
-    else:
-        return b
+    return a if a else b
