@@ -40,9 +40,9 @@ from mutagen.mp3 import MP3
 from mutagen.oggvorbis import OggVorbis as Ogg
 from mutagen.easyid3 import EasyID3
 
-import functions
-import logger
-from utils import *
+import etc.functions
+import etc.logger
+from etc.utils import *
 
 #-------------------------------------------
 # MP3 Track Number and Total Helper Functions

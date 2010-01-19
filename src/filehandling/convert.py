@@ -26,10 +26,10 @@ support is certain to be a popular demand if we release this publicly."""
 import os
 import subprocess
 
-import functions
-import logger
-import configuration as c
-from utils import *
+import etc.functions
+import etc.logger
+import etc.configuration as c
+from etc.utils import *
 
 convertorCommands = {
     ".wav" : [['oggenc', '-q', str(c.ENCODING_QUALITY["HIGH"]), '$$.wav']],

@@ -38,11 +38,12 @@ for category in dependencies:
         try:
             subprocess.Popen([dependency], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         except OSError:
-            print "You do not have %s installed. You will not be able to %s some types of music." % dependency, category
+            print "You do not have %s installed. You will not be able to %s some types of music." % (dependency, category)
             print "Try going to http://www.google.com/search?q=%s to install what you need." % dependency
             if dependency == "mac":
-                print "Because mac can be very difficult to find, we have provided the source under the 'mac-3.99' directory."
+                print "Because mac can be very difficult to find, we have provided the source under the 'libs/mac-3.99' directory."
             error = True
+            print
 
 try:
     import PyQt4
@@ -68,7 +69,7 @@ try:
     import musicbrainz2
 except:
     print "You do not have MusicBrainz2 installed. You will not be able to gather metainformation from the Internet."
-    print "Install it by running `python setup.py install` in the python-musicbrainz2 folder included with Azul."
+    print "Install it by running `python setup.py install` in the 'libs/python-musicbrainz2' folder included with Azul."
     print "Alternatively, you can check it out from MusicBrainz's Subversion repository:"
     print "svn checkout http://svn.musicbrainz.org/python-musicbrainz2/trunk python-musicbrainz2"
     print "DO NOT download the python-musicbrainz2 0.6.0 library from their website or install it using your package manager."
@@ -80,7 +81,7 @@ except:
 try:
     if musicbrainz2 and musicbrainz2.__version__ < '0.7.0':
         print "Your copy of MusicBrainz2 is too old and will not work with Azul."
-        print "Please install the copy provided with Azul in the python-musicbrainz2 folder and run `python setup.py install`."
+        print "Please install the copy provided with Azul in the 'libs/python-musicbrainz2' folder and run `python setup.py install`."
         print
         error = True
         fatal = True
@@ -88,9 +89,13 @@ except NameError:
     pass
 
 try:
-    import getters
-
-    if not getters.fetchPUID("test.mp3"):
+    
+    command = os.path.join(os.getcwd(), "getPUID")
+    p = subprocess.Popen([command, "tests/test.mp3"], stdout = subprocess.PIPE)
+    output = p.communicate()[0]  # Gets the output from the command
+    output = output.splitlines() # Turns it from a string to a tuple
+    
+    if not output or (output[0] != "Success."):
         print "getPUID does not work on your system, potentially because of an error message above."
         print "You will not be able to use the MusicDNS service, and can disable \"Fetch PUIDs\" from Azul's configuration."
         print "You will, however, still be able to sort most music."
@@ -103,7 +108,7 @@ if not error:
     print "Congratulations! Your system is ready to sort some music!"
     print "You can run Azul by typing:"
     print "`python azul.py`"
-    print "or clicking on \"azul.py\" in this folder."
+    print "or clicking on \"azul.py\" in the src/ folder."
     print "Happy sorting!"
     print
 else:

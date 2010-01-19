@@ -32,8 +32,8 @@ from functools import partial
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import configuration
-import logger
+from etc import configuration
+from etc import logger
 
 class LogFrame(QFrame):
     """A versatile TextEdit for displaying program messages."""

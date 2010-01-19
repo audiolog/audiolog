@@ -33,11 +33,12 @@ AbstractFinder
             |---TitleFinder
             |---TrackNumberFinder"""
 
-import tagging
-import getters
-import flowcontrol
-import logger
-from utils import *
+import metadata.tagging
+import metadata.getters
+
+import etc.flowcontrol
+import etc.logger
+from etc.utils import *
 
 class AbstractFinder(object):
     """Base class for all Finders."""

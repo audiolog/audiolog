@@ -34,7 +34,7 @@ from functools import partial
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import configuration
+from etc import configuration
 
 class ConfigurationDialog(QDialog):
     """Dialog box for viewing and editing HandleIt configuration."""
@@ -76,7 +76,7 @@ class ConfigurationDialog(QDialog):
         self.optionsFrame.cleanCheck.setChecked(configuration.ACTIONS["CLEAN"])
         self.optionsFrame.convertCheck.setChecked(configuration.ACTIONS["CONVERT"])
         self.optionsFrame.splitCheck.setChecked(configuration.ACTIONS["SPLIT"])
-        self.optionsFrame.audioCheck.setChecked(configuration.ACTIONS["AUDIO"])
+        self.optionsFrame.audioCheck.setChecked(configuration.ACTIONS["METADATA"])
         
         # Settings
         self.optionsFrame.recurseCheck.setChecked(configuration.SETTINGS["RECURSE"])
@@ -99,7 +99,7 @@ class ConfigurationDialog(QDialog):
         configuration.ACTIONS["CLEAN"] = self.optionsFrame.cleanCheck.isChecked()
         configuration.ACTIONS["CONVERT"] = self.optionsFrame.convertCheck.isChecked()
         configuration.ACTIONS["SPLIT"] = self.optionsFrame.splitCheck.isChecked()
-        configuration.ACTIONS["AUDIO"] = self.optionsFrame.audioCheck.isChecked()        
+        configuration.ACTIONS["METADATA"] = self.optionsFrame.audioCheck.isChecked()        
         
         # Settings
         configuration.SETTINGS["RECURSE"] = self.optionsFrame.recurseCheck.isChecked()

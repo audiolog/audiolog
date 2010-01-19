@@ -28,9 +28,10 @@ from functools import partial
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import configuration
+from etc import configuration
+from etc import flowcontrol
+
 import traverse
-import flowcontrol
 from LogFrame import LogFrame
 
 from ConfigurationDialog import ConfigurationDialog

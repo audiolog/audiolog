@@ -26,9 +26,10 @@ import sys
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from MainWindow import MainWindow
+from gui.MainWindow import MainWindow
 
-app = QApplication(sys.argv)
-mainWindow = MainWindow()
-mainWindow.show()
-app.exec_()
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    mainWindow = MainWindow()
+    mainWindow.show()
+    app.exec_()

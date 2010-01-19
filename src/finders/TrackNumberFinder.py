@@ -18,9 +18,9 @@
 
 import re
 
-import tagging
-import getters
-import logger
+import metadata.tagging
+import metadata.getters
+import etc.logger
 
 from AbstractFinder import AbstractFinder
 from AbstractFinder import AbstractTrackFinder

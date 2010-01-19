@@ -96,10 +96,10 @@ import musicbrainz2.model
 import musicbrainz2.wsxml
 import musicbrainz2.webservice as mb
 
-import configuration
-import functions
-import logger
-from utils import *
+import etc.configuration
+import etc.functions
+import etc.logger
+from etc.utils import *
 
 #-------------------------------------------
 # Externally-called functions

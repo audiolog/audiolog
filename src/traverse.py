@@ -31,19 +31,20 @@ import traceback
 
 from PyQt4.QtCore import *
 
-import configuration
-import functions
-import flowcontrol
+import etc.configuration
+import etc.functions
+import etc.flowcontrol
+import etc.logger
 
-import extract
-import clean
-import convert
-import split
-import audio
-import logger
+import filehandling.extract
+import filehandling.clean
+import filehandling.convert
+import filehandling.split
 
-from utils import *
-from flowcontrol import emitter
+import metadata.metadata
+
+from etc.utils import *
+from etc.flowcontrol import emitter
 
 def handleIt(directoryPathsToScan):
     """Call traverse on directories; when run ends for any reason inform GUI."""
@@ -129,7 +130,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         traverse(directoryPath, initialCall=initialCall, rescan=True)
         return
         
-    if configuration.ACTIONS["AUDIO"]:                                          # Handle audio
+    if configuration.ACTIONS["METADATA"]:                                          # Handle metadata
         logger.log("\nCleaning up filenames.", "Actions")
         logger.startSection("standardizeFilenames")
         audioPaths = clean.standardizeFilenames(filePathsByType["good_audio"])
@@ -137,7 +138,7 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         
         logger.log("\nIdentifying audio then writing tags and filenames.", "Actions")
         logger.startSection("handleAudio")
-        audio.handleAudio(directoryPath, audioPaths)
+        metadata.handleMetadata(directoryPath, audioPaths)
         logger.endSection("handleAudio")
 
     logger.endSection()

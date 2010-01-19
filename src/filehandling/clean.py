@@ -28,10 +28,10 @@ import os
 import re
 import shutil
 
-import configuration
-import functions
-import logger
-from utils import *
+import etc.configuration
+import etc.functions
+import etc.logger
+from etc.utils import *
 
 def handleImages(imagePaths):
     """Delete or rename images based on quantity.

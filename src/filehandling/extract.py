@@ -27,9 +27,9 @@ The currently supported formats are: zip, rar, tar, gzip, bzip2, and ace."""
 import os
 import subprocess
 
-import functions
-import logger
-from utils import *
+import etc.functions
+import etc.logger
+from etc.utils import *
 
 extractorCommands = {".zip": ['unzip', '$a', '-d', '$d'],
                      ".rar": ['unrar', 'x', '$a', '$d'],

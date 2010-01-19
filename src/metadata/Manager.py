@@ -58,21 +58,22 @@ illustrated below. Each component uses the component(s) in the box below it.
 
 import shutil
 
-import flowcontrol
-import logger
-import getters
-import functions
-import tagging
-import configuration
-from utils import *
+import etc.flowcontrol
+import etc.logger
+import etc.functions
+import etc.configuration
+from etc.utils import *
 
-from ArtistFinder import ArtistFinder
-from ReleaseFinder import ReleaseFinder
-from DateFinder import DateFinder
-from TrackTotalFinder import TrackTotalFinder
-from TitleFinder import TitleFinder
-from TrackNumberFinder import  TrackNumberFinder
-from GenreFinder import GenreFinder
+import getters
+import tagging
+
+from finders.ArtistFinder import ArtistFinder
+from finders.ReleaseFinder import ReleaseFinder
+from finders.DateFinder import DateFinder
+from finders.TrackTotalFinder import TrackTotalFinder
+from finders.TitleFinder import TitleFinder
+from finders.TrackNumberFinder import  TrackNumberFinder
+from finders.GenreFinder import GenreFinder
 
 class ReleaseManagerError(Exception):
     """Raised when a problem is found which will keep the release from being tagged."""

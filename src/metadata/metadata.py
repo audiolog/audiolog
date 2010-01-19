@@ -22,12 +22,13 @@ This file instantiates a ReleaseManager object then invokes its mainloop. If a
 ReleaseManagerError is raised, indicating we could not fill an essential field,
 then the directory is rejected, otherwise it is accepted."""
 
-import functions
-import logger
 import Manager
-from utils import *
 
-def handleAudio(directoryPath, audioFilePaths):
+import etc.functions
+import etc.logger
+from etc.utils import *
+
+def handleMetadata(directoryPath, audioFilePaths):
     """Create and run a ReleaseManager object."""
     
     releaseManager = Manager.ReleaseManager(directoryPath, audioFilePaths)

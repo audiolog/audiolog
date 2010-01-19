@@ -69,12 +69,12 @@ SETTINGS = {
 
 # Traverse Actions
 ACTIONS = {
-    "EXTRACT": True,
-    "IMAGE"  : True,
-    "CLEAN"  : True,
-    "CONVERT": True,
-    "SPLIT"  : True,
-    "AUDIO"  : True
+    "EXTRACT"   : True,
+    "IMAGE"     : True,
+    "CLEAN"     : True,
+    "CONVERT"   : True,
+    "SPLIT"     : True,
+    "METADATA"  : True
 }
 
 # Logging 
