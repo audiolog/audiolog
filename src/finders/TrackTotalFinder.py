@@ -16,9 +16,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-import metadata.tagging
-import metadata.getters
-import etc.logger
+from metadata import tagging
+from metadata import getters
+from etc import logger
 
 from AbstractFinder import AbstractReleaseFinder
 

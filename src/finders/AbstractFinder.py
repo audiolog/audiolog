@@ -33,11 +33,11 @@ AbstractFinder
             |---TitleFinder
             |---TrackNumberFinder"""
 
-import metadata.tagging
-import metadata.getters
+from metadata import tagging
+from metadata import getters
 
-import etc.flowcontrol
-import etc.logger
+from etc import flowcontrol
+from etc import logger
 from etc.utils import *
 
 class AbstractFinder(object):

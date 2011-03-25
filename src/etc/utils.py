@@ -21,8 +21,12 @@ import string
 
 def translateForFilename(fileName):
     """Replace special filesystem characters with dashes when renaming files.
+    
     This would have been nice as str.translate, but unfortunately that doesn't
-    work for Unicode."""
+    work for Unicode.
+    
+    Note that this function should only be appliced to file names, not file 
+    paths because paths should contain these special filesytem characters."""
     
     fileName = fileName.replace("/", "-")
     fileName = fileName.replace("\\", "-")
@@ -51,8 +55,8 @@ def aboutEqual(str1, str2):
     To do this we lowercase both strings, strip them of punctuation and
     whitespace, then compare for equality."""
         
-    str1 = restrictChars(str1.lower(), True, True, False, False)
-    str2 = restrictChars(str2.lower(), True, True, False, False)
+    str1 = restrictChars(str1.lower(), whitespace=False, punctuation=False)
+    str2 = restrictChars(str2.lower(), whitespace=False, punctuation=False)
     
     return str1 == str2
 
@@ -69,12 +73,7 @@ def restrictChars(s, letters=True, digits=True, whitespace=True, punctuation=Tru
     if punctuation: validChars += string.punctuation
     if custom: validChars += custom
     
-    t = ""
-    for ch in s:
-        if ch in validChars:
-            t += ch
-    
-    return t
+    return "".join([char for char in s if char in validChars])
 
 def xor(a, b):
     """Return exclusive or of a and b."""

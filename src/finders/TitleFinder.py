@@ -19,9 +19,9 @@
 import os
 import re
 
-import metadata.tagging
-import metadata.getters
-import etc.logger
+from metadata import tagging
+from metadata import getters
+from etc import logger
 
 from AbstractFinder import AbstractTrackFinder
 

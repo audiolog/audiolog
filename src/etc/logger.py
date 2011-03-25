@@ -16,9 +16,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+
 from PyQt4.QtCore import *
 
 emitter = QObject()
+printAlso = False
 lastLevel = 0
 bufferOn = False
 openSections = []
@@ -38,6 +41,24 @@ def log(message, category):
         logBuffer.append(message)
         
     emitter.emit(SIGNAL("AppendToLog"), message, lastLevel, category)
+    
+    if printAlso:
+        try:
+            print message
+        except UnicodeEncodeError:
+            try:
+                print unicode(message, "UTF_8")
+            except:
+                print "===Line omitted due to encoding errors.==="
+        
+    if category == "Errors":
+        try:
+            sys.stderr.write(message)
+        except UnicodeEncodeError:
+            try:
+                sys.stderr.write(unicode(message, "UTF_8"))
+            except:
+                sys.stderr.write("===Line omitted due to encoding errors.===")
 
 def startSection(sectionName=None):
     """Increase indentation level."""

@@ -87,6 +87,7 @@ The system for using MusicBrainz is designed with 3 goals:
               parseMBResults                V
 """
 
+import os.path
 import subprocess
 import time
 import re
@@ -96,9 +97,9 @@ import musicbrainz2.model
 import musicbrainz2.wsxml
 import musicbrainz2.webservice as mb
 
-import etc.configuration
-import etc.functions
-import etc.logger
+from etc import configuration
+from etc import functions
+from etc import logger
 from etc.utils import *
 
 #-------------------------------------------
@@ -120,7 +121,8 @@ def fetchPUID(filePath):
         return False
     
     logger.log("Generating an audio fingerprint for %s." % quote(os.path.basename(filePath)), "Details")
-    command = os.path.join(os.getcwd(), "getPUID")
+    command = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "getPUID")
+    logger.log(command + " " + filePath, "Commands")
     p = subprocess.Popen([command, filePath], stdout = subprocess.PIPE)
     output = p.communicate()[0]  # Gets the output from the command
     output = output.splitlines() # Turns it from a string to a tuple

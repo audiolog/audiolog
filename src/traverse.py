@@ -31,17 +31,17 @@ import traceback
 
 from PyQt4.QtCore import *
 
-import etc.configuration
-import etc.functions
-import etc.flowcontrol
-import etc.logger
+from etc import configuration
+from etc import functions
+from etc import flowcontrol
+from etc import logger
 
-import filehandling.extract
-import filehandling.clean
-import filehandling.convert
-import filehandling.split
+from filehandling import extract
+from filehandling import clean
+from filehandling import convert
+from filehandling import split
 
-import metadata.metadata
+from metadata import metadata
 
 from etc.utils import *
 from etc.flowcontrol import emitter
@@ -142,4 +142,4 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         logger.endSection("handleAudio")
 
     logger.endSection()
-
+    

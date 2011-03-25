@@ -24,8 +24,8 @@ then the directory is rejected, otherwise it is accepted."""
 
 import Manager
 
-import etc.functions
-import etc.logger
+from etc import functions
+from etc import logger
 from etc.utils import *
 
 def handleMetadata(directoryPath, audioFilePaths):

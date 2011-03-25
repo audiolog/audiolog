@@ -40,8 +40,8 @@ from mutagen.mp3 import MP3
 from mutagen.oggvorbis import OggVorbis as Ogg
 from mutagen.easyid3 import EasyID3
 
-import etc.functions
-import etc.logger
+from etc import functions
+from etc import logger
 from etc.utils import *
 
 #-------------------------------------------

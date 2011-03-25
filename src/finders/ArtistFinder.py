@@ -19,10 +19,10 @@
 import os
 import re
 
-import metadata.tagging
-import metadata.getters
-import etc.logger
-import etc.functions
+from metadata import tagging
+from metadata import getters
+from etc import logger
+from etc import functions
 
 from AbstractFinder import AbstractReleaseFinder
 from AbstractFinder import FilepathString

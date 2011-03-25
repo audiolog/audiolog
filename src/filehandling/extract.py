@@ -27,8 +27,8 @@ The currently supported formats are: zip, rar, tar, gzip, bzip2, and ace."""
 import os
 import subprocess
 
-import etc.functions
-import etc.logger
+from etc import functions
+from etc import logger
 from etc.utils import *
 
 extractorCommands = {".zip": ['unzip', '$a', '-d', '$d'],
@@ -53,7 +53,7 @@ def extract(archivePaths):
         if not os.path.exists(destDirectoryPath):
             os.mkdir(destDirectoryPath)   
         
-        command = extractorCommands[ext(archivePath)]
+        command = extractorCommands[ext(archivePath)][:]
         for (i, arg) in enumerate(command):
             if arg == "$a":
                 command[i] = archivePath

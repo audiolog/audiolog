@@ -26,9 +26,9 @@ support is certain to be a popular demand if we release this publicly."""
 import os
 import subprocess
 
-import etc.functions
-import etc.logger
-import etc.configuration as c
+from etc import functions
+from etc import logger
+from etc import configuration as c
 from etc.utils import *
 
 convertorCommands = {

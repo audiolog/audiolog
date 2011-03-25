@@ -58,10 +58,10 @@ illustrated below. Each component uses the component(s) in the box below it.
 
 import shutil
 
-import etc.flowcontrol
-import etc.logger
-import etc.functions
-import etc.configuration
+from etc import flowcontrol
+from etc import logger
+from etc import functions
+from etc import configuration
 from etc.utils import *
 
 import getters
@@ -84,7 +84,9 @@ class ReleaseManager(object):
     
     def __init__(self, directoryPath, audioFilePaths):
         self.release = Release(directoryPath, audioFilePaths)
-        self.queue = [ArtistFinder(), ReleaseFinder(), DateFinder(), TrackTotalFinder(), TrackNumberFinder(), TitleFinder(), GenreFinder()]
+        self.queue = [ArtistFinder(), ReleaseFinder(), DateFinder(), 
+                      TrackTotalFinder(), TrackNumberFinder(), TitleFinder(), 
+                      GenreFinder()]
         self.nextRoundQueue = []
         
     def run(self):

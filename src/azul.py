@@ -27,9 +27,18 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from gui.MainWindow import MainWindow
+from etc import configuration
+from etc import logger
+import traverse
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    mainWindow = MainWindow()
-    mainWindow.show()
-    app.exec_()
+    if len(sys.argv) > 1:
+        logger.printAlso = True
+        configuration.loadConfigFile()
+        configuration.PATHS["TO_SCAN"] = [sys.argv[-1]]
+        traverse.handleIt([sys.argv[-1]])        
+    else:
+        app = QApplication(sys.argv)
+        mainWindow = MainWindow()
+        mainWindow.show()
+        app.exec_()

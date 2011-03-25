@@ -28,9 +28,9 @@ import os
 import re
 import shutil
 
-import etc.configuration
-import etc.functions
-import etc.logger
+from etc import configuration
+from etc import functions
+from etc import logger
 from etc.utils import *
 
 def handleImages(imagePaths):
@@ -43,7 +43,7 @@ def handleImages(imagePaths):
         imagePath = imagePaths[0]
         imageName = os.path.basename(imagePath)
         root, ext = os.path.splitext(imageName)
-        shutil.move(imagePath, translateForFilename(imagePath.replace(root, "cover")))
+        shutil.move(imagePath, translateForFilename(imagePath.replace(root, "cover")))  # BUG!
     else:
         functions.deleteItems(imagePaths)
 

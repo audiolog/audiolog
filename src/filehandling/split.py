@@ -29,8 +29,8 @@ import shutil
 import subprocess
 from math import log10
 
-import etc.functions
-import etc.logger
+from etc import functions
+from etc import logger
 from etc.utils import *
 
 def split(cuePaths, audioFilePaths):
