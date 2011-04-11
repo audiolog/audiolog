@@ -23,10 +23,6 @@ This file has only one function: to start the program."""
 
 import sys
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-from gui.MainWindow import MainWindow
 from etc import configuration
 from etc import logger
 import traverse
@@ -38,6 +34,9 @@ if __name__ == "__main__":
         configuration.PATHS["TO_SCAN"] = [sys.argv[-1]]
         traverse.handleIt([sys.argv[-1]])        
     else:
+        from PyQt4.QtGui import QApplication
+        from gui.MainWindow import MainWindow
+        
         app = QApplication(sys.argv)
         mainWindow = MainWindow()
         mainWindow.show()
