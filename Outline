@@ -52,7 +52,8 @@ Wrapper around the ReleaseManager functionality                 audio.py
 ReleaseManager uses Finders to gather, check & write metadata   Manager.py
 Base class for Finders              '                           AbstractFinder.py
 A class tailored to gathering data for X field                  XFinder.py
-Functions for get music metadata from various sources           getters.py
+Functions for get music metadata from Musicbrainz               musicbrainz.py
+Generating audio fingerprints and querying MusicDNS             fingerprint.py
 Writing and reading ID3 and Vorbis tags                         tagging.py
 
 GUI

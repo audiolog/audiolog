@@ -34,7 +34,7 @@ AbstractFinder
             |---TrackNumberFinder"""
 
 from metadata import tagging
-from metadata import getters
+from metadata import musicbrainz as mb
 
 from etc import flowcontrol
 from etc import logger
@@ -106,7 +106,7 @@ class AbstractFinder(object):
             logger.log("Unable to match because current tag is empty.", "Failures")
             result = None           
         else:
-            result = getters.mbInterface(self.fieldName, tag, track)
+            result = mb.mbInterface(self.fieldName, tag, track)
         
         logger.endSection()
         return result

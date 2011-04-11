@@ -18,11 +18,9 @@
 
 """High-level interface for accessing MusicBrainz.
 
-fetchPUID runs the MusicDNS audio fingerprinter on a track and looks it up in their database.
+getMBPUID looks up PUID returned by MusicDNS in MusicBrainz.
 
-getMBPUID verifies said PUID information with MusicBrainz
-
-getMBData constructs and executes a MusicBrainz query based on previously known data and/or potentially useful data.
+mbInterface constructs and executes a MusicBrainz query based on previously known data and/or potentially useful data.
 It takes the following parameters:
     field: The name of the field we are looking for. Note that this does not necessarily correspond to the
            MusicBrainz record that we use. For instance, looking for the "tracktotal" field still uses the
@@ -95,7 +93,7 @@ import difflib
 
 import musicbrainz2.model
 import musicbrainz2.wsxml
-import musicbrainz2.webservice as mb
+import musicbrainz2.webservice as mbws
 
 from etc import configuration
 from etc import functions
@@ -105,48 +103,16 @@ from etc.utils import *
 #-------------------------------------------
 # Externally-called functions
 #-------------------------------------------
-
-def fetchPUID(filePath):
-    """Try to find a PUID for the given file. 
-    
-    filePath must point to an MP3 or OGG audio file.
-    If a PUID is found, it returns a tuple in the form of [Artist, Track, PUID]. 
-    Otherwise, it returns None."""
-    
-    # Check that filetype is valid and that we are getting PUIDs
-    if not configuration.SETTINGS["GET_PUID"]:
-        return False
-    elif ext(filePath) not in configuration.typeToExts["good_audio"]:
-        logger.log("%s is not a supported filetype for getPUID. It must be MP3 or Ogg." % quote(filePath), "Failures")
-        return False
-    
-    logger.log("Generating an audio fingerprint for %s." % quote(os.path.basename(filePath)), "Details")
-    command = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "getPUID")
-    logger.log(command + " " + filePath, "Commands")
-    p = subprocess.Popen([command, filePath], stdout = subprocess.PIPE)
-    output = p.communicate()[0]  # Gets the output from the command
-    output = output.splitlines() # Turns it from a string to a tuple
-
-    logger.log("Searching for a match in the MusicDNS database.", "Details")
-    logger.startSection()
-    if output and (output[0] == "Success."):
-        logger.log("MusicDNS found a match.", "Successes")
-        result = [unicode(o, "UTF_8") for o in output[1:]] # Convert all strings to UTF-8
-    else:
-        logger.log("MusicDNS failed to find a match.", "Failures")
-        result = None
-    logger.endSection()
-    return result
         
-def getMBPUID(track, field):
+def getMBPUID(puid, field):
     """Return the metainformation given from MusicBrainz via PUID."""
 
-    if not track.PUID:
+    if not puid:
         logger.log("Cannot perform lookup because we never found a PUID.", "Failures")
         return None
     
-    query = mb.Query()
-    params = [mb.TrackFilter(puid=track.PUID[2], limit=1)]
+    query = mbws.Query()
+    params = [mbws.TrackFilter(puid=puid, limit=1)]
     result = queryMB(query.getTracks, params)
     
     if not result:
@@ -469,16 +435,16 @@ def mbQueryConstructor(field, match, prequeryFilter, postqueryFilter):
 def getMBFunction(field, match):
     """Return proper query function and filter based on desired field and whether we are matching."""
     
-    query = mb.Query()
+    query = mbws.Query()
     
     # A mapping to the applicable filters and functions based on requested field.
     filters = {
-        "artist"     : mb.ArtistFilter,
-        "release"    : mb.ReleaseFilter,
-        "date"       : mb.ReleaseFilter,
-        "tracktotal" : mb.ReleaseFilter,
-        "title"      : mb.TrackFilter,
-        "tracknumber": mb.TrackFilter
+        "artist"     : mbws.ArtistFilter,
+        "release"    : mbws.ReleaseFilter,
+        "date"       : mbws.ReleaseFilter,
+        "tracktotal" : mbws.ReleaseFilter,
+        "title"      : mbws.TrackFilter,
+        "tracknumber": mbws.TrackFilter
     }
     
     functions = {
@@ -494,11 +460,11 @@ def getMBFunction(field, match):
     queryFunction = functions[field]
     
     if field == "artist" and not match:
-        queryFilter = mb.ReleaseFilter
+        queryFilter = mbws.ReleaseFilter
         queryFunction = query.getReleases
     
     if field == "title" and not match:
-        queryFilter = mb.ReleaseFilter
+        queryFilter = mbws.ReleaseFilter
         queryFunction = query.getReleases
     
     return (query, queryFunction, queryFilter)
@@ -507,12 +473,12 @@ def applyMBParams(queryFilter, params, match=None):
     """Construct params to MB standards then instantiate filter with params."""
     
     newParams = {}
-    if queryFilter == mb.ArtistFilter:
+    if queryFilter == mbws.ArtistFilter:
         if match:
             newParams["name"] = match
         newParams["limit"] = 1
     
-    elif queryFilter == mb.ReleaseFilter:
+    elif queryFilter == mbws.ReleaseFilter:
         if "release" in params and params["release"]:
             newParams["title"] = params["release"]
         if match:
@@ -522,7 +488,7 @@ def applyMBParams(queryFilter, params, match=None):
         if "tracktotal" in params and params["tracktotal"]:
             newParams["trackCount"] = params["tracktotal"]
     
-    elif queryFilter == mb.TrackFilter:
+    elif queryFilter == mbws.TrackFilter:
         if "title" in params and params["title"]:
             newParams["title"] = params["title"]
         if match:
@@ -546,7 +512,7 @@ def queryMB(func, params, depth=1):
 
     try:
         result = func(*params)
-    except mb.WebServiceError, e:
+    except mbws.WebServiceError, e:
         if depth < 6:
             logger.log("Recieved WebServiceError: %s. Waiting, then trying again." % quote(e.__str__()), "Failures")
             result = queryMB(func, params, depth+1)
@@ -572,7 +538,7 @@ def filterMBResults(field, results):
 def postProcessMB(results, date=None, tracknumber=None, tracks=None):
     """Apply the postquery filter to the result returned by the MB query."""
     
-    query = mb.Query()
+    query = mbws.Query()
     
     dateResult = None
     finalResult = results[0]
@@ -595,12 +561,12 @@ def postProcessMB(results, date=None, tracknumber=None, tracks=None):
             if not dateResult:
                 for result in results:
                     releaseID = result.getRelease().id
-                    release = queryMB(query.getReleaseById, [releaseID, mb.ReleaseIncludes(tracks = True)])
+                    release = queryMB(query.getReleaseById, [releaseID, mbws.ReleaseIncludes(tracks = True)])
                     if len(release.getTracks()) >= int(tracknumber):
                         return release.getTracks()[int(tracknumber) - 1]
             else:
                 releaseID = dateResult.getRelease().id
-                release = queryMB(query.getReleaseById, [releaseID, mb.ReleaseIncludes(tracks = True)])
+                release = queryMB(query.getReleaseById, [releaseID, mbws.ReleaseIncludes(tracks = True)])
                 if len(release.getTracks()) >= int(tracknumber):
                     return release.getTracks()[int(tracknumber) - 1]
             
@@ -610,7 +576,7 @@ def postProcessMB(results, date=None, tracknumber=None, tracks=None):
             success = False
             for result in results:
                 releaseID = result.getRelease().id
-                release = queryMB(query.getReleaseById, [releaseID, mb.ReleaseIncludes(tracks = True)]) # You must query every release explicitly to get its tracks.
+                release = queryMB(query.getReleaseById, [releaseID, mbws.ReleaseIncludes(tracks = True)]) # You must query every release explicitly to get its tracks.
                 if release.getTracksCount() != len(tracks): # The record must match the amount of titles we are matching against.
                     continue
                 

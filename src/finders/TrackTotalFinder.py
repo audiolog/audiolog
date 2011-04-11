@@ -17,7 +17,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
 from metadata import tagging
-from metadata import getters
+from metadata import musicbrainz as mb
 from etc import logger
 
 from AbstractFinder import AbstractReleaseFinder
@@ -55,7 +55,7 @@ class TrackTotalFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, None, track, ["release", "artist", "date"])
+            result = mb.mbInterface(self.fieldName, None, track, ["release", "artist", "date"])
             if result:
                 result = result.zfill(2)
 
@@ -77,7 +77,7 @@ class TrackTotalFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, tracktotalTag, track, ["release", "artist", "date", "tracktotal"])
+            result = mb.mbInterface(self.fieldName, tracktotalTag, track, ["release", "artist", "date", "tracktotal"])
             if result:
                 result = result.zfill(2)
             
@@ -100,7 +100,7 @@ class TrackTotalFinder(AbstractReleaseFinder):
             result = None
         else:
             numTracks = self.getNumTracksInDir(track)
-            result = getters.mbInterface(self.fieldName, numTracks, track, ["release", "artist", "date", "tracktotal"])
+            result = mb.mbInterface(self.fieldName, numTracks, track, ["release", "artist", "date", "tracktotal"])
             if result:
                 result = result.zfill(2)
 

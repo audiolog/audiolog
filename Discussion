@@ -49,11 +49,11 @@ Converting
     mpc123
     mac (No known package, must be compiled)
 
-getPUID
+MusicDNS
     lame
     oggdec
 
-Metadat
+Metadata
     Mutagen
     python-MB2
 

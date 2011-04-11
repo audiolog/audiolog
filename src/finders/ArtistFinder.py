@@ -20,7 +20,7 @@ import os
 import re
 
 from metadata import tagging
-from metadata import getters
+from metadata import musicbrainz as mb
 from etc import logger
 from etc import functions
 
@@ -31,7 +31,7 @@ class ArtistFinder(AbstractReleaseFinder):
     """Gatherer of artist data from all available sources.
     
     All the ways:
-        - PUID
+        - MusicDNS
         - MB-PUID
         - Tag
         - MB-Tag
@@ -42,7 +42,7 @@ class ArtistFinder(AbstractReleaseFinder):
     fieldName = "artist"
     
     def __init__(self):
-        self.getters = [(self.getPUID, 3),
+        self.getters = [(self.getMusicDNS, 3),
                         (self.getMBPUID, 3),
                         (self.getTag, 1),                   # In AbstractFinder
                         (self.getMBTag, 3),                 # In AbstractFinder
@@ -50,27 +50,18 @@ class ArtistFinder(AbstractReleaseFinder):
                         (self.getMBTagWithKnownData, 4),
                         (self.getMBFilename, 2)]
     
-    def getPUID(self, track):
+    def getMusicDNS(self, track):
         """Return artist if MusicDNS provided one."""
 
         logger.log("Looking in MusicDNS results.", "Actions")
-        logger.startSection()
-        
-        if track.PUID:
-            result = track.PUID[0]
-        else:
-            logger.log("MusicDNS results are empty.", "Failures")
-            result = None
-        
-        logger.endSection()
-        return result
+        return track.musicDNS["artist"]
     
     def getMBPUID(self, track):
         """If MusicDNS provided a PUID, look it up in MusicBrainz."""
 
         logger.log("Looking up the PUID provided by MusicDNS in MusicBrainz.", "Actions")
         logger.startSection()
-        result = getters.getMBPUID(track, "artist")
+        result = mb.getMBPUID(track.musicDNS["puid"], "artist")
         logger.endSection()
         return result
             
@@ -90,7 +81,7 @@ class ArtistFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, None, track, ["release", "date", "tracktotal", "tracks"])
+            result = mb.mbInterface(self.fieldName, None, track, ["release", "date", "tracktotal", "tracks"])
             
         logger.endSection()
         return result
@@ -110,7 +101,7 @@ class ArtistFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, artistTag, track, ["release", "date", "tracktotal"])
+            result = mb.mbInterface(self.fieldName, artistTag, track, ["release", "date", "tracktotal"])
         
         logger.endSection()
         return result
@@ -121,7 +112,7 @@ class ArtistFinder(AbstractReleaseFinder):
         folderFilePath = self.getFilenameForMB(track)
         logger.log("Attempting to match the filepath to an artist using MusicBrainz.", "Actions")
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, folderFilePath, track)
+        result = mb.mbInterface(self.fieldName, folderFilePath, track)
         logger.endSection()
         return result
     

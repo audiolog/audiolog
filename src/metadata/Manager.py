@@ -57,6 +57,7 @@ illustrated below. Each component uses the component(s) in the box below it.
 """
 
 import shutil
+from collections import defaultdict
 
 from etc import flowcontrol
 from etc import logger
@@ -64,6 +65,7 @@ from etc import functions
 from etc import configuration
 from etc.utils import *
 
+import fingerprint
 import getters
 import tagging
 
@@ -92,11 +94,10 @@ class ReleaseManager(object):
     def run(self):
         """Fingerprint audio, find metadata, check sanity, write tags and filenames."""
 
-        if configuration.SETTINGS["GET_PUID"]:
+        if configuration.SETTINGS["GET_PRINT"]:
             logger.log("\nFingerprinting audio files and searching for matches in MusicDNS database.", "Actions")
             logger.startSection()
-            for track in self.release.tracks:
-                track.getPUID()
+            self.getMusicDNS()
             logger.endSection()
 
         logger.log("\nGathering metadata.", "Actions")
@@ -119,6 +120,15 @@ class ReleaseManager(object):
 
         for track in self.release.tracks:
             logger.log("File path: %s" % track.filePath, "Debugging")
+            
+    def getMusicDNS(self):
+        """Fingerprint each track and look for matches in MusicDNS."""
+        
+        import musicdns
+        musicdns.initialize()
+        for track in self.release.tracks:
+            track.getMusicDNS()
+        musicdns.finalize()
 
     def gatherMetadata(self):
         """Iterate through Finders until success or stagnation."""
@@ -254,7 +264,7 @@ class Track(object):
 
     Track's purpose is to store:
         - the track's file name and path
-        - the results of getPUID (if any)
+        - the results of getMusicDNS (if any)
         - the known metadata"""
     
     def __init__(self, parent, filePath):
@@ -262,12 +272,14 @@ class Track(object):
         self.metadata = {}
         self.filePath = filePath
         self.fileName = os.path.basename(filePath)
-        self.PUID = None
+        self.musicDNS = defaultdict(lambda: None)
 
-    def getPUID(self):
-        """Run the getPUID program and store the result."""
+    def getMusicDNS(self):
+        """Search for fingerprint match in MusicDNS and store the result."""
         
-        self.PUID = getters.fetchPUID(self.filePath)
+        result = fingerprint.queryMusicDNS(self.filePath)
+        if result:
+            self.musicDNS = result
 
     def storeData(self, field, data):
         """Store found value in known metadata dict."""

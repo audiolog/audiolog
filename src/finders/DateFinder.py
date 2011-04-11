@@ -17,7 +17,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from metadata import tagging
-from metadata import getters
+from metadata import musicbrainz as mb
 from etc import logger
 
 from AbstractFinder import AbstractReleaseFinder
@@ -35,9 +35,16 @@ class DateFinder(AbstractReleaseFinder):
     fieldName = "date"
         
     def __init__(self):
-        self.getters = [(self.getTag, 2),                   # In AbstractFinder
+        self.getters = [(self.getMusicDNS, 3),
+                        (self.getTag, 2),                   # In AbstractFinder
                         (self.getMBKnownData, 4),
                         (self.getMBTagWithKnownData, 3)]
+        
+    def getMusicDNS(self, track):
+        """Return year if MusicDNS provided one."""
+
+        logger.log("Looking in MusicDNS results.", "Actions")
+        return track.musicDNS["year"]
     
     def getMBKnownData(self, track):
         """Query MB using known data.
@@ -54,7 +61,7 @@ class DateFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
             result = None
         else:
-            result = getters.mbInterface("date", None, track, ["release", "artist", "tracktotal"])
+            result = mb.mbInterface("date", None, track, ["release", "artist", "tracktotal"])
 
         logger.endSection()
         return result
@@ -74,7 +81,7 @@ class DateFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
             result = None
         else:
-            result = getters.mbInterface("date", dateTag, track, ["release", "artist", "tracktotal", "date"])
+            result = mb.mbInterface("date", dateTag, track, ["release", "artist", "tracktotal", "date"])
         
         logger.endSection()
         return result

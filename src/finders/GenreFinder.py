@@ -24,7 +24,8 @@ class GenreFinder(AbstractReleaseFinder):
     fieldName = "genre"
         
     def __init__(self):
-        self.getters = [(self.getTag, 1)]               # In AbstractFinder
+        self.getters = [#(self.getMusicDNS, 1),
+                        (self.getTag, 1)]               # In AbstractFinder
         # We can add some unusual getters (like Wikipedia) here...
         
     def run(self, release):
@@ -32,3 +33,9 @@ class GenreFinder(AbstractReleaseFinder):
         
         AbstractReleaseFinder.run(self, release)
         return True
+    
+    def getMusicDNS(self, track):
+        """Return genre if MusicDNS provided one."""
+
+        logger.log("Looking in MusicDNS results.", "Actions")
+        return track.musicDNS["genre"]

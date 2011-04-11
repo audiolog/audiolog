@@ -22,7 +22,7 @@ These settings are accessed throughout the program to determine what to do,
 how to do it and on what. Currently present: dictionaries of types to extensions
 and extensions to types; paths specifying what to scan and where to put the 
 results; settings indicating whether to: scan recursively, permanently delete 
-files, and use the (time-consuming) getPUID program; actions that may or may 
+files, and use the (time-consuming) audio fingerprinter; actions that may or may 
 not be taken; the categories of messages which the LogFrame is currently
 displaying; and multiple audio encoding qualities on a scale of 1 to 10."""
 
@@ -62,9 +62,9 @@ PATHS = {
 
 # Settings
 SETTINGS = {
-    "RECURSE" : True,
-    "DELETE"  : False,
-    "GET_PUID": True
+    "RECURSE"  : True,
+    "DELETE"   : False,
+    "GET_PRINT": True
 }
 
 # Traverse Actions

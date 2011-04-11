@@ -20,7 +20,7 @@ import os
 import re
 
 from metadata import tagging
-from metadata import getters
+from metadata import musicbrainz as mb
 from etc import logger
 from etc import functions
 
@@ -62,7 +62,7 @@ class ReleaseFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist AND the (date OR track titles).", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, None, track, ["artist", "date", "tracks", "tracktotal"])
+            result = mb.mbInterface(self.fieldName, None, track, ["artist", "date", "tracks", "tracktotal"])
         
         logger.endSection()
         return result
@@ -84,7 +84,7 @@ class ReleaseFinder(AbstractReleaseFinder):
             logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist or the date or the track titles.", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, releaseTag, track, ["artist", "date", "tracks", "tracktotal"])
+            result = mb.mbInterface(self.fieldName, releaseTag, track, ["artist", "date", "tracks", "tracktotal"])
         
         logger.endSection()
         return result
@@ -97,7 +97,7 @@ class ReleaseFinder(AbstractReleaseFinder):
         folderFilePath = self.getFilenameForMB(track)
         logger.log("Attempting to match the filepath with MusicBrainz.", "Actions")
         logger.startSection()
-        result = getters.mbInterface(self.fieldName, folderFilePath, track)
+        result = mb.mbInterface(self.fieldName, folderFilePath, track)
         logger.endSection()
         return result
 
@@ -116,7 +116,7 @@ class ReleaseFinder(AbstractReleaseFinder):
             result = None
         else:
             folderFilePath = self.getFilenameForMB(track)
-            result = getters.mbInterface(self.fieldName, folderFilePath, track, ["artist", "date", "tracks", "tracktotal"])
+            result = mb.mbInterface(self.fieldName, folderFilePath, track, ["artist", "date", "tracks", "tracktotal"])
         
         logger.endSection()
         return result

@@ -19,7 +19,7 @@
 import re
 
 from metadata import tagging
-from metadata import getters
+from metadata import musicbrainz as mb
 from etc import logger
 
 from AbstractFinder import AbstractFinder
@@ -57,7 +57,7 @@ class TrackNumberFinder(AbstractTrackFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the track title.", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, None, track, ["title", "artist", "release"])
+            result = mb.mbInterface(self.fieldName, None, track, ["title", "artist", "release"])
             if result:
                 result = result.zfill(2)
             
@@ -79,7 +79,7 @@ class TrackNumberFinder(AbstractTrackFinder):
             logger.log("Attempt failed because our currently known data does not include the field we need -- the track title.", "Failures")
             result = None
         else:
-            result = getters.mbInterface(self.fieldName, tracknumberTag, track, ["title", "artist", "release", "tracknumber"])
+            result = mb.mbInterface(self.fieldName, tracknumberTag, track, ["title", "artist", "release", "tracknumber"])
             if result:
                 result = result.zfill(2)
         

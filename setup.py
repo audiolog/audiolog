@@ -17,10 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-This file figures out if the system has the correct dependencies and is able to
-run getPUID.
-"""
+"""This file figures out if the system has the correct dependencies."""
 
 import os
 import subprocess
@@ -89,7 +86,7 @@ except NameError:
     pass
 
 try:
-    
+    # TODO: Remove references to getPUID binary. Test whether pyofa works instead.
     command = os.path.join(os.getcwd(), "getPUID")
     p = subprocess.Popen([command, "tests/test.mp3"], stdout = subprocess.PIPE)
     output = p.communicate()[0]  # Gets the output from the command

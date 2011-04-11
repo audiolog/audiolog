@@ -81,7 +81,7 @@ class ConfigurationDialog(QDialog):
         # Settings
         self.optionsFrame.recurseCheck.setChecked(configuration.SETTINGS["RECURSE"])
         self.optionsFrame.deleteCheck.setChecked(configuration.SETTINGS["DELETE"])
-        self.optionsFrame.getPUIDCheck.setChecked(configuration.SETTINGS["GET_PUID"])
+        self.optionsFrame.getPrintCheck.setChecked(configuration.SETTINGS["GET_PRINT"])
         
         # Paths
         self.pathsFrame.baseDirPath.setText(configuration.PATHS["BASE_DIR"])
@@ -104,7 +104,7 @@ class ConfigurationDialog(QDialog):
         # Settings
         configuration.SETTINGS["RECURSE"] = self.optionsFrame.recurseCheck.isChecked()
         configuration.SETTINGS["DELETE"] = self.optionsFrame.deleteCheck.isChecked()
-        configuration.SETTINGS["GET_PUID"] = self.optionsFrame.getPUIDCheck.isChecked()
+        configuration.SETTINGS["GET_PRINT"] = self.optionsFrame.getPrintCheck.isChecked()
         
         # Paths
         configuration.PATHS["BASE_DIR"] = str(self.pathsFrame.baseDirPath.text())
@@ -246,12 +246,12 @@ class OptionsFrame(QFrame):
         self.settingsGroup = QGroupBox("Settings")
         self.recurseCheck = QCheckBox("Recursively Handle Folders")
         self.deleteCheck = QCheckBox("Permanently Delete Unwanted Items")
-        self.getPUIDCheck = QCheckBox("Fetch PUIDs")
+        self.getPrintCheck = QCheckBox("Generate audio fingerprints")
         
         settingsLayout = QVBoxLayout(self.settingsGroup)
         settingsLayout.addWidget(self.recurseCheck)
         settingsLayout.addWidget(self.deleteCheck)
-        settingsLayout.addWidget(self.getPUIDCheck)
+        settingsLayout.addWidget(self.getPrintCheck)
         
         # Layout
         optionsLayout = QVBoxLayout(self)
