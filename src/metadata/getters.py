@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#  Azul Music Organizer
+#  Audiolog Music Organizer
 #  Copyright © 2009  Matt Hubert <matt@cfxnetworks.com> and Robert Nagle <rjn945@gmail.com>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ Being the meat of data gathering, getMBData is broken down into four or five par
 Queries are constructed based on the requested field. Four parameters (artist, release, tracktotal, title)
 can be used directly in a Filter. The rest must be used in post processing.
 
-A query is executed by first mapping Azul's standardized naming convention to MusicBrainz' (somewhat arbitrary)
+A query is executed by first mapping Audiolog's standardized naming convention to MusicBrainz' (somewhat arbitrary)
 naming convention, depending on the requested record. The query is executed with queryMB wrapper.
 
 Dates, track numbers, and titles are verified in post processing. For titles specifically, the contents of each

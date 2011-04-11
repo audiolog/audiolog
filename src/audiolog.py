@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  Azul Music Organizer
+#  Audiolog Music Organizer
 #  Copyright © 2009  Matt Hubert <matt@cfxnetworks.com> and Robert Nagle <rjn945@gmail.com>
 #  
 #  This program is free software: you can redistribute it and/or modify
@@ -17,9 +17,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Azul program launcher.
+"""Audiolog program launcher.
 
-This file has only one function: to start the GUI."""
+This file has only one function: to start the program."""
 
 import sys
 

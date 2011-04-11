@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#  Azul Music Organizer
+#  Audiolog Music Organizer
 #  Copyright © 2009  Matt Hubert <matt@cfxnetworks.com> and Robert Nagle <rjn945@gmail.com>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 The Overview
 
 The metadata gathering process is the most important and most complex task
-that Azul performs. The goal of this process is simple: Find complete,
+that Audiolog performs. The goal of this process is simple: Find complete,
 accurate metadata for every track without any human intervention.
 
 We begin with whatever (potentially incomplete and inaccurate) data currently

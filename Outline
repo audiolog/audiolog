@@ -40,7 +40,7 @@ Sending messages to log                                         logger.py
 Pausing and stopping                                            flowcontrol.py
 
 Procedural Steps and Files
-Main program file, starts the GUI                               azul.py
+Main program file, starts the GUI                               audiolog.py
 Traverse through folders calling need functions                 traverse.py
     (If necessary) Extract archives                             extract.py
     (If necessary) Convert (or delete) unwanted music formats   convert.py

@@ -1,3 +1,8 @@
+2011-04-10  Rob Nagle
+
+    * Everything: Rebranded Azul to Audiolog.
+
+
 2009-08-25  Matt Hubert
 
     * setup: Fixed a crash if python-musicbrainz2 doesn't exist.
@@ -78,8 +83,8 @@
     returned by platform.system() which will usually be "Windows" or "Linux".
 
     * configuration: Made the configuration filename conditional upon the
-    local OS. If the OS is Windows, the filename is "azul.conf", otherwise
-    (I'm using we're on a Unix-like system) it's ".azul".
+    local OS. If the OS is Windows, the filename is "audiolog.conf", otherwise
+    (I'm assuming we're on a Unix-like system) it's ".audiolog".
     
 2009-08-15  Matt Hubert and Rob Nagle
 
@@ -228,16 +233,14 @@
     moved to oldCode. It seems clear by now that those container variables are 
     being populated correctly and the code is now more clear and concise. 
     
-
 2009-03-29  Rob Nagle
 
     * LogFrame (__init__, displayAll): Added a "Display All" Button which, when
     clicked, calls the new displayAll method which sets all category checks.
     
-    
 2009-03-25  Rob Nagle
 
-    * ChangeLog: Created change which follows open source standards. See:
+    * ChangeLog: Created changelog which follows open source standards. See:
     http://www.gnu.org/software/guile/changelogs/guile-changelogs_3.html
     
     * TODO: Organized entries into categories, added new entries and added

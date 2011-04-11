@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#  Azul Music Organizer
+#  Audiolog Music Organizer
 #  Copyright © 2009  Matt Hubert <matt@cfxnetworks.com> and Robert Nagle <rjn945@gmail.com>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -33,9 +33,9 @@ import platform
 LOCAL_OS = platform.system()
 
 if LOCAL_OS == "Windows":
-    configFileName = "azul.conf"
+    configFileName = "audiolog.conf"
 else:
-    configFileName = ".azul"
+    configFileName = ".audiolog"
 
 # Types to Extensions
 typeToExts = {"archive"   : [".zip", ".rar", ".tar", ".gz", ".bz2", ".ace", ".7z"],

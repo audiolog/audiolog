@@ -120,7 +120,7 @@
 
         Here's my idea, based on your genetic algorithm comment, on how to decide the weights of the sources.
         We sort ourselves 100 archives (say) and determine what all the correct results for these should be.
-        We then run Azul on them, and for each specific source (i.e. ArtistFinder.getTag) we see how many times
+        We then run Audiolog on them, and for each specific source (i.e. ArtistFinder.getTag) we see how many times
         out of 100 that is was correct. This is its weight.
 
         I like this system because the sources are weighted based on their true, empirical accuracy.

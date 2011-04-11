@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#  Azul Music Organizer
+#  Audiolog Music Organizer
 #  Copyright © 2009  Matt Hubert <matt@cfxnetworks.com> and Robert Nagle <rjn945@gmail.com>
 #
 #  This program is free software: you can redistribute it and/or modify

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#  Azul Music Organizer
+#  Audiolog Music Organizer
 #  Copyright © 2009  Matt Hubert <matt@cfxnetworks.com> and Robert Nagle <rjn945@gmail.com>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self.setWindowTitle("Azul Music Organizer")
+        self.setWindowTitle("Audiolog Music Organizer")
         self.confDialog = ConfigurationDialog(self)
         
         self.directoryPathsToScan = []
@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         # Menu and Status Bars
         self.setMenuBar(MenuBar(self))
         self.statusBar = self.statusBar()
-        self.statusBar.showMessage("Azul launched.")      
+        self.statusBar.showMessage("Audiolog launched.")      
         
         # Top-Level Frame
         self.topLevelFrame = QFrame(self)
@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
             self.handlerThread.setDaemon(True)
             self.handlerThread.start()
             
-            self.statusBar.showMessage("Azul running...")
+            self.statusBar.showMessage("Audiolog running...")
             self.flowButton.setText("Pause")
             self.stopButton.setEnabled(True)
             
@@ -120,13 +120,13 @@ class MainWindow(QMainWindow):
         else:                                               # Currently paused, unpause  
             flowcontrol.unpause()
             self.flowButton.setText("Pause")
-            self.statusBar.showMessage("Azul running...")
+            self.statusBar.showMessage("Audiolog running...")
 
     def stop(self, cleanly=False):
         """Stop the currently running handler thread."""
         
         if not self.running:
-            self.statusBar.showMessage("Azul isn't running.", 5)
+            self.statusBar.showMessage("Audiolog isn't running.", 5)
             return
         
         if cleanly:
@@ -162,7 +162,7 @@ class MenuBar(QMenuBar):
         
         # File Menu
         start = QAction("Start", self)
-        start.setStatusTip("Run Azul on the To Scan directory")
+        start.setStatusTip("Run Audiolog on the To Scan directory")
         self.connect(start, SIGNAL("triggered()"), self.parent().manageFlow)
         
         exit = QAction("Exit", self)
@@ -176,7 +176,7 @@ class MenuBar(QMenuBar):
         fileMenu.addAction(exit)
         
         # Settings
-        configure = QAction("Configure Azul...", self)
+        configure = QAction("Configure Audiolog...", self)
         self.connect(configure, SIGNAL("triggered()"), self.parent().showConfDialog)
         
         settingsMenu = self.addMenu("&Settings")

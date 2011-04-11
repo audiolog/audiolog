@@ -55,7 +55,7 @@ toSortPath = join("samples", "current_input")
 sortedPath = join("samples", "Sorted")
 
 testStartTime = datetime.datetime.now()
-azulRunDuration = datetime.timedelta()
+audiologRunDuration = datetime.timedelta()
 
 for sample in sorted(os.listdir("samples")):
     # Make sure this is a numbered (e.g. "02") sample directory.
@@ -90,12 +90,12 @@ for sample in sorted(os.listdir("samples")):
     destPath = join(toSortPath, contentDirName)
     shutil.copytree(sourcePath, destPath)
     
-    # Run Azul on this sample
+    # Run Audiolog on this sample
     out = open(join(logPath, "output"), "w+")
     err = open(join(logPath, "error"), "w+")
     runStartTime = datetime.datetime.now()
-    subprocess.Popen(["src/azul.py", toSortPath], stdout=out, stderr=err).wait()
-    azulRunDuration += datetime.datetime.now() - runStartTime
+    subprocess.Popen(["src/audiolog.py", toSortPath], stdout=out, stderr=err).wait()
+    audiologRunDuration += datetime.datetime.now() - runStartTime
     
     # Now let's get the error results (we'll use those) and close the files.
     err.seek(0)
@@ -144,20 +144,20 @@ testDuration = datetime.datetime.now() - testStartTime
 print "\nCorrectly sorted %d of %d." % (correct, attempts)
 print "Tests took %.1f minutes" % (testDuration.seconds/60.0),
 print "(%.2f minutes per attempt)." % (testDuration.seconds*1.0/attempts/60.0)
-print "Azul took %.1f minutes" % (azulRunDuration.seconds/60.0),
-print "(%.2f minutes per attempt)." % (azulRunDuration.seconds*1.0/attempts/60.0)
+print "Audiolog took %.1f minutes" % (audiologRunDuration.seconds/60.0),
+print "(%.2f minutes per attempt)." % (audiologRunDuration.seconds*1.0/attempts/60.0)
 
 
-# Run Azul on this sample
+# Run Audiolog on this sample
 #out = StringIO()
 #err = StringIO()
-#p = subprocess.Popen(["python", "src/azul.py", toSortPath], 
+#p = subprocess.Popen(["python", "src/audiolog.py", toSortPath], 
                      #stdout=out, stderr=errs)
 #p.wait()
 #output = out.getvalue()
 #error = err.getvalue()
 
-# Run Azul on this sample
-#p = subprocess.Popen(["python", "src/azul.py", toSortPath], 
+# Run Audiolog on this sample
+#p = subprocess.Popen(["python", "src/audiolog.py", toSortPath], 
                      #stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #output, error = p.communicate()
