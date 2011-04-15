@@ -20,40 +20,37 @@
 
 getMBPUID looks up PUID returned by MusicDNS in MusicBrainz.
 
-mbInterface constructs and executes a MusicBrainz query based on previously known data and/or potentially useful data.
-It takes the following parameters:
-    field: The name of the field we are looking for. Note that this does not necessarily correspond to the
-           MusicBrainz record that we use. For instance, looking for the "tracktotal" field still uses the
-           Release record.
-    match: The [potentially incorrect] string that field may be equal to. This is used for when mbQuery is
-           used to verify found but questionable data.
-    artist, release, ..., titles: Previously known (and correct) data used to filter down results. Not all
-                                  fields use all filters, and mbQuery should be called accordingly.
+askMB constructs and executes a MusicBrainz query based on previously known 
+data and/or potentially useful data.
 
-Being the meat of data gathering, getMBData is broken down into four or five parts:
+Querying MusicBrainz is broken down into four or five parts:
     - Query construction
     - Fuzzy matching (if applicable)
     - Query execution
     - Post processing
     - Data gathering
 
-Queries are constructed based on the requested field. Four parameters (artist, release, tracktotal, title)
-can be used directly in a Filter. The rest must be used in post processing.
+Queries are constructed based on the requested field. Four parameters 
+(artist, release, tracktotal, title) can be used directly in a Filter. 
+The rest must be used in post processing.
 
-A query is executed by first mapping Audiolog's standardized naming convention to MusicBrainz' (somewhat arbitrary)
-naming convention, depending on the requested record. The query is executed with queryMB wrapper.
+A query is executed by first mapping Audiolog's standardized naming convention 
+to MusicBrainz' (somewhat arbitrary) naming convention, depending on the 
+requested record. The query is executed with the queryMB wrapper.
 
-Dates, track numbers, and titles are verified in post processing. For titles specifically, the contents of each
-release must be received and the titles must be verified one by one.
+Dates, track numbers, and titles are verified in post processing. For titles 
+specifically, the contents of each release must be received and the titles must 
+be verified one by one.
 
-Finally, the requested field is extracted from the first found record, provided we got that far.
+Finally, the requested field is extracted from the first found (best match) 
+record, if MusicBrainz returned one that made it through post-processing.
 
 
 ==MusicBrainz Interface==
 
 The system for using MusicBrainz is designed with 3 goals:
     1. Create one clean, simple, consistent interface for all callers and calls
-       to use. The function mbInterface meets these goals.
+       to use. The function askMB meets these goals.
     2. Allow for the most powerful possible uses of MusicBrainz even if they
        are not provided for or intended by the MusicBrainz interface 
        designers. We meet this goal in part by doing powerful post-processing
@@ -66,23 +63,25 @@ The system for using MusicBrainz is designed with 3 goals:
        
 ==Illustration of MusicBrainz Process==
 
-               mbInterface                  |
-                    |                       |
-             filterConstructor              |
-              |            |                |
-          mbMatcher   mbFuzzyMatcher        |
-              |            |                |
-           mbQueryConstructor               |
-                    |                       |
-              getMBFunction               Time
-                    |                       |
-              applyMBParams                 |
-                    |                       |
-              postProcessMB                 |
-                    |                       |
-                 queryMB                    |
-                    |                       |
-              parseMBResults                V
+                 askMB                     |
+                   |                       |
+            constructFilter                |
+              |          |                 |
+    findExactMatch    findFuzzyMatch       |
+              |          |                 |
+             constructQuery                |
+                   |                       |
+          getFunctionAndFilter           Time
+                   |                       |
+              applyParams                  |
+                   |                       |
+                queryMB                    |
+                   |                       |
+           requireDesiredInfo              |
+                   |                       |
+           postProcessResults              |
+                   |                       |
+              parseResults                 V
 """
 
 import os.path
@@ -97,18 +96,18 @@ import musicbrainz2.webservice as mbws
 
 from etc import configuration
 from etc import functions
-from etc import logger
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
 #-------------------------------------------
 # Externally-called functions
 #-------------------------------------------
-        
+
 def getMBPUID(puid, field):
     """Return the metainformation given from MusicBrainz via PUID."""
 
     if not puid:
-        logger.log("Cannot perform lookup because we never found a PUID.", "Failures")
+        log("Cannot perform lookup because we never found a PUID.")
         return None
     
     query = mbws.Query()
@@ -116,7 +115,7 @@ def getMBPUID(puid, field):
     result = queryMB(query.getTracks, params)
     
     if not result:
-        logger.log("MusicBrainz did not recognize the PUID.", "Failures") 
+        log("MusicBrainz did not recognize the PUID.") 
         return None
     
     if field == "artist":
@@ -124,36 +123,32 @@ def getMBPUID(puid, field):
     elif field == "title":
         return result[0].getTrack().getTitle()
 
-def mbInterface(field, match=None, track=None, relevantFields=[]):
-    """Interface for Finders to access MusicBrainz."""
+def askMB(field, match=None, track=None, relevantFields=[]):
+    """Interface for Finders to access MusicBrainz.
     
-    #logger.log("Constructing filter.", "Actions")
-    prequeryFilter, postqueryFilter, match = filterConstructor(match, track, relevantFields, field)
-    #logger.startSection()
-    #logger.log("prequeryFilter: %s" % str(prequeryFilter), "Debugging")
-    #logger.log("postqueryFilter: %s" % str(postqueryFilter), "Debugging")
-    #logger.log("match: %s" % str(match), "Debugging")
-    #logger.endSection()
+    Parameters
+    field: The name of the field we are looking for. Note that this does not 
+           necessarily correspond to the MusicBrainz record that we use. 
+           For instance, looking for the "tracktotal" field still uses the 
+           Release record.
+    match: The [potentially incorrect] string that field may be equal to. 
+           This is used for when mbQuery is used to verify found but 
+           questionable data.
+    track: Track object we are seeking metadata for. This allow us access to
+           the already known [correct] data.
+    relevantFields: A list of which (previously known, correct) data fields
+                    would be helpful in performing the current query."""
     
-    if match:
-        logger.log("Attempting to fuzzily match the string %s on %s." % (quote(match), field), "Actions")
-        logger.startSection()
-        result = mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter)
-        logger.endSection()
-        return result
-    else:
-        logger.log("Attempting to match the string %s on %s." % (quote(match), field), "Actions")
-        logger.startSection()
-        result = mbMatcher(field, match, track, prequeryFilter, postqueryFilter)
-        logger.endSection()
-        return result
-
+    pre, post, match = constructFilter(field, match, track, relevantFields)
+    matcher = findFuzzyMatch if match else findExactMatch
+    return matcher(field, match, track, pre, post)
 
 #-------------------------------------------
 # Internally-called functions
 #-------------------------------------------
 
-def filterConstructor(match, track, relevantFields, field):
+#@logfn("Constructing MusicBrainz filter.")
+def constructFilter(field, match, track, relevantFields):
     """Construct prequery, postquery and match filters.
     
     The caller provides a list fields which would be helpful (or necessary) 
@@ -161,7 +156,7 @@ def filterConstructor(match, track, relevantFields, field):
     fields, then this data is included in the filter. 
   
     The match parameter is overloaded for two uses:
-        1. For artist, release and title fields: Fuzzily match the suspect
+        1. For artist, release and title fields: Fuzzily match the questionable
            contents of the tag or filename.
         2. For date, tracktotal and tracknumber: These numerical fields do not
            make sense to fuzzily match. They should be used in the filter but
@@ -172,37 +167,43 @@ def filterConstructor(match, track, relevantFields, field):
     prequeryFields = ["match", "artist", "release", "tracktotal", "title"]
     postqueryFields = ["date", "tracknumber", "tracks"]
     
-    prequeryFilter = {}
-    postqueryFilter = {}
+    preFilter = {}
+    postFilter = {}
     
     for relevantField in relevantFields:
         if relevantField in prequeryFields:
             if relevantField == field == "tracktotal":
-                prequeryFilter[field] = match
+                preFilter[field] = match
                 match = None
             else:
-                prequeryFilter[relevantField] = track.metadata.get(relevantField, None)
+                preFilter[relevantField] = track.metadata.get(relevantField)
             
         elif relevantField in postqueryFields:
             if relevantField == field == "date":
-                postqueryFilter[field] = match
+                postFilter[field] = match
                 match = None
             elif relevantField == field == "tracknumber":
-                postqueryFilter[field] = match
+                postFilter[field] = match
                 match = None
             elif relevantField == "tracks":
-                postqueryFilter[relevantField] = track.parent.tracks
+                postFilter[relevantField] = track.parent.tracks
             else:
-                postqueryFilter[relevantField] = track.metadata.get(relevantField, None)
+                postFilter[relevantField] = track.metadata.get(relevantField)
     
-    return (prequeryFilter, postqueryFilter, match)
+    #log("Pre-query filter: %s" % preFilter)
+    #log("Post-query filter: %s" % postFilter)
+    #log("Match: %s" % match)
+    
+    return (preFilter, postFilter, match)
 
-def mbMatcher(field, match, track, prequeryFilter, postqueryFilter):
+@logfn("Attempting to match the string {quote(match)} on {field}.")
+def findExactMatch(field, match, track, preFilter, postFilter):
     """Non-fuzzy matching is easy..."""
     
-    return mbQueryConstructor(field, match, prequeryFilter, postqueryFilter)
+    return constructQuery(field, match, preFilter, postFilter)
 
-def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
+@logfn("Attempting to fuzzily match the string {quote(match)} on {field}.")
+def findFuzzyMatch(field, match, track, preFilter, postFilter):
     """Fuzzily match unreliable data (from tags and filename) to MusicBrainz.
 
     Tags and filenames especially may contain special characters or extraneous
@@ -218,66 +219,67 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
     Without any other filters "The Better Life" and "Advance" will both match
     and unable to choose one over the other, we will fail.
     With a filter (like the artist or date) then only "The Better Life" will
-    match and the search will succeed."""
+    match and the search will succeed.
     
+    Fuzzy matching is only used for artist, release and title fields, because
+    these are the only fields with strings to fuzzily match against."""
+    
+    isFilePath = isinstance(match, FilepathString)
     match = functions.restrictChars(match) # Remove special characters.
     
-    if "Filepath" in str(match.__class__):
-        logger.log("Splitting into directory and file names and attempting to match each." % (field, quote(dirName)), "Debugging")
+    if isFilePath:
+        log("Splitting path into directory and file name, then trying each.")
         dirName, fileName = os.path.split(match)
         
         # First, try to fetch result with the full string(s).
-        if dirName:
-            dirResult = mbQueryConstructor(field, dirName, prequeryFilter, postqueryFilter)
-            if dirResult:
-                logger.log("MB found a %s match for the directory name %s." % (field, quote(dirName)), "Debugging")
+        dirResult = constructQuery(field, dirName, preFilter, postFilter)
+        if dirResult:
+            log("MB found a match for the directory %s." % quote(dirName))
         
-        if fileName:
-            fileResult = mbQueryConstructor(field, fileName, prequeryFilter, postqueryFilter)
-            if fileResult:
-                logger.log("MB found a %s match for the file name %s." % (field, quote(fileName)), "Debugging")
+        fileResult = constructQuery(field, fileName, preFilter, postFilter)
+        if fileResult:
+            log("MB found a match for the file name %s." % quote(fileName))
         
         if xor(dirResult, fileResult):
             # Only one matched; return it.
-            return o_o(dirResult, fileResult)
+            return dirResult or fileResult
         
         elif dirResult and fileResult:
-            # Both full strings matched. dirResult generally has better odds of
-            # returning what we want for an artist or release.
+            # Both full strings matched. The directory generally has better odds 
+            # of containing what we want for an artist or release.
+            # (And know we are looking for an artist or release, because only 
+            # requests for those fields pass in a filepath with the containing
+            # dir name and file name. Track title requests just pass in the
+            # file name.)
             return dirResult
             
         else:
-            # Neither matched.
-            logger.log("Neither the full directory or full file name matched.", "Debugging")        
+            log("Neither the full directory or full file name matched.")
     
     else:
-        result = mbQueryConstructor(field, match, prequeryFilter, postqueryFilter)
+        result = constructQuery(field, match, preFilter, postFilter)
         if result:
-            logger.log("MB found a %s match for the full string %s." % (field, quote(match)), "Debugging")
+            log("MB found a match for the full string %s." % quote(match))
             return result
         else:
-            logger.log("MB did not find a %s match for the full string %s." % (field, quote(match)), "Debugging")
+            log("MB did not find a match for the full string %s." % quote(match))
     
-    # No full string matched. Try substrings.
-    logger.log("Searching for a match in substrings.", "Debugging")
-    logger.startSection()
+    log("Searching for a match in substrings.")
     
-    # If that doesn't work, split string based on delimiters list
-    delimiters = r"[/()\-~+_\[\]\{\}*]"   # In regular expression format
+    delimiters = r"[/()\-~+_\[\]\{\}*]"
     substrings = re.split(delimiters, match)
     
     # Strip whitespace and remove empty strings
     substrings = [string.strip() for string in substrings if string.strip()]
-    logger.log("Substrings: " + str(substrings), "Debugging")
+    log("Substrings: %s" % substrings)
 
     matches = set()
     whatFromWhere = {}
     for substring in substrings:
-        result = mbQueryConstructor(field, substring, prequeryFilter, postqueryFilter)
+        result = constructQuery(field, substring, preFilter, postFilter)
         if result:
             whatFromWhere[result] = substring
             matches.add(result)
-    logger.endSection()
     
     if len(matches) > 1:
         # If we have more than one result, attempt to remove matches which 
@@ -292,7 +294,6 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
         #   - result is digits
         #   - result is (about) equal to already known artist, release or title
         #   - substring was digits
-        
         
         # TODO:
         #   Order tests correctly.
@@ -319,10 +320,8 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
         #   - result is (about) equal to already known artist, release or title
         #   - substring was ... artist, release, title
     
-        logger.log("Attempting to remove bogus matches.", "Actions")
-        logger.startSection()
-        logger.log("Current matches: %s" % str(matches), "Debugging")
-        logger.endSection()
+        log("Multiple substrings matched. Attempting to remove bogus matches.")
+        log("Current matches: %s" % matches)
         
         # Remove matches which are either a tracknumber or a year.
         # Tracknumbers are identified by being one or two digits (possibly with
@@ -353,16 +352,19 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
             else:
                 break
         
-        # If we have more than 1 result, than we want to remove probable false positives.
-        # We'll look at the artist, album and title fields and remove those from the results.
-        relatedFields = ["artist", "release", "title"]  # These are in the order we would prefer to remove them.
+        # If we still have more than one result, than we will remove values that
+        # are known to be correct for a different field. In particular, we'll
+        # look at the artist, album and title fields and remove matches
+        # equivalent to those fields - in that order.
+        relatedFields = ["artist", "release", "title"]
         relatedFields.remove(field)
         relatedData = []
         for field in relatedFields:
             if field in track.metadata:
                 relatedData.append(track.metadata[field])
         
-        # Remove matches which are the same as the already known artist, release or title intelligently.
+        # Remove matches which are the same as the already known artist, 
+        # release or title intelligently.
         # TODO: Figure out how to make TODOs highlighted in yellow.
         if len(matches) > 1:
             for datum in relatedData:
@@ -387,53 +389,42 @@ def mbFuzzyMatcher(field, match, track, prequeryFilter, postqueryFilter):
     
     if len(matches) == 1:
         match = matches.pop()
-        logger.log("MB matched a string to a %s: %s" % (field, quote(match)), "Debugging")
+        log("MB matched a string to a %s: %s" % (field, quote(match)))
         return match
     else:
-        logger.log("%d strings matched." % len(matches), "Debugging")
+        log("%d substrings matched." % len(matches))
         if matches:
-            logger.log("Unable to select one correct match.", "Debugging")
-            logger.log("Matches: " + str(matches), "Debugging")
-        logger.log("Unable to match a string to a %s." % field, "Debugging")
-        return ""
+            log("Unable to select between them.")
+            log("Bogus-filtered matches: %s" % matches)
+        log("Fuzzy matching failed.")
+        return u""
 
-def mbQueryConstructor(field, match, prequeryFilter, postqueryFilter):
+def constructQuery(field, match, preFilter, postFilter):
     """Runs a MusicBrainz query from start to finish.
     
     Starts with finding which query function to use and finishing with
     extracting the correct data."""
 
-    logger.log("Constructing MusicBrainz query.", "Actions")
-    #logger.log("Creating query function and filter.", "Actions")
-    query, queryFunction, queryFilter = getMBFunction(field, match)
-    queryFilter = applyMBParams(queryFilter, prequeryFilter, match)
+    log("Constructing MusicBrainz query.")
+    query, queryFunction, queryFilter = getFunctionAndFilter(field, match)
+    queryFilter = applyParams(queryFilter, preFilter, match)
     
     results = queryMB(queryFunction, [queryFilter])
+    
+    results = requireDesiredInfo(field, results)
     
     if not results:
         return None
     
-    results = filterMBResults(field, results)
-    
-    if not results:
-        return None # I guess we removed all of the results...
-    
-    logger.log("Applying postquery filter to MB results.", "Actions")
-    logger.startSection()
-    result = postProcessMB(results, **postqueryFilter)
-    logger.endSection()
+    result = postProcessResults(results, **postFilter)
     
     if not result:
         return None
     
-    logger.log("Parsing MB results.", "Actions")
-    logger.startSection()
-    result = parseMBResult(result, field)
-    logger.endSection()
-    return result
+    return parseResult(result, field)
 
-def getMBFunction(field, match):
-    """Return proper query function and filter based on desired field and whether we are matching."""
+def getFunctionAndFilter(field, match):
+    """Return proper query function & filter based on field & whether we are matching."""
     
     query = mbws.Query()
     
@@ -459,6 +450,7 @@ def getMBFunction(field, match):
     queryFilter = filters[field]
     queryFunction = functions[field]
     
+    # TODO: Document why whether we are matching changes the record type.
     if field == "artist" and not match:
         queryFilter = mbws.ReleaseFilter
         queryFunction = query.getReleases
@@ -469,7 +461,7 @@ def getMBFunction(field, match):
     
     return (query, queryFunction, queryFilter)
 
-def applyMBParams(queryFilter, params, match=None):
+def applyParams(queryFilter, params, match=None):
     """Construct params to MB standards then instantiate filter with params."""
     
     newParams = {}
@@ -501,33 +493,29 @@ def applyMBParams(queryFilter, params, match=None):
     
     return queryFilter(**newParams)
 
+@logfn("Querying MusicBrainz database.")
 def queryMB(func, params, depth=1):
     """Query the MusicBrainz database robustly."""
-
-    if depth == 1:
-        logger.log("Querying MusicBrainz database.", "Details")
-        logger.startSection()
 
     time.sleep(depth**2)
 
     try:
         result = func(*params)
     except mbws.WebServiceError, e:
-        if depth < 6:
-            logger.log("Recieved WebServiceError: %s. Waiting, then trying again." % quote(e.__str__()), "Failures")
+        if depth < 4:
+            log("Received WebServiceError: %s." % quote(str(e)))
+            log("Waiting, then trying again.")
             result = queryMB(func, params, depth+1)
         else:
-            logger.log("Recieved WebServiceError 5 times. Returning None.", "Errors")
+            log("Received WebServiceError 3 times. Returning None.")
             result = None
 
-    if depth == 1:
-        logger.endSection()
     return result
     
-def filterMBResults(field, results):
+def requireDesiredInfo(field, results):
     """Filter results that don't have the necessary information."""
     
-    # Currently the only filtering we do is if we're looking for a date...
+    # Currently the only filtering we do is if we're looking for a date.
     if field == "date":
         for result in results:
             if not result.getRelease().getEarliestReleaseDate():
@@ -535,59 +523,61 @@ def filterMBResults(field, results):
     
     return results
 
-def postProcessMB(results, date=None, tracknumber=None, tracks=None):
+@logfn("Applying postquery filter to MB results.")
+def postProcessResults(results, date=None, tracknumber=None, tracks=None):
     """Apply the postquery filter to the result returned by the MB query."""
-    
-    query = mbws.Query()
-    
+        
     dateResult = None
     finalResult = results[0]
     
-    # We have successfully retrieved a record, now we must post process it (potentially).
-    
     if isinstance(results[0], musicbrainz2.wsxml.ReleaseResult):
         if date:
+            # FIXME: Should this return all the results that match this date
+            # instead of just one? There may be multiple releases with a 
+            # year that matches and the filters below could help us choose
+            # between them.
             success = False
             for result in results:
-                if ((result.getRelease().getEarliestReleaseDate()
-                 and result.getRelease().getEarliestReleaseDate().split("-")[0]) == date):
+                earliestDate = result.getRelease().getEarliestReleaseDate()
+                if (earliestDate and (earliestDate.split("-")[0] == date)):
                     success = True
                     dateResult = result
                     break
             if not success:
                 return None
         
-        if tracknumber: # We have a release and track number and we want a track title.
+        if tracknumber: 
+            # We have a release and track number and we want a track title.
             if not dateResult:
                 for result in results:
-                    releaseID = result.getRelease().id
-                    release = queryMB(query.getReleaseById, [releaseID, mbws.ReleaseIncludes(tracks = True)])
+                    release = getReleaseWithTracks(result.getRelease())
                     if len(release.getTracks()) >= int(tracknumber):
                         return release.getTracks()[int(tracknumber) - 1]
             else:
-                releaseID = dateResult.getRelease().id
-                release = queryMB(query.getReleaseById, [releaseID, mbws.ReleaseIncludes(tracks = True)])
+                release = getReleaseWithTracks(dateResult.getRelease())
                 if len(release.getTracks()) >= int(tracknumber):
                     return release.getTracks()[int(tracknumber) - 1]
             
             return None
         
-        if tracks and "title" in tracks[0].metadata: # Only should be used for looking up releases.
+        if tracks and "title" in tracks[0].metadata: 
+            # This should only be used for looking up releases.
             success = False
             for result in results:
-                releaseID = result.getRelease().id
-                release = queryMB(query.getReleaseById, [releaseID, mbws.ReleaseIncludes(tracks = True)]) # You must query every release explicitly to get its tracks.
-                if release.getTracksCount() != len(tracks): # The record must match the amount of titles we are matching against.
+                release = getReleaseWithTracks(result.getRelease())
+                if release.getTracksCount() != len(tracks):
                     continue
                 
                 # Iterate over the tracks and compare them to our list.
                 success = True
-                for (knownTitle, mbTitle) in zip(tracks, release.getTracks()):
-                    if not aboutEqual(knownTitle.metadata["title"], mbTitle.getTitle()):
+                for track, mbTrack in zip(tracks, release.getTracks()):
+                    if not aboutEqual(track.metadata["title"], mbTrack.getTitle()):
                         success = False
                         break # One title was wrong. Next release.
                 
-                if success and (not dateResult or dateResult.getRelease().id == result.getRelease().id): # The dateResult and titlesResult need to be the same release.
+                # The dateResult and titlesResult need to be the same release.
+                if (success and (not dateResult or 
+                    dateResult.getRelease().id == result.getRelease().id)): 
                     finalResult = result # We did it.
                     break
                 else:
@@ -597,13 +587,24 @@ def postProcessMB(results, date=None, tracknumber=None, tracks=None):
     
     elif isinstance(results[0], musicbrainz2.wsxml.TrackResult):
         if tracknumber:
+            # FIXME: Is there a good reason why we only check the 0-th release?
             if finalResult.getTrack().getReleases()[0].getTracksOffset() + 1 != int(tracknumber):
                 return None
     
-    return o_o(dateResult, finalResult)
+    return dateResult or finalResult
 
+def getReleaseWithTracks(release):
+    """Given a release, look up that release with track info.
+    
+    MusicBrainz requires you explictly ask for track info when requesting a 
+    release to get that info. So, when applying post-processing that requires
+    track info, this function is used."""
+    
+    return queryMB(mbws.Query().getReleaseById, 
+                   [release.id, mbws.ReleaseIncludes(tracks=True)])
 
-def parseMBResult(result, field):
+@logfn("Parsing MB results.")
+def parseResult(result, field):
     """Pull from the result the data field and return it.
     
     We have successfully conquered all of the dungeons.
@@ -627,19 +628,32 @@ def parseMBResult(result, field):
         if field == "title":
             finalResult = result.getTrack().getTitle()
         elif field == "tracknumber":
-            # TODO: Make sure it's the right release (if we know it)
-            tracknumber = result.getTrack().getReleases()[0].getTracksOffset() + 1  # Track numbers are zero-indexed.
+            # TODO: Make sure it's the right release (if we know it).
+            # Track numbers are zero-indexed.
+            tracknumber = result.getTrack().getReleases()[0].getTracksOffset()+1
             finalResult = unicode(tracknumber).rjust(2, u"0")
             
     elif isinstance(result, musicbrainz2.wsxml.ArtistResult):
         if field == "artist":
             finalResult = result.getArtist().getName()
             
+    # Why we would we ever get a Track here instead of a TrackResult?
     elif isinstance(result, musicbrainz2.model.Track):
         finalResult = result.getTitle()
     
     if not finalResult:
-        logger.log("Something went wrong in parseMBResults. Result type: %s  field: %s" % (result.__class__, field), "Errors")
+        log("Something went wrong in parseResult. Result type: %s  field: %s"
+            % (result.__class__, field))
     
     return finalResult
 
+
+class FilepathString(str):
+    """Marks a string as being a filepath.
+    
+    This class is a hack. It's purpose it to allow the Finders to mark a string
+    as being a filepath (as opposed to a tag value or a filename) because later 
+    the musicbrainz fuzzy matcher treats these differently. Explicitly passing 
+    this metadata would muck up multiple function interfaces, hence this class."""
+    
+    pass

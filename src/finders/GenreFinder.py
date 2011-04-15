@@ -16,6 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from etc.logger import log, logfn, logSection
 from AbstractFinder import AbstractReleaseFinder
 
 class GenreFinder(AbstractReleaseFinder):
@@ -34,8 +35,8 @@ class GenreFinder(AbstractReleaseFinder):
         AbstractReleaseFinder.run(self, release)
         return True
     
+    @logfn("Looking in MusicDNS results.")
     def getMusicDNS(self, track):
         """Return genre if MusicDNS provided one."""
 
-        logger.log("Looking in MusicDNS results.", "Actions")
         return track.musicDNS["genre"]

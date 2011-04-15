@@ -37,8 +37,8 @@ from metadata import tagging
 from metadata import musicbrainz as mb
 
 from etc import flowcontrol
-from etc import logger
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
 class AbstractFinder(object):
     """Base class for all Finders."""
@@ -46,17 +46,17 @@ class AbstractFinder(object):
     def logResults(self, results):
         """Logs the results in a tabular format."""
         
-        logger.log("\nResults:", "Debugging")
+        log("\nResults:")
         for (candidate, weight, name, fileName) in results:
-            logger.log("     %s%s%s" % (name.ljust(30), fileName.ljust(80), candidate) , "Debugging")
-        
+            log("     %s%s%s" % (name.ljust(30), fileName.ljust(80), candidate))
     
+    @logfn("\nFinding the result which recieved the most points.")
     def findConsensus(self, data):
         """Take data from getters and find the value with the highest score."""
         
         flowcontrol.checkpoint()
         
-        # Create a dictionary of values to sums of weights while removing null results.
+        # Create a dict of values to sums of weights while removing null results.
         scores = {}
         for (candidate, weight, name, track) in data:
             if candidate:
@@ -64,7 +64,7 @@ class AbstractFinder(object):
         
         # Ensure that we have data, otherwise return None indicating failure
         if not scores:
-            logger.log("Unable to find consensus -- no getters returned valid results.", "Failures")
+            log("Unable to find consensus -- no getters returned valid results.")
             return None
         
         # Put the results in a list so we can sort.
@@ -75,40 +75,29 @@ class AbstractFinder(object):
         
         # Display the results.
         topScore, winningCandidate = listed[0]
-        logger.log(str(listed), "Debugging")
-        logger.log("Top Score: %d" % topScore, "Debugging")
-        logger.log("Winning Candidate: %s" % winningCandidate, "Debugging")
+        log("Candidates: %s" % listed)
+        log("Top Score: %d" % topScore)
+        log("Winning Candidate: %s" % winningCandidate)
         
         return winningCandidate
-    
-    def storeData(self, obj, consensus):
-        """Add consensus data to a Release or Track's known metadata."""
         
-        obj.storeData(self.fieldName, consensus)
-        
+    @logfn("Getting current value of tag.")
     def getTag(self, track):
         """Return the current tag."""
         
-        logger.log("Getting current value of tag.", "Actions")
-        logger.startSection()
-        result = o_o(tagging.getTag(track.filePath, self.fieldName))
-        logger.endSection()
-        return result
+        return tagging.getTag(track.filePath, self.fieldName) or None
     
+    @logfn("Matching current value of tag in MusicBrainz.")
     def getMBTag(self, track):
         """Fuzzily match current value in tag using MusicBrainz."""
 
-        logger.log("Matching current value of tag in MusicBrainz.", "Actions")
-        logger.startSection()
-        
         tag = tagging.getTag(track.filePath, self.fieldName)
         if not tag:
-            logger.log("Unable to match because current tag is empty.", "Failures")
+            log("Unable to match because current tag is empty.")
             result = None           
         else:
-            result = mb.mbInterface(self.fieldName, tag, track)
+            result = mb.askMB(self.fieldName, tag, track)
         
-        logger.endSection()
         return result
 
 
@@ -120,24 +109,22 @@ class AbstractReleaseFinder(AbstractFinder):
         
         data = []
         for track in release.tracks:
-            logger.log("\nActing on track %s." % quote(track.fileName), "Actions")
-            logger.startSection()
-            for (getter, weight) in self.getters:
-                    flowcontrol.checkpoint()
-                    logger.log(" ", "Actions")   # Acts as a newline
-                    data.append((getter(track), weight, getter.__name__, quote(track.fileName)))
-            logger.endSection()
+            with logSection("\nActing on track %s." % quote(track.fileName)):
+                for (getter, weight) in self.getters:
+                        flowcontrol.checkpoint()
+                        log(" ") 
+                        data.append((getter(track), 
+                                     weight, 
+                                     getter.__name__, 
+                                     quote(track.fileName)))
         
         self.logResults(data)
-
-        logger.log("\nFinding the result which recieved the most points.", "Actions")
-        logger.startSection()
+        
         consenus = self.findConsensus(data)
-        logger.log(" ", "Actions")
-        logger.endSection()
+        log(" ")
         
         if consenus:
-            self.storeData(release, consenus)
+            release.storeData(self.fieldName, consenus)
             return True
         else:
             return False
@@ -152,33 +139,28 @@ class AbstractTrackFinder(AbstractFinder):
         results = []
         
         for track in release.tracks:
-            logger.log("Attempting to determine %s for %s." % (self.fieldName, quote(track.fileName)), "Actions")
-            logger.startSection()
-
-            data = []
-            for (getter, weight) in self.getters:
-                flowcontrol.checkpoint()
-                data.append((getter(track), weight, getter.__name__, quote(track.fileName)))
-                logger.log(" ", "Actions")   # Acts as a newline
+            with logSection("Attempting to determine %s for %s." % 
+                            (self.fieldName, quote(track.fileName))):
+                data = []
+                for (getter, weight) in self.getters:
+                    flowcontrol.checkpoint()
+                    log(" ")
+                    data.append((getter(track), 
+                                 weight, 
+                                 getter.__name__, 
+                                 quote(track.fileName)))
+                                    
+                self.logResults(data)
                 
-            self.logResults(data)
+                consensus = self.findConsensus(data)
+    
+                if consensus:
+                    results.append((track, consensus))
+                else:
+                    return False
                 
-            logger.log("\nFinding the result which recieved the most points.", "Actions")
-            logger.startSection()
-            consensus = self.findConsensus(data)
-            logger.endSection(2)
-
-            if consensus:
-                results.append((track, consensus))
-            else:
-                return False
-            
-            logger.log(" ", "Actions")
+            log(" ")
                 
         for (track, consensus) in results:
-            self.storeData(track, consensus)
+            track.storeData(self.fieldName, consensus)
         return True
-
-class FilepathString(str):
-    pass
-

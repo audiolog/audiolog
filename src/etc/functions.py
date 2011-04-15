@@ -29,16 +29,17 @@ import subprocess
 import string
 import datetime
 
-import configuration
-import logger
+import configuration as conf
 from utils import *
+from logger import log, logfn, logSection
 
 #-------------------------------------------
 # Accepting, rejecting and deleting functions
 #-------------------------------------------
 
+@logfn("Moving with context {quote(currentItemPath)}.")
 def moveWithContext(currentItemPath, destDirectoryPath):
-    """Recreate full path relative configuration.CURRENT in destDirectoryPath.
+    """Recreate full path relative to configuration.CURRENT in destDirectoryPath.
     
     Example:
     Current folder being scanned: "/media/Ext/Download/"
@@ -46,37 +47,29 @@ def moveWithContext(currentItemPath, destDirectoryPath):
     Destination directory: REJECTS folder "/media/Ext/Rejects/"
     Final path: "/media/Ext/Rejects/Rock/College Rock/Morissey/disco.rar" """
 
-    logger.startSection()
-    logger.log("Moving with context %s." % quote(currentItemPath), "Actions")
-    logger.startSection()
-    
     if not validatePath(currentItemPath):
-        logger.log("Could not move with context %s -- not a valid path." % quote(currentItemPath), "Failures")
-        logger.endSection(2)
+        log("Could not move with context %s -- not a valid path." % 
+            quote(currentItemPath))
         return
         
-    newItemPath = currentItemPath.replace(configuration.PATHS["CURRENT"], destDirectoryPath)
+    newItemPath = currentItemPath.replace(conf.PATHS["CURRENT"], 
+                                          destDirectoryPath)
     newDirectoryPath = os.path.dirname(newItemPath)
     
     if not os.path.exists(newDirectoryPath):
         os.makedirs(newDirectoryPath)
     
     if not os.path.exists(newItemPath):
-        logger.log("Moving to %s." % quote(newItemPath), "Details")
+        log("Moving to %s." % quote(newItemPath))
         shutil.move(currentItemPath, newItemPath)
     else:
-        logger.log("Could not move. Destination path %s already exists." % quote(newItemPath), "Failures")
+        log("Could not move. Destination %s already exists." % 
+            quote(newItemPath))
     
-    # Remove the old containing directory if it's empty
-    try:
-        os.rmdir(os.path.dirname(currentItemPath))
-    except OSError:
-        pass
-
-    logger.endSection(2)
-
-
-def acceptItem(itemPath, destDirectoryRelPath, depth=1):
+    removeDirIfEmpty(os.path.dirname(currentItemPath))
+    
+@logfn("Accepting {quote(itemPath)}.")
+def acceptItem(itemPath, destDirectoryRelPath):
     """Move a file or directory to the SORTED folder.
     
     Parameters:
@@ -84,48 +77,31 @@ def acceptItem(itemPath, destDirectoryRelPath, depth=1):
         destDirectoryRelPath is a path relative to the SORTED directory.
         depth is provided only when the function recursively calls itself."""
 
-    if depth == 1:
-        logger.startSection()
-        logger.log("Accepting %s." % quote(itemPath), "Actions")
-        logger.startSection()
-
     # Create destination directory
-    destDirectoryPath = os.path.join(configuration.PATHS["SORTED"], destDirectoryRelPath)
+    destDirectoryPath = os.path.join(conf.PATHS["SORTED"], destDirectoryRelPath)
     if not os.path.exists(destDirectoryPath):
         os.makedirs(destDirectoryPath)
     
     if os.path.isdir(itemPath):                         # Directory
-        # Recursively accept files in directory.
-        filePaths = findFiles(itemPath)
-        for filePath in filePaths:
-            acceptItem(filePath, destDirectoryPath, depth+1)
-        
-        # Remove the directory if it's empty.
-        try:
-            os.rmdir(itemPath)  
-        except OSError: 
-            pass
+        # Recursively accept items in this directory.
+        for itemName in os.listdir(itemPath):
+            acceptItem(os.path.join(itemPath, itemName), destDirectoryRelPath)  
+        removeDirIfEmpty(itemPath)
 
     else:                                               # File
-        logger.log("Moving the file %s" % quote(itemPath), "Details")
-        logger.log("into the directory %s." % quote(destDirectoryPath), "Details")
+        itemName = os.path.basename(itemPath)
+        log("Moving %s into %s." % (quote(itemName), quote(destDirectoryPath)))
         try:
             shutil.move(itemPath, destDirectoryPath)
         except:
-            logger.log("Move failed.", "Errors")
-
-    if depth == 1:
-        logger.endSection(2)
+            log("Move failed.")
 
 
+@logfn("Rejecting {quote(itemPath)}.")
 def rejectItem(itemPath):
     """Move a file or directory to the REJECTS folder."""
 
-    logger.startSection()
-    logger.log("Rejecting %s." % quote(itemPath), "Actions")
-    moveWithContext(itemPath, configuration.PATHS["REJECTS"])
-    logger.endSection()
-
+    moveWithContext(itemPath, conf.PATHS["REJECTS"])
 
 def rejectItems(itemPaths):
     """Move a list of items to the REJECTS folder."""
@@ -133,47 +109,27 @@ def rejectItems(itemPaths):
     for itemPath in itemPaths:
         rejectItem(itemPath)
 
-
+@logfn("Actually deleting {quote(itemPath)}.")
 def actuallyDelete(itemPath):
     """Actually delete the item at itemPath."""
-
-    logger.startSection()
-    logger.log("Actually deleting %s." % quote(itemPath), "Actions")
-    logger.startSection()
     
     if not validatePath(itemPath):
-        logger.log("Could not delete %s -- not a valid path." % quote(itemPath), "Failures")
-        logger.endSection(2)
+        log("Could not delete %s -- not a valid path." % quote(itemPath))
         return
-    
-    # Make sure we want to do this
-    """
-    Need to code this into the GUI first.
-    At the moment it isn't dangerous because it only deletes files that it creates.
-    
-    certainty = raw_input("Are you sure? (y) ")
-    if certainty.lower() != "y":
-        print "Deletion aborted."
-        logger.log("Deletion aborted.", "Details")
-        logger.endSection(2)
-        return
-    """
 
     if os.path.isdir(itemPath):                 # Directory
-        try: 
-            os.rmdir(itemPath)
-        except OSError:                         # TODO: Handle non-empty dirs
+        if not removeDirIfEmpty(itemPath):
+            # TODO: Handle non-empty dirs.
             s = "Attempt to delete the folder %s failed. " % quote(itemPath)
             s += "It's probably not empty."
-            logger.log(s, "Errors")
+            log(s)
     else:                                       # File
         try: 
             os.remove(itemPath)
         except OSError:
-            logger.log("Attempt to delete the file %s failed." % quote(itemPath), "Errors")
-    
-    logger.endSection(2)
+            log("Attempt to delete the file %s failed." % quote(itemPath))
 
+@logfn("Removing {quote(itemPath)}.")
 def deleteItem(itemPath, actuallyDeleteFlag=None):
     """Either delete or move to DELETES the file or directory at itemPath.
     
@@ -185,18 +141,13 @@ def deleteItem(itemPath, actuallyDeleteFlag=None):
             The global deletion mode stored at configuration.SETTINGS["DELETE"]
             is used, where True and False have the same meanings as above."""
 
-    logger.startSection("deleteItem")
-    logger.log("Deleting %s." % quote(itemPath), "Actions")
-    
     if actuallyDeleteFlag is None:
-        actuallyDeleteFlag = configuration.SETTINGS["DELETE"]
+        actuallyDeleteFlag = conf.SETTINGS["DELETE"]
         
     if actuallyDeleteFlag:
         actuallyDelete(itemPath)
     else:
-        moveWithContext(itemPath, configuration.PATHS["DELETES"])
-    
-    logger.endSection("deleteItem")
+        moveWithContext(itemPath, conf.PATHS["DELETES"])
                 
 def deleteItems(itemPaths, actuallyDelete=None):
     """Either delete or move to DELETES a list of items.
@@ -209,70 +160,44 @@ def deleteItems(itemPaths, actuallyDelete=None):
 
 
 #-------------------------------------------
-# Path and file functions
+# Path functions
 #-------------------------------------------
 
-def getDirectoriesAndFiles(directoryPath):
+def getSubdirectories(directoryPath):
+    """Return a list paths to directories inside the given directory."""
+    
+    paths = sorted([os.path.join(directoryPath, name) 
+                    for name in os.listdir(directoryPath)])
+    return [path for path in paths if os.path.isdir(path)]
+    
+
+def getFilePathsByType(directoryPath):
     """Return a list of subdirectory paths and a dict of file paths by type."""
-
-    ls = os.listdir(directoryPath)
-    ls.sort()
     
-    #filePaths = []
-    subdirectoryPaths = []
+    if not validatePath(directoryPath, isDirectory=True):
+        return {}
+
     filePathsByType = {}
-    
-    for entry in ls:
+    for entry in sorted(os.listdir(directoryPath)):
         itemPath = os.path.join(directoryPath, entry)
-        if os.path.isdir(itemPath):
-            subdirectoryPaths.append(itemPath)
-        elif os.path.isfile(itemPath):
-            #filePaths.append(itemPath)
-            fileType = configuration.extToType.get(ext(entry), "other")
-            filePathsByType.setdefault(fileType, []).append(itemPath)
-            
-    return subdirectoryPaths, filePathsByType
-
-def moveDiscsIntoFolders(discContents):
-    """Create disc directories; move files into directories.
-    
-    Takes a list of lists of paths. Each sublist contains the paths of the
-    files that should be moved into that disc directory. The lists should be
-    in order."""
-
-    directoryPath = os.path.dirname(discContents[0][0])
-    numDiscs = len(discContents)
-    numDigits = int(log10(numDiscs)+1)  # In case there are 10 (or more) discs
-    
-    for i in range(numDiscs):
-        # Create disc directory
-        discDirectoryName = "Disc " + str(i+1).rjust(numDigits, "0")
-        discDirectoryPath = os.path.join(directoryPath, discDirectoryName)
-        logger.log("Creating %s." % quote(discDirectoryPath), "Details")
-        os.mkdir(discDirectoryPath)
-        
-        # Move files into disc directory
-        for filePath in discContents[i]:
-            newFilePath = filePath.replace(directoryPath, discDirectoryPath)
-            logger.log("Moving %s to %s." % (quote(filePath), quote(newFilePath)), "Details")
-            shutil.move(filePath, newFilePath)
+        if os.path.isfile(itemPath):
+            fileType = conf.extToType.get(ext(entry), "other")
+            filePathsByType.setdefault(fileType, []).append(itemPath)     
+    return filePathsByType
 
 def validatePath(itemPath, isDirectory=False, isFile=False):
     """Ensure the path exists and, if specified, is a file or directory."""
-
-    logger.startSection()
     
     result = False
     if not os.path.exists(itemPath):
-        logger.log(quote(itemPath) + " does not exist or cannot be accessed.", "Failures")
+        log(quote(itemPath) + " does not exist or cannot be accessed.")
     elif isDirectory and not os.path.isdir(itemPath):
-        logger.log(quote(itemPath) + " is not a directory.", "Failures")
+        log(quote(itemPath) + " is not a directory.")
     elif isFile and not os.path.isfile(itemPath):
-        logger.log(quote(itemPath) + " is not a file", "Failures")
+        log(quote(itemPath) + " is not a file.")
     else:
         result = True
-
-    logger.endSection()
+        
     return result
 
 def filePathsByExt(filePaths):
@@ -280,7 +205,7 @@ def filePathsByExt(filePaths):
     
     filePathsByExt = {}
     for filePath in filePaths:
-        filesByExt.setDefault(ext(filePath), []).append(filePath)
+        filesByExt.setdefault(ext(filePath), []).append(filePath)
     return filePathsByExt
 
 def findFiles(directoryPath):
@@ -302,6 +227,47 @@ def containingDir(filePath):
     dirName = os.path.split(dirPath)[1]
     return dirName
 
+
+#-------------------------------------------
+# File functions
+#-------------------------------------------
+
+@logfn("Moving each cue/audio pair into its own folder.")
+def moveDiscsIntoFolders(discContents):
+    """Create disc directories; move files into directories.
+    
+    Takes a list of lists of paths. Each sublist contains the paths of the
+    files that should be moved into that disc directory. The lists should be
+    in order."""
+
+    directoryPath = os.path.dirname(discContents[0][0])
+    numDiscs = len(discContents)
+    numDigits = int(log10(numDiscs)+1)  # In case there are 10 (or more) discs
+    
+    for i in range(numDiscs):
+        # Create disc directory
+        discDirectoryName = "Disc " + str(i+1).zfill(numDigits)
+        discDirectoryPath = os.path.join(directoryPath, discDirectoryName)
+        log("Creating %s." % quote(discDirectoryPath))
+        os.mkdir(discDirectoryPath)
+        
+        # Move files into disc directory
+        for filePath in discContents[i]:
+            newFilePath = filePath.replace(directoryPath, discDirectoryPath)
+            log("Moving %s to %s." % (quote(filePath), quote(newFilePath)))
+            shutil.move(filePath, newFilePath)
+            
+def removeDirIfEmpty(dirPath):
+    """Delete the directory if it's empty."""
+    
+    try:
+        os.rmdir(dirPath)  
+    except OSError: 
+        return False
+    else:
+        return True
+
+
 #-------------------------------------------
 # Tagging functions
 #-------------------------------------------
@@ -321,4 +287,3 @@ def isTrackNumber(number):
         return False
     else:
         return True
-

@@ -34,7 +34,6 @@ from PyQt4.QtCore import *
 from etc import configuration
 from etc import functions
 from etc import flowcontrol
-from etc import logger
 
 from filehandling import extract
 from filehandling import clean
@@ -45,33 +44,32 @@ from metadata import metadata
 
 from etc.utils import *
 from etc.flowcontrol import emitter
+from etc.logger import log, logfn, logSection
 
 def handleIt(directoryPathsToScan):
     """Call traverse on directories; when run ends for any reason inform GUI."""
     
     try:
-        for directoryPath in directoryPathsToScan:  
-            logger.log("Traversing %s." % quote(directoryPath), "Actions")
-            logger.startSection("traversing")
-            configuration.PATHS["CURRENT"] = directoryPath
-            traverse(directoryPath, True)
-            logger.endSection("traversing")
+        for directoryPath in directoryPathsToScan:
+            with logSection("Traversing %s." % quote(directoryPath)):
+                configuration.PATHS["CURRENT"] = directoryPath
+                traverse(directoryPath)
     except flowcontrol.StopException:
         emitter.emit(SIGNAL("RunEnded"), "stopped")
-    except:
-        traceback.print_exc()
-        emitter.emit(SIGNAL("RunEnded"), "failed")
+    #except:
+    #    traceback.print_exc()
+    #    emitter.emit(SIGNAL("RunEnded"), "failed")
     else:
         emitter.emit(SIGNAL("RunEnded"), "complete")
 
-def traverse(directoryPath, initialCall=False, rescan=False):
-    """Recursively traverse directories; take actions based on directory content."""
+def traverse(directoryPath):
+    """Recursively traverse directories."""
     
     flowcontrol.checkpoint(cleanStopPoint=True)
     if not functions.validatePath(directoryPath, isDirectory=True):
         return
     
-    subdirectoryPaths, filePathsByType = functions.getDirectoriesAndFiles(directoryPath)
+    subdirectoryPaths = functions.getSubdirectories(directoryPath)
     
     # If appropriate, rename and recurse into subdirectories
     if configuration.SETTINGS["RECURSE"] and subdirectoryPaths:
@@ -79,67 +77,45 @@ def traverse(directoryPath, initialCall=False, rescan=False):
         for subdirectoryPath in subdirectoryPaths:
             traverse(subdirectoryPath)
 
-    # Execute proper actions
-    if not rescan:
-        logger.log("\nHandling %s." % quote(directoryPath), "Actions")
-        logger.startSection("handling dir")
+    # We are now in a leaf directory with no subdirectories.
+    # FIXME: If user has not chosen to recurse, then the above statement may
+    # actually be false. Should we even allow the user to turn recursion off?
+    # Does that make sense with our album/directory-oriented method?
+    with logSection("\nHandling %s." % quote(directoryPath)):
+        handleDirectory(directoryPath)
+
+def handleDirectory(directoryPath):
+    """Take actions based on file types present and the user's configuration."""
+    
+    filePathsByType = functions.getFilePathsByType(directoryPath)
     
     if configuration.ACTIONS["IMAGE"] and "image" in filePathsByType:           # Rename/delete image(s)
-        logger.log('\nRenaming cover image to "cover" and deleting other images.', "Actions")
-        logger.startSection("images")
         clean.handleImages(filePathsByType["image"])
-        logger.endSection("images")
         
     if configuration.ACTIONS["CLEAN"] and "other" in filePathsByType:           # Delete extra files
-        logger.log("\nDeleting miscellaneous files.", "Actions")
-        logger.startSection("clean")
         clean.cleanDir(filePathsByType["other"])
-        logger.endSection("clean")
     
-    if configuration.ACTIONS["EXTRACT"] and "archive" in filePathsByType:       # Extract archives
-        logger.log("\nExtracting archives then scanning directory again.", "Actions")
-        logger.startSection("extract")
+    if configuration.ACTIONS["EXTRACT"] and "archive" in filePathsByType:       # Extract archives and scan again
         extract.extract(filePathsByType["archive"])
-        logger.endSection("extract")
-        logger.endSection("handling dir")
-        traverse(directoryPath, initialCall=initialCall, rescan=True)
-        return
+        return handleDirectory(directoryPath)
         
-    if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to Ogg
-        logger.log("\nConverting audio to Ogg then scanning again.", "Actions")
-        logger.startSection("convert")
+    if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to Ogg and scan again
         convert.convert(filePathsByType["bad_audio"])
-        logger.endSection("convert")
-        logger.endSection("handling dir")
-        traverse(directoryPath, initialCall=initialCall, rescan=True)
-        return
-    
+        return handleDirectory(directoryPath)
+        
     if not "good_audio" in filePathsByType:                                     # Continue if audio present
-        if not initialCall:
-            logger.log("\nNo audio found in %s." % quote(directoryPath), "Actions")
+        log("\nNo audio found in %s." % quote(directoryPath))
+        # FIXME: If the user has not requested the metadata process, should this
+        # directory actually be accepted rather than deleted at this point?
+        if directoryPath != configuration.PATHS["CURRENT"]:
             functions.deleteItem(directoryPath)
-        logger.endSection("handling dir")
         return
-                                                   
-    if configuration.ACTIONS["SPLIT"] and "cue" in filePathsByType:             # Split based on cue
-        logger.log("\nSplitting audio into tracks then scanning again.", "Actions")
-        logger.startSection("split")
+            
+    if configuration.ACTIONS["SPLIT"] and "cue" in filePathsByType:             # Split based on cue and scan again
         split.split(filePathsByType["cue"], filePathsByType["good_audio"])
-        logger.endSection("split")
-        logger.endSection("handling dir")
-        traverse(directoryPath, initialCall=initialCall, rescan=True)
-        return
+        return handleDirectory(directoryPath)
         
-    if configuration.ACTIONS["METADATA"]:                                          # Handle metadata
-        logger.log("\nCleaning up filenames.", "Actions")
-        logger.startSection("standardizeFilenames")
+    if configuration.ACTIONS["METADATA"]:                                       # Handle metadata
         audioPaths = clean.standardizeFilenames(filePathsByType["good_audio"])
-        logger.endSection("standardizeFilenames")
-        
-        logger.log("\nIdentifying audio then writing tags and filenames.", "Actions")
-        logger.startSection("handleAudio")
         metadata.handleMetadata(directoryPath, audioPaths)
-        logger.endSection("handleAudio")
-
-    logger.endSection()
     

@@ -16,110 +16,115 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import sys
+from functools import wraps
+from contextlib import contextmanager
 
-from PyQt4.QtCore import *
+from PyQt4.QtCore import QObject, SIGNAL
 
-emitter = QObject()
-printAlso = False
-lastLevel = 0
-bufferOn = False
-openSections = []
-logBuffer = []
-
-def log(message, category):
-    """Send message to LogFrame and, if on, the log buffer."""
+class GUILogWriter(object):
+    """Provides writeable file-like interface to send text to GUI."""
     
-    global lastLevel, bufferOn, logBuffer, emitter
-    
-    if message[0] == "\n":
-        message = "\n" + "    "*(lastLevel) + message[1:]
-    else:
-        message = "    "*(lastLevel) + message
-    
-    if bufferOn:
-        logBuffer.append(message)
+    def __init__(self):
+        self.emitter = QObject()
+        self.softspace = 0
         
-    emitter.emit(SIGNAL("AppendToLog"), message, lastLevel, category)
-    
-    if printAlso:
-        try:
-            print message
-        except UnicodeEncodeError:
-            try:
-                print unicode(message, "UTF_8")
-            except:
-                print "===Line omitted due to encoding errors.==="
+    def write(self, message):
+        self.emitter.emit(SIGNAL("AppendToLog"), message)
         
-    if category == "Errors":
-        try:
-            sys.stderr.write(message)
-        except UnicodeEncodeError:
-            try:
-                sys.stderr.write(unicode(message, "UTF_8"))
-            except:
-                sys.stderr.write("===Line omitted due to encoding errors.===")
-
-def startSection(sectionName=None):
-    """Increase indentation level."""
+    def flush(self):
+        pass
     
-    global lastLevel, openSections
-    lastLevel += 1
-    #if sectionName:
-    #    if sectionName in openSections:
-    #        print "Section has been opened twice:", sectionName
-    #openSections.append(sectionName)
+    def close(self):
+        pass
 
-def endSection(sectionName=None, num=1):
-    """Decrease indentation level."""
+class Logger(object):
+    """Write nested log messages to a set of file-like outputs."""
     
-    global lastLevel, openSections
-    if type(sectionName) == type(3):
-        num = sectionName
-        sectionName = None
-    lastLevel -= num
-    #if sectionName:
-    #    if not sectionName in openSections:
-    #        print "Closing section which is not open:", sectionName
-    #else:
-    #    openSections.remove(sectionName)
+    def __init__(self):
+        self.level = 0
+        self.outputs = []
+        self.indent = "    "
+        
+    def log(self, msg):
+        indent = self.indent * self.level
+        msg = ("\n" + indent + msg[1:]) if msg[0] == "\n" else (indent + msg)
 
-def startBuffer():
-    """Start writing all log messages to buffer."""
+        for output in self.outputs:
+            # TODO: Understand and resolve this encoding error.
+            try: output.write(msg)
+            except UnicodeEncodeError:
+                try: output.write(unicode(msg, "UTF_8"))
+                except: output.write("==Line due to encoding errors.==")
+                
+    def startSection(self):
+        self.level += 1
+        
+    def endSection(self):
+        self.level = max(0, self.level-1)
+        
+    def close(self):
+        for output in self.outputs:
+            output.close()
+            
+logger = Logger()
+logger.outputs.append(GUILogWriter())
+
+# Create aliases so we can treat these as functions provided by this module
+# instead of methods of a particular class instance.
+log = logger.log
+closeLog = logger.close
+startLogSection = logger.startSection
+endLogSection = logger.endSection
+logOutputs = logger.outputs
+emitter = logger.outputs[0].emitter
+
+
+# The two following functions both provide syntatic sugar for implicitly 
+# wrapping a section of code in a logging section.
+# logSection provides a context manager (for use in a with statement) 
+# to log a message and wrap a block of code in a nested log section.
+# logfn provides a function decorator with a similar purpose:
+# log a message and wrap the execution of a function in a nested log section.
     
-    global bufferOn
-    bufferOn = True
-
-def getBuffer():
-    """Returns the contents of the log buffer."""
+@contextmanager
+def logSection(msg):
+    """For use in with statement; logs message then wraps body in log section."""
     
-    global logBuffer
-    return logBuffer
-
-def endBuffer():
-    """Stop writing log messages to buffer and clear buffer."""
+    log(msg)
+    startLogSection()
+    yield
+    endLogSection()
     
-    global bufferOn, logBuffer
-    bufferOn = False
-    logBuffer = []
-
-def logWrap(msg):
+def logfn(msg):
     """Log message describing function; wrap call in start and end sections."""
-
-    def logWrapInner(fn):
-        def wrapped(*args):
-            msgd = re.sub(r"\*\d", lambda i: str(args[int(i.group()[1:])]), msg)     # Allows message to contain, parameters to log-wrapped function
-            print msgd
-            print "start"
-            result = fn(*args)
-            print "end"
+    
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            # We want to refer to the parameters of the wrapped fn by name,
+            # even though that fn has not been called yet.
+            # Look away if you're squeamish about seeing hacking and guts.
+            # This is gonna get dirty.
+            code = fn.func_code
+            argNames = code.co_varnames[:code.co_argcount]
+            argVals = [None for i in range(code.co_argcount)]
+            if fn.func_defaults:
+                for i, default in enumerate(reversed(fn.func_defaults)):
+                    argVals[-i-1] = default
+            for i, val in enumerate(args):
+                argVals[i] = val
+            fnlocals = dict(zip(argNames, argVals))
+            fnlocals.update(kwargs)
+            
+            def reval(match):
+                return str(eval(match.group()[1:-1], fn.func_globals, fnlocals))
+            
+            log(re.sub(r"\{.*?\}", reval, msg))
+            startLogSection()
+            result = fn(*args, **kwargs)
+            endLogSection()
             return result
-        return wrapped
-    return logWrapInner
-
-def replaceWithArg(match):
-    matched = match.group()
-    digit = matched[1:]
-    num = int(digit)
-    arg = args[num]
-    return str(arg)
+        return wrapper
+    return decorator

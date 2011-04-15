@@ -31,8 +31,8 @@ except ImportError:
 
 import musicdns
 
-from etc import logger
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
 def lookup_fingerprint_metadata(fingerprint, duration, musicdns_key, **opt):
     """Given the fingerprint of an audio file, lookup metadata from MusicDNS.
@@ -100,7 +100,7 @@ def lookup_fingerprint_metadata(fingerprint, duration, musicdns_key, **opt):
 
     return metadata
 
-def queryMusicDNS(filePath):
+def askMusicDNS(filePath):
     """Fingerprint audio file; look for match in MusicDNS database.
     
     filePath must point to an audio file with a supported format (MP3 or OGG).
@@ -112,25 +112,26 @@ def queryMusicDNS(filePath):
     the artist, song title, genre and year of first release.    . 
     If the process fails for any reason, it returns None."""
     
-    logger.log("Generating an audio fingerprint for %s." % quote(os.path.basename(filePath)), "Details")
+    fileName = os.path.basename(filePath)
+    log("Generating an audio fingerprint for %s." % quote(fileName))
     try:
         fingerprint, duration = musicdns.create_fingerprint(filePath)
     except IOError:
-        logger.log("%s is not a supported filetype for audio fingerprinting." % quote(filePath), "Errors")
+        log("%s is not a supported filetype for audio fingerprinting." % 
+            quote(fileName))
         return None
     
-    logger.log("Searching for a match in the MusicDNS database.", "Details")
-    time.sleep(1)
+    log("Searching for a match in the MusicDNS database.")
     try:
         metadata = lookup_fingerprint_metadata(fingerprint, duration, 
                                                "a66a78b0401f53189d5dd98a5c89f5a9")
     except:
-        logger.log("Unable to search for MusicDNS match.", "Errors")
+        log("Unable to search for MusicDNS match.")
         return None
         
     if metadata["puid"]:
-        logger.log("MusicDNS found a match.", "Successes")
+        log("MusicDNS found a match.")
     else:
-        logger.log("MusicDNS failed to find a match.", "Failures") 
+        log("MusicDNS failed to find a match.") 
         
     return metadata

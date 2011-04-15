@@ -49,9 +49,9 @@ illustrated below. Each component uses the component(s) in the box below it.
 |----------------------------------------------------------------------------|
 |   Finders (Artist, Release, Date, TrackTotal, Title, TrackNumber, Genre)   |
 |----------------------------------------------------------------------------|
-|              tagging                 |              getters                |
-|--------------------------------------|-------------------------------------|
-|              Mutagen                 |    MusicBrainz  |    MusicDNS       |
+|              tagging                 |   musicbrainz   |   fingerprint     |
+|--------------------------------------|-----------------|-------------------|
+|              Mutagen                 |   MusicBrainz   |    MusicDNS       |
 |--------------------------------------|-----------------|-------------------|
 
 """
@@ -60,10 +60,10 @@ import shutil
 from collections import defaultdict
 
 from etc import flowcontrol
-from etc import logger
 from etc import functions
 from etc import configuration
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
 import fingerprint
 import getters
@@ -78,8 +78,10 @@ from finders.TrackNumberFinder import  TrackNumberFinder
 from finders.GenreFinder import GenreFinder
 
 class ReleaseManagerError(Exception):
-    """Raised when a problem is found which will keep the release from being tagged."""
+    """Raised when a problem will keep the release from being tagged."""
+
     pass
+
 
 class ReleaseManager(object):
     """Manages the gathering and writing of one release's metadata."""
@@ -95,32 +97,20 @@ class ReleaseManager(object):
         """Fingerprint audio, find metadata, check sanity, write tags and filenames."""
 
         if configuration.SETTINGS["GET_PRINT"]:
-            logger.log("\nFingerprinting audio files and searching for matches in MusicDNS database.", "Actions")
-            logger.startSection()
             self.getMusicDNS()
-            logger.endSection()
-
-        logger.log("\nGathering metadata.", "Actions")
-        logger.startSection()
         self.gatherMetadata()
-        logger.endSection()
-
-        logger.log("\nChecking for errors in the results.", "Actions")
-        logger.startSection()
         self.checkSanity()
-        logger.endSection()
-
-        logger.log("\nWriting the results to tags and filenames.", "Actions")
-        logger.startSection()
         self.writeResults()
-        logger.endSection()
         
     def logInitialState(self):
-        """Log the initial state of the filenames, tags and MusicDNS results."""
+        """Log the initial state of the filenames, tags and MusicDNS results.
+        
+        TODO: Complete this function and use it or remove it."""
 
         for track in self.release.tracks:
-            logger.log("File path: %s" % track.filePath, "Debugging")
+            log("File path: %s" % track.filePath, "Debugging")
             
+    @logfn("\nFingerprinting audio files and searching for matches in MusicDNS.")
     def getMusicDNS(self):
         """Fingerprint each track and look for matches in MusicDNS."""
         
@@ -130,6 +120,7 @@ class ReleaseManager(object):
             track.getMusicDNS()
         musicdns.finalize()
 
+    @logfn("\nGathering metadata.")
     def gatherMetadata(self):
         """Iterate through Finders until success or stagnation."""
 
@@ -137,25 +128,27 @@ class ReleaseManager(object):
             for finder in self.queue:
                 field = finder.fieldName
                 
-                logger.log("\nAttempting to determine the %s from %d sources." % (field, len(finder.getters)), "Actions")
-                logger.startSection()
-                success = finder.run(self.release)
-                logger.endSection()
+                with logSection("\nAttempting to determine the %s using %d sources." 
+                                % (field, len(finder.getters))):
+                    success = finder.run(self.release)
                 
                 if not success:
-                    logger.log("Failed to determine the %s. Will try again next round.\n" % field, "Failures")
+                    log("Failed to determine the %s. Will try again next round.\n"
+                        % field)
                     self.nextRoundQueue.append(finder)
                 else:
-                    logger.log("Successfully determined the %s.\n" % field, "Successes")
+                    log("Successfully determined the %s.\n" % field)
             
             if self.queue == self.nextRoundQueue:
-                logger.log("No progress has been made. The metadata gathering process has failed.\n", "Errors")
+                log("No progress has been made. The metadata gathering process "
+                    "has failed.\n")
                 failedFields = [finder.fieldName for finder in self.queue]
                 raise ReleaseManagerError, "Unable to determine: %s" % failedFields
             else:
                 self.queue = self.nextRoundQueue
                 self.nextRoundQueue = []
         
+    @logfn("\nChecking for errors in the results.")
     def checkSanity(self):
         """Apply field-specific checks to eliminate bogus results.
 
@@ -174,7 +167,7 @@ class ReleaseManager(object):
             except ValueError:
                 raise ReleaseManagerError, "Year is not an integer."
             if not functions.isDate(year):
-                raise ReleaseManagerError, "Year is not between 1600 and current year + 1."
+                raise ReleaseManagerError, "Year is not between 1600 and next year."
         
         # Check tracktotal is equal to number of tracks in the directory.
         for track in self.release.tracks:
@@ -183,7 +176,9 @@ class ReleaseManager(object):
             except ValueError:
                 raise ReleaseManagerError, "Tracktotal is not an integer."
             if tracktotal != len(track.parent.tracks):
-                raise ReleaseManagerError, "Tracktotal does not equal number of tracks in directory indicating one or more tracks are missing."
+                err = ("Tracktotal does not equal number of tracks in directory"
+                       " indicating one or more tracks are missing.")
+                raise ReleaseManagerError, err
                     
         # Check tracks are sequential -- none missing or repeated.
         tracknumbers = []
@@ -193,38 +188,33 @@ class ReleaseManager(object):
             except:
                 raise ReleaseManagerError, "One or more tracknumber is not an integer."
             if not functions.isTrackNumber(tracknumber):
-                raise ReleaseManagerError, "Track number is not between 1 and 40."
+                raise ReleaseManagerError, "Track number is not between 1 and 99."
             tracknumbers.append(tracknumber)
         tracknumbers.sort()
         
         for i in range(tracknumbers[-1]):
             if not (i + 1) in tracknumbers:
-                raise ReleaseManagerError, "The release is missing one or more tracks."
+                s = "The release is missing one or more tracks."
+                s += "Track numbers:" + str(tracknumbers)
+                raise ReleaseManagerError, s
 
         if len(tracknumbers) > tracknumbers[-1]:
             # TODO: Choose the better version of the repeated track
-            raise ReleaseManagerError, "The release has one or more repeated and missing tracks."
+            s = "The release has one or more repeated tracks."
+            s += "Track numbers:" + str(tracknumbers)
+            raise ReleaseManagerError, s
                 
-        # One master MB sanity check, coming up... later.
-        # Coming up next week.
+        # TODO: One master MB sanity check, coming up... later.
         
+    @logfn("\nWriting the results to tags and filenames.")
     def writeResults(self):
         """After tags have been found, write tags and filenames for all tracks."""
 
         flowcontrol.checkpoint()
-        
         for track in self.release.tracks:
             flowcontrol.checkpoint(pauseOnly=True)
-            
-            logger.log("Writing tags for %s." % quote(track.fileName), "Actions")
-            logger.startSection()
             track.writeTags()
-            logger.endSection()
-
-            logger.log("Writing filename for %s." % quote(track.fileName), "Actions")
-            logger.startSection()
             track.rename()
-            logger.endSection()
             
     def getNewPath(self):
         """Return the new path to the album based on the metadata.
@@ -234,9 +224,11 @@ class ReleaseManager(object):
         
         metadata = self.release.metadata
         genre = metadata.get("genre", "[None]")
-        return os.path.join(translateForFilename(genre), translateForFilename(metadata["artist"]),
-            "%s - %s" % (metadata["date"], translateForFilename(metadata["release"])) )
+        return os.path.join(translateForFilename(genre), 
+                            translateForFilename(metadata["artist"]),
+                            "%s - %s" % (metadata["date"], translateForFilename(metadata["release"])))
 
+    
 class Release(object):
     """Represents one audio release.
 
@@ -272,12 +264,12 @@ class Track(object):
         self.metadata = {}
         self.filePath = filePath
         self.fileName = os.path.basename(filePath)
-        self.musicDNS = defaultdict(lambda: None)
+        self.musicDNS = defaultdict(lambda: None) # Returns None for all look-ups.
 
     def getMusicDNS(self):
         """Search for fingerprint match in MusicDNS and store the result."""
         
-        result = fingerprint.queryMusicDNS(self.filePath)
+        result = fingerprint.askMusicDNS(self.filePath)
         if result:
             self.musicDNS = result
 
@@ -286,16 +278,18 @@ class Track(object):
         
         self.metadata[field] = data
     
+    @logfn("Writing tags for {quote(self.fileName)}.")
     def writeTags(self):
         """Clear the current track tags and write what we've found."""
 
-        logger.log("Clearing current tags.", "Details")
+        log("Clearing current tags.")
         tagging.clearTags(self.filePath)
-        logger.log("Writing these tags:", "Details")
+        log("Writing these tags:")
         for field in self.metadata:
-            logger.log("    %s%s" % (field.ljust(20), self.metadata[field]), "Details")
+            log("    %s%s" % (field.ljust(20), self.metadata[field]))
             tagging.setTag(self.filePath, field, self.metadata[field])
 
+    @logfn("Writing filename for {quote(self.fileName)}.")
     def rename(self):
         """Rename the file to [tracknumber] - [title].[ext]."""
 
@@ -304,11 +298,12 @@ class Track(object):
         oldBaseName, ext = os.path.splitext(self.fileName)
         newPath = self.filePath.replace(oldBaseName, newBaseName)
         if not os.path.exists(newPath):
-            logger.log("Renaming " + quote(oldBaseName) + " to " + quote(newBaseName), "Details")
+            log("Renaming %s to %s." % (quote(oldBaseName), quote(newBaseName)))
             shutil.move(self.filePath, newPath)
         elif newBaseName == oldBaseName:
-            logger.log("Old filename is correct. No renaming necessary.", "Details")
+            log("Old filename is correct. No renaming necessary.")
         else:
-            logger.log("Cannot rename %s. There already exists a file with the target filename." % quote(oldBaseName), "Errors")
-            logger.log("Target filename: %s" % quote(newBaseName), "Debugging")
+            log("Cannot rename %s." % quote(oldBaseName))
+            log("There already exists a file with the target filename.")
+            log("Target filename: %s" % quote(newBaseName))
             raise ReleaseManagerError, "Target filename already exists."

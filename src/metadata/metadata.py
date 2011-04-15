@@ -25,9 +25,10 @@ then the directory is rejected, otherwise it is accepted."""
 import Manager
 
 from etc import functions
-from etc import logger
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
+@logfn("\nIdentifying audio then writing tags and filenames.")
 def handleMetadata(directoryPath, audioFilePaths):
     """Create and run a ReleaseManager object."""
     
@@ -35,10 +36,10 @@ def handleMetadata(directoryPath, audioFilePaths):
     try:
         releaseManager.run()
     except Manager.ReleaseManagerError, e:
-        logger.log("Attempt to identify and tag audio failed.", "Errors")
-        logger.log(str(e), "Errors")
+        log("Attempt to identify and tag audio failed.")
+        log(str(e))
         functions.rejectItem(directoryPath)
     else:
-        logger.log("Attempt to identify and tag audio succeeded.", "Successes")
-        logger.log("Directory has been sorted successfully.", "Successes")
+        log("Attempt to identify and tag audio succeeded.")
+        log("Directory has been sorted successfully.")
         functions.acceptItem(directoryPath, releaseManager.getNewPath())

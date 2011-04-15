@@ -4,6 +4,8 @@
     - Think of various input sources and formats input can come in
     - Think of use cases
 
+ * Support more audio formats (other than MP3 and Ogg Vorbis)    
+    
  * Use durations when searching for tracks
 
  * Notice and Where Possible Resolve Potential Problems

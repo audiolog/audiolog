@@ -27,19 +27,20 @@ import os
 import subprocess
 
 from etc import functions
-from etc import logger
-from etc import configuration as c
+from etc import configuration as conf
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
 convertorCommands = {
-    ".wav" : [['oggenc', '-q', str(c.ENCODING_QUALITY["HIGH"]), '$$.wav']],
-    ".flac": [['oggenc', '-q', str(c.ENCODING_QUALITY["HIGH"]), '$$.flac']],
+    ".wav" : [['oggenc', '-q', str(conf.ENCODING_QUALITY["HIGH"]), '$$.wav']],
+    ".flac": [['oggenc', '-q', str(conf.ENCODING_QUALITY["HIGH"]), '$$.flac']],
     ".ape" : [['mac', '$$.ape', '$$.wav', '-d'],
-              ['oggenc', '-q', str(c.ENCODING_QUALITY["HIGH"]), '$$.wav']],
+              ['oggenc', '-q', str(conf.ENCODING_QUALITY["HIGH"]), '$$.wav']],
     ".mpc" : [['mpc123', '-w', '$$.wav', '$$.mpc'],
-              ['oggenc', '-q', str(c.ENCODING_QUALITY["MEDIUM"]), '$$.wav']]
+              ['oggenc', '-q', str(conf.ENCODING_QUALITY["MEDIUM"]), '$$.wav']]
 }
 
+@logfn("\nConverting audio to Ogg.")
 def convert(audioFilePaths):
     """Convert undesirable audio formats into ogg.
     
@@ -47,35 +48,32 @@ def convert(audioFilePaths):
     commands. These commands (mac, oggenc, mpc123) must be present."""
     
     for audioFilePath in audioFilePaths:
-        filePathWithoutExtension, extension = os.path.splitext(audioFilePath)
-        commands = convertorCommands[extension]
-        
-        success = True
-        for command in commands:
-            for (i, arg) in enumerate(command):
-                command[i] = arg.replace("$$", filePathWithoutExtension)
+        fileName = os.path.basename(audioFilePath)
+        with logSection("Attempting to convert %s." % quote(fileName)):
+            filePathWithoutExtension, extension = os.path.splitext(audioFilePath)
+            commands = convertorCommands[extension]
             
-            logger.log("Attempting to convert %s." % quote(os.path.basename(audioFilePath)), "Details")
-            logger.startSection()
-            logger.log(" ".join(command), "Commands")
+            success = True
+            for command in commands:
+                cmd = [arg.replace("$$", filePathWithoutExtension)
+                       for arg in command]
+                
+                log(" ".join(cmd))
+                p = subprocess.Popen(cmd)
+                p.wait()
+                
+                if p.returncode != 0:
+                    success = False
+                    break
             
-            p = subprocess.Popen(command)
-            p.wait()
+            if not success:
+                # FIXME: Should we reject this file or this entire directory?
+                log("Attempt to convert failed.")
+                functions.rejectItem(audioFilePath)
+            else:
+                log("Attempt to convert succeeded.")
+                functions.deleteItem(audioFilePath)
             
-            if p.returncode != 0:
-                success = False
-                break
-        
-        if not success:
-            logger.log("Attempt to convert failed.", "Errors")
-            functions.rejectItem(audioFilePath)
-        
-        else:
-            logger.log("Attempt to convert succeeded.", "Successes")
-            functions.deleteItem(audioFilePath)
-        
-        if extension == ".ape" or extension == ".mpc":
-            functions.deleteItem(filePathWithoutExtension + ".wav", True)
-
-        logger.endSection()
+            if len(commands) > 1: # If we created an intermediate wav file
+                functions.deleteItem(filePathWithoutExtension + ".wav", True)
         

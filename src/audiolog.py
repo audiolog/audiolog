@@ -24,12 +24,12 @@ This file has only one function: to start the program."""
 import sys
 
 from etc import configuration
-from etc import logger
+from etc.logger import logOutputs
 import traverse
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        logger.printAlso = True
+        logOutputs.append(sys.stdout)
         configuration.loadConfigFile()
         configuration.PATHS["TO_SCAN"] = [sys.argv[-1]]
         traverse.handleIt([sys.argv[-1]])        

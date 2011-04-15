@@ -18,7 +18,7 @@
 
 from metadata import tagging
 from metadata import musicbrainz as mb
-from etc import logger
+from etc.logger import log, logfn, logSection
 
 from AbstractFinder import AbstractReleaseFinder
 
@@ -40,12 +40,13 @@ class DateFinder(AbstractReleaseFinder):
                         (self.getMBKnownData, 4),
                         (self.getMBTagWithKnownData, 3)]
         
+    @logfn("Looking in MusicDNS results.")
     def getMusicDNS(self, track):
         """Return year if MusicDNS provided one."""
 
-        logger.log("Looking in MusicDNS results.", "Actions")
         return track.musicDNS["year"]
     
+    @logfn("Searching in MusicBrainz using the currently known data.")
     def getMBKnownData(self, track):
         """Query MB using known data.
         
@@ -54,34 +55,35 @@ class DateFinder(AbstractReleaseFinder):
             Can Use: An artist, a tracktotal
             Might Use: Tracknames"""
         
-        logger.log("Searching for date in MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
-        
         if not "release" in track.metadata:
-            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the field we need -- the release.")
             result = None
+            
         else:
-            result = mb.mbInterface("date", None, track, ["release", "artist", "tracktotal"])
-
-        logger.endSection()
+            result = mb.askMB("date", None, track, 
+                                    ["release", "artist", "tracktotal"])
+        
         return result
     
+    @logfn("Attempting to match the current tag value with MusicBrainz using "
+           "the currently known data.")
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
-
-        logger.log("Attempting to match the current date tag value with MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
 
         dateTag = tagging.getTag(track.filePath, "date")
 
         if not dateTag:
-            logger.log("Attempt failed because current tag is empty.", "Failures")
+            log("Attempt failed because current tag is empty.")
             result = None
+            
         elif not "release" in track.metadata:
-            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the field we need -- the release.")
             result = None
+            
         else:
-            result = mb.mbInterface("date", dateTag, track, ["release", "artist", "tracktotal", "date"])
+            result = mb.askMB("date", dateTag, track, 
+                                    ["release", "artist", "tracktotal", "date"])
         
-        logger.endSection()
         return result

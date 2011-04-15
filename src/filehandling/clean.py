@@ -30,9 +30,10 @@ import shutil
 
 from etc import configuration
 from etc import functions
-from etc import logger
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
+@logfn('\nRenaming cover image to "cover" and deleting other images.')
 def handleImages(imagePaths):
     """Delete or rename images based on quantity.
     
@@ -47,11 +48,13 @@ def handleImages(imagePaths):
     else:
         functions.deleteItems(imagePaths)
 
+@logfn("\nDeleting miscellaneous files.")
 def cleanDir(filePaths):
     """Delete miscellaneous files."""
     
     functions.deleteItems(filePaths)
-            
+
+@logfn("\nCleaning up filenames.")
 def standardizeFilenames(itemPaths, rename=True):
     """Take file or dir paths; rename them to meet standards; return new paths.
     
@@ -98,7 +101,7 @@ def standardizeFilenames(itemPaths, rename=True):
         newItemName = root + extension.lower()
         newItemPath = os.path.join(directoryPath, newItemName)
         if newItemPath != itemPath:
-            logger.log("Renaming %s to %s." % (quote(itemName), quote(newItemName)), "Debugging")
+            log("Renaming %s to %s." % (quote(itemName), quote(newItemName)))
             if rename: shutil.move(itemPath, newItemPath)
             itemPaths[i] = newItemPath
             

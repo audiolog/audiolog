@@ -21,7 +21,7 @@
 This file provides functions to split audio in one of two ways: based on a CUE
 file or a wrapped audio file (AlbumWrap or MP3Wrap).
 If there is one or more cues in a directory split is called to attempt to match
-the cues to audio files and then to split them using the *nix command-line 
+the cues to audio files and then to split them using the command-line 
 program mp3splt."""
 
 import os
@@ -30,9 +30,10 @@ import subprocess
 from math import log10
 
 from etc import functions
-from etc import logger
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
+@logfn("\nSplitting audio into tracks.")
 def split(cuePaths, audioFilePaths):
     """Split audio files based on cue files.
     
@@ -45,7 +46,8 @@ def split(cuePaths, audioFilePaths):
     directoryPath = os.path.dirname(cuePaths[0])
     
     if numCues != len(audioFilePaths):
-        logger.log("There are unequal numbers of cues and audio files in %s." % quote(directoryPath), "Errors")
+        log("There are unequal numbers of cues and audio files in %s." % 
+            quote(directoryPath))
         functions.rejectItem(directoryPath)
         return
 
@@ -53,43 +55,39 @@ def split(cuePaths, audioFilePaths):
         cuePath = cuePaths[0]
         audioFilePath = audioFilePaths[0]
         
-        logger.log("Splitting %s based on %s." % (quote(os.path.basename(audioFilePath)), quote(os.path.basename(cuePath))), "Details")
-        logger.startSection()
+        log("Splitting %s based on %s." % 
+            (quote(os.path.basename(audioFilePath)), 
+             quote(os.path.basename(cuePath))))
         
-        splitCommand = ['mp3splt', '-d', directoryPath, '-c', cuePath, audioFilePath]
-        logger.log(" ".join(splitCommand), "Commands")
+        command = ['mp3splt', '-d', directoryPath, '-c', cuePath, audioFilePath]
+        log(" ".join(command))
         
-        p = subprocess.Popen(splitCommand)
+        p = subprocess.Popen(command)
         p.wait()
 
         if p.returncode == 0:
-            logger.log("Successfully split %s." % quote(audioFilePath), "Successes")
-            logger.startSection()
+            log("Successfully split %s." % quote(audioFilePath))
             functions.deleteItem(cuePath)
             functions.deleteItem(audioFilePath)
 
         else:
-            logger.log("Unable to split %s." % quote(audioFilePath), "Failures")
-            logger.startSection()
+            log("Unable to split %s." % quote(audioFilePath))
             functions.rejectItem(cuePath)
             functions.rejectItem(audioFilePath)
-            
-        logger.endSection(2)
                            
     else: 
-        logger.log("Multiple cue/audio pairs in %s." % quote(directoryName), "Details")
-        logger.log("Moving each pair into its own folder.", "Details")
+        log("Multiple cue/audio pairs in %s." % quote(directoryName))
         pairs = [(audioFilePaths[i], cuePaths[i]) for i in range(numCues)]
-        logger.startSection()
         functions.moveDiscsIntoFolders(pairs)
-        logger.endSection()
 
 def unwrap(audioFilePaths):
     """Attempt to split possible AlbumWrap or MP3Wrap audio files.
     
     Takes a list of paths to audio files which are suspected to be AlbumWrap 
     or MP3Wrap files but may not be. We attempt to split these files using 
-    "mp3splt -w". If this fails then this was not a wrapped file."""
+    "mp3splt -w". If this fails then this was not a wrapped file.
+    
+    TODO: Implement this."""
     
     pass
     

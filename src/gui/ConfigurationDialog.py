@@ -227,12 +227,12 @@ class OptionsFrame(QFrame):
      
         # Actions
         self.actionsGroup = QGroupBox("Actions")
-        self.extractCheck = QCheckBox("Extract Archives")
-        self.imageCheck = QCheckBox("Handle Images")
-        self.cleanCheck = QCheckBox("Delete Miscellaneous Files")
-        self.convertCheck = QCheckBox("Convert Unwanted Audio Formats")
-        self.splitCheck = QCheckBox("Split One-File Albums")
-        self.audioCheck = QCheckBox("Handle Audio")
+        self.extractCheck = QCheckBox("Extract archives")
+        self.imageCheck = QCheckBox("Handle images")
+        self.cleanCheck = QCheckBox("Delete miscellaneous files")
+        self.convertCheck = QCheckBox("Convert unwanted audio formats")
+        self.splitCheck = QCheckBox("Split one-file albums")
+        self.audioCheck = QCheckBox("Identify, tag and rename audio")
         
         actionsLayout = QVBoxLayout(self.actionsGroup)
         actionsLayout.addWidget(self.extractCheck)
@@ -244,8 +244,8 @@ class OptionsFrame(QFrame):
         
         # Settings
         self.settingsGroup = QGroupBox("Settings")
-        self.recurseCheck = QCheckBox("Recursively Handle Folders")
-        self.deleteCheck = QCheckBox("Permanently Delete Unwanted Items")
+        self.recurseCheck = QCheckBox("Recursively handle folders")
+        self.deleteCheck = QCheckBox("Permanently delete unwanted items")
         self.getPrintCheck = QCheckBox("Generate audio fingerprints")
         
         settingsLayout = QVBoxLayout(self.settingsGroup)

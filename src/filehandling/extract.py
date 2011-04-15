@@ -28,8 +28,8 @@ import os
 import subprocess
 
 from etc import functions
-from etc import logger
 from etc.utils import *
+from etc.logger import log, logfn, logSection
 
 extractorCommands = {".zip": ['unzip', '$a', '-d', '$d'],
                      ".rar": ['unrar', 'x', '$a', '$d'],
@@ -38,6 +38,7 @@ extractorCommands = {".zip": ['unzip', '$a', '-d', '$d'],
                      ".bz2": ['tar', '-jxf', '$a', '$d'],
                      ".ace": ['unace', 'x', '-y', '$a', '$d/']}
 
+@logfn("\nExtracting archives.")
 def extract(archivePaths):
     """Extract archives using appropriate utility.
     
@@ -49,30 +50,28 @@ def extract(archivePaths):
     If the extraction succeeds, the archive is discarded."""
     
     for archivePath in archivePaths:
-        destDirectoryPath = os.path.splitext(archivePath)[0]
-        if not os.path.exists(destDirectoryPath):
-            os.mkdir(destDirectoryPath)   
-        
-        command = extractorCommands[ext(archivePath)][:]
-        for (i, arg) in enumerate(command):
-            if arg == "$a":
-                command[i] = archivePath
-            elif arg == "$d":
-                command[i] = destDirectoryPath
-        
-        logger.log("Attempting to extract %s." % quote(os.path.basename(archivePath)), "Details")
-        logger.startSection()
-        logger.log(" ".join(command), "Commands")
-        
-        p = subprocess.Popen(command)
-        p.wait()
-        
-        if p.returncode != 0:
-            logger.log("Unable to extract " + quote(archivePath), "Errors")
-            functions.deleteItem(destDirectoryPath)
-            functions.rejectItem(archivePath)
-        else:
-            logger.log("Extraction succeeded.", "Successes")
-            functions.deleteItem(archivePath)
+        fileName = os.path.basename(archivePath)
+        with logSection("Attempting to extract %s." % quote(fileName)):
+            destDirectoryPath, ext = os.path.splitext(archivePath)
+            if not os.path.exists(destDirectoryPath):
+                os.mkdir(destDirectoryPath)   
             
-        logger.endSection()
+            command = extractorCommands[ext.lower()][:]
+            for (i, arg) in enumerate(command):
+                if arg == "$a":
+                    command[i] = archivePath
+                elif arg == "$d":
+                    command[i] = destDirectoryPath
+            
+            log(" ".join(command))
+            
+            p = subprocess.Popen(command)
+            p.wait()
+            
+            if p.returncode != 0:
+                log("Unable to extract %s." % quote(archivePath))
+                functions.deleteItem(destDirectoryPath)
+                functions.rejectItem(archivePath)
+            else:
+                log("Extraction succeeded.")
+                functions.deleteItem(archivePath)

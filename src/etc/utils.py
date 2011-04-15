@@ -31,7 +31,6 @@ def translateForFilename(fileName):
     fileName = fileName.replace("/", "-")
     fileName = fileName.replace("\\", "-")
     fileName = fileName.replace(":", "-")
-    
     return fileName
 
 def ext(filePath, lower=True):
@@ -79,8 +78,3 @@ def xor(a, b):
     """Return exclusive or of a and b."""
 
     return (a and (not b)) or (b and (not a))
-
-def o_o(a, b=None):
-    """Oh really?"""
-    
-    return a if a else b

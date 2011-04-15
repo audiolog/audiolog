@@ -20,7 +20,7 @@ import re
 
 from metadata import tagging
 from metadata import musicbrainz as mb
-from etc import logger
+from etc.logger import log, logfn, logSection
 
 from AbstractFinder import AbstractFinder
 from AbstractFinder import AbstractTrackFinder
@@ -43,6 +43,7 @@ class TrackNumberFinder(AbstractTrackFinder):
                         (self.getMBTagWithKnownData, 3),
                         (self.getFilename, 1.5)]
     
+    @logfn("Searching in MusicBrainz using the currently known data.")
     def getMBKnownData(self, track):
         """Query MB using known data.
         
@@ -50,47 +51,47 @@ class TrackNumberFinder(AbstractTrackFinder):
             Need: A track title
             Can Use: A release, an artist"""
         
-        logger.log("Searching for tracknumber in MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
-
         if not "title" in track.metadata:
-            logger.log("Attempt failed because our currently known data does not include the field we need -- the track title.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the field we need -- the track title.")
             result = None
         else:
-            result = mb.mbInterface(self.fieldName, None, track, ["title", "artist", "release"])
+            result = mb.askMB(self.fieldName, None, track, 
+                                    ["title", "artist", "release"])
             if result:
                 result = result.zfill(2)
             
-        logger.endSection()
         return result
     
+    @logfn("Attempting to match the current tag value with MusicBrainz using "
+           "the currently known data.")
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
         
-        logger.log("Attempting to match the current tracknumber tag value with MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
-
         tracknumberTag = tagging.getTag(track.filePath, "tracknumber")
 
         if not tracknumberTag:
-            logger.log("Attempt failed because current tag is empty.", "Failures")
+            log("Attempt failed because current tag is empty.")
             result = None
+            
         elif not "title" in track.metadata:
-            logger.log("Attempt failed because our currently known data does not include the field we need -- the track title.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the field we need -- the track title.")
             result = None
+            
         else:
-            result = mb.mbInterface(self.fieldName, tracknumberTag, track, ["title", "artist", "release", "tracknumber"])
+            result = mb.askMB(self.fieldName, tracknumberTag, track, 
+                                    ["title", "artist", "release", "tracknumber"])
             if result:
                 result = result.zfill(2)
         
-        logger.endSection()
         return result
     
     def getFilename(self, track):
         """Find one or two consecutive digits in the filename."""
         
-        tracknum = re.compile("(?<!\d)\d{1,2}(?=\D)")  # One or two digits
-        match = tracknum.search(track.fileName)
+        tracknum = re.compile("(?<!\d)\d{1,2}(?=\D)") # One or two digits, but
+        match = tracknum.search(track.fileName)       # not more. No years.
         if match:
             digits = match.group()
             return unicode(digits).zfill(2)

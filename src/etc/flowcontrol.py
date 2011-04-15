@@ -34,7 +34,7 @@ in this file but currently there is nowhere better to put it."""
 
 import threading
 
-import PyQt4.QtCore
+from PyQt4.QtCore import QObject
 
 PAUSED = False
 PAUSE_LOCK = threading.Lock()
@@ -42,7 +42,7 @@ PAUSE_LOCK = threading.Lock()
 STOP_NOW = False
 STOP_CLEANLY = False
 
-emitter = PyQt4.QtCore.QObject()
+emitter = QObject()
 
 class StopException(Exception):
     """Raised when stop flag is set.

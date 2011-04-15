@@ -21,11 +21,10 @@ import re
 
 from metadata import tagging
 from metadata import musicbrainz as mb
-from etc import logger
 from etc import functions
+from etc.logger import log, logfn, logSection
 
 from AbstractFinder import AbstractReleaseFinder
-from AbstractFinder import FilepathString
 
 class ArtistFinder(AbstractReleaseFinder):
     """Gatherer of artist data from all available sources.
@@ -50,21 +49,19 @@ class ArtistFinder(AbstractReleaseFinder):
                         (self.getMBTagWithKnownData, 4),
                         (self.getMBFilename, 2)]
     
+    @logfn("Looking in MusicDNS results.")
     def getMusicDNS(self, track):
         """Return artist if MusicDNS provided one."""
 
-        logger.log("Looking in MusicDNS results.", "Actions")
         return track.musicDNS["artist"]
     
+    @logfn("Looking up the PUID provided by MusicDNS in MusicBrainz.")
     def getMBPUID(self, track):
         """If MusicDNS provided a PUID, look it up in MusicBrainz."""
 
-        logger.log("Looking up the PUID provided by MusicDNS in MusicBrainz.", "Actions")
-        logger.startSection()
-        result = mb.getMBPUID(track.musicDNS["puid"], "artist")
-        logger.endSection()
-        return result
-            
+        return mb.getMBPUID(track.musicDNS["puid"], "artist")
+    
+    @logfn("Searching in MusicBrainz using the currently known data.")
     def getMBKnownData(self, track):
         """Query MB using known data.
             
@@ -74,55 +71,52 @@ class ArtistFinder(AbstractReleaseFinder):
             Can Use: date, tracktotal
             Might Use: tracks"""
         
-        logger.log("Searching for an artist in MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
-        
         if not "release" in track.metadata:
-            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the field we need -- the release.")
             result = None
-        else:
-            result = mb.mbInterface(self.fieldName, None, track, ["release", "date", "tracktotal", "tracks"])
             
-        logger.endSection()
+        else:
+            result = mb.askMB(self.fieldName, None, track, 
+                                    ["release", "date", "tracktotal", "tracks"])
+            
         return result
     
+    @logfn("Attempting to match the current tag value with MusicBrainz using "
+           "the currently known data.")
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
-        
-        logger.log("Attempting to match the current artist tag value with MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
         
         artistTag = tagging.getTag(track.filePath, "artist")
         
         if not artistTag:
-            logger.log("Attempt failed because current tag is empty.", "Failures")
+            log("Attempt failed because current tag is empty.")
             result = None
+            
         elif not "release" in track.metadata:
-            logger.log("Attempt failed because our currently known data does not include the field we need -- the release.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the field we need -- the release.")
             result = None
+            
         else:
-            result = mb.mbInterface(self.fieldName, artistTag, track, ["release", "date", "tracktotal"])
+            result = mb.askMB(self.fieldName, artistTag, track, 
+                                    ["release", "date", "tracktotal"])
         
-        logger.endSection()
         return result
     
+    @logfn("Attempting to match the filepath to an artist using MusicBrainz.")
     def getMBFilename(self, track):
         """Try to match the file name to an artist using MB."""
         
         folderFilePath = self.getFilenameForMB(track)
-        logger.log("Attempting to match the filepath to an artist using MusicBrainz.", "Actions")
-        logger.startSection()
-        result = mb.mbInterface(self.fieldName, folderFilePath, track)
-        logger.endSection()
-        return result
+        return mb.askMB(self.fieldName, folderFilePath, track)
     
     def getFilenameForMB(self, track):
         """Return filename and containing dir with year removed."""
         
-        folderFilePath = os.path.join(functions.containingDir(track.filePath), track.fileName)
+        folderFilePath = os.path.join(functions.containingDir(track.filePath), 
+                                      track.fileName)
         folderFilePath = os.path.splitext(folderFilePath)[0]
-        
-        folderFilePath = FilepathString(folderFilePath)
         
         if "date" in track.metadata: # If we know the date, try to remove it...
             date = track.metadata["date"]
@@ -132,4 +126,4 @@ class ArtistFinder(AbstractReleaseFinder):
             if match:
                 folderFilePath = folderFilePath.replace(match[0], "")
                 
-        return folderFilePath
+        return mb.FilepathString(folderFilePath)

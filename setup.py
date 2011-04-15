@@ -86,7 +86,7 @@ except NameError:
     pass
 
 try:
-    # TODO: Remove references to getPUID binary. Test whether pyofa works instead.
+    # FIXME: Remove references to getPUID binary. Test whether pyofa works instead.
     command = os.path.join(os.getcwd(), "getPUID")
     p = subprocess.Popen([command, "tests/test.mp3"], stdout = subprocess.PIPE)
     output = p.communicate()[0]  # Gets the output from the command

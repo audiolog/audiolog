@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The HandleIt GUI main window.
+"""The Audiolog GUI main window.
 
 This file contains two classes: MainWindow, which subclasses QMainWindow, and 
 MenuBar, which subclasses QMenuBar. All other GUI files - currently LogFrame
@@ -37,7 +37,7 @@ from LogFrame import LogFrame
 from ConfigurationDialog import ConfigurationDialog
 
 class MainWindow(QMainWindow):
-    """The HandleIt GUI main window."""
+    """The Audiolog GUI main window."""
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)

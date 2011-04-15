@@ -77,27 +77,6 @@ ACTIONS = {
     "METADATA"  : True
 }
 
-# Logging 
-"""LOGGING = {
-    "Actions"  : True,
-    "Successes": False,
-    "Failures" : True,
-    "Errors"   : True,
-    "Details"  : False,
-    "Commands" : False,
-    "Debugging": False
-}"""
-LOGGING = {
-    "Actions"  : True,
-    "Successes": True,
-    "Failures" : True,
-    "Errors"   : True,
-    "Details"  : True,
-    "Commands" : True,
-    "Debugging": True
-}
-    
-
 # Encoding Qualities
 ENCODING_QUALITY = {
     "HIGH"  : 9,
@@ -106,9 +85,10 @@ ENCODING_QUALITY = {
 }
 
 def loadConfigFile():
-    global ACTIONS, SETTINGS, PATHS
     """Unserialize the configuration at fileName and return it."""
     
+    global ACTIONS, SETTINGS, PATHS
+
     try:
         f = open(configFileName, "r")
     except: # File probably doesn't exist yet.

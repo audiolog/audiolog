@@ -21,11 +21,10 @@ import re
 
 from metadata import tagging
 from metadata import musicbrainz as mb
-from etc import logger
 from etc import functions
+from etc.logger import log, logfn, logSection
 
 from AbstractFinder import AbstractReleaseFinder
-from AbstractFinder import FilepathString
 
 class ReleaseFinder(AbstractReleaseFinder):
     """Gatherer of release data from all available sources.
@@ -47,6 +46,7 @@ class ReleaseFinder(AbstractReleaseFinder):
                         (self.getMBFilename, 2),
                         (self.getMBFilenameWithKnownData, 3.5)]
     
+    @logfn("Searching in MusicBrainz using the currently known data.")
     def getMBKnownData(self, track):
         """Query MB using known data.
         
@@ -54,86 +54,88 @@ class ReleaseFinder(AbstractReleaseFinder):
             Need: Artist AND (Date OR Titles)
             Can Use: Tracktotal"""
         
-        logger.log("Searching for release in MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
-        
         if not (("artist" in track.metadata) and
                 ("date" in track.metadata or "title" in track.metadata)):
-            logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist AND the (date OR track titles).", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the fields we need -- the artist AND the "
+                "(date OR track titles).")
             result = None
+            
         else:
-            result = mb.mbInterface(self.fieldName, None, track, ["artist", "date", "tracks", "tracktotal"])
+            result = mb.askMB(self.fieldName, None, track, 
+                                    ["artist", "date", "tracks", "tracktotal"])
         
-        logger.endSection()
         return result
     
+    @logfn("Attempting to match the current tag value with MusicBrainz using "
+           "the currently known data.")
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
-        
-        logger.log("Attempting to match the current release tag value with MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
-        
+                
         releaseTag = tagging.getTag(track.filePath, "release")
         
         if not releaseTag:
-            logger.log("Attempt failed because current tag is empty.", "Failures")
+            log("Attempt failed because current tag is empty.")
             result = None
+            
         elif not ("artist" in track.metadata or
                   "date" in track.metadata or
                   "title" in track.metadata):
-            logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist or the date or the track titles.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the fields we need -- the artist or the date or "
+                "the track title.")
             result = None
+            
         else:
-            result = mb.mbInterface(self.fieldName, releaseTag, track, ["artist", "date", "tracks", "tracktotal"])
+            result = mb.askMB(self.fieldName, releaseTag, track, 
+                                    ["artist", "date", "tracks", "tracktotal"])
         
-        logger.endSection()
         return result
 
+    @logfn("Attempting to match the filepath to an release using MusicBrainz.")
     def getMBFilename(self, track):
         """Attempt to fuzzily match release name from filepath using MusicBrainz.
         
         We look for the release name in the folder and file name."""
         
         folderFilePath = self.getFilenameForMB(track)
-        logger.log("Attempting to match the filepath with MusicBrainz.", "Actions")
-        logger.startSection()
-        result = mb.mbInterface(self.fieldName, folderFilePath, track)
-        logger.endSection()
-        return result
+        return mb.askMB(self.fieldName, folderFilePath, track)
 
+    @logfn("Attempting to match the filepath with MusicBrainz using the "
+           "currently known data.")
     def getMBFilenameWithKnownData(self, track):
         """Attempt to fuzzily match release name from filepath using MusicBrainz.
        
         We look for the release name in the folder and file name."""
         
-        logger.log("Attempting to match the filepath release tag value with MusicBrainz using the currently known data.", "Actions")
-        logger.startSection()
-        
         if not ("artist" in track.metadata or
                 "date" in track.metadata or
                 "title" in track.metadata):
-            logger.log("Attempt failed because our currently known data does not include the fields we need -- the artist or the date or the track titles.", "Failures")
+            log("Attempt failed because our currently known data does not "
+                "include the fields we need -- the artist or the date or "
+                "the track titles.")
             result = None
+            
         else:
             folderFilePath = self.getFilenameForMB(track)
-            result = mb.mbInterface(self.fieldName, folderFilePath, track, ["artist", "date", "tracks", "tracktotal"])
+            result = mb.askMB(self.fieldName, folderFilePath, track, 
+                                    ["artist", "date", "tracks", "tracktotal"])
         
-        logger.endSection()
         return result
     
     def getFilenameForMB(self, track):
-    
-        folderFilePath = os.path.join(functions.containingDir(track.filePath), track.fileName)
-        folderFilePath = os.path.splitext(folderFilePath)[0]
+        """Return filename and containing dir with year removed."""
         
-        folderFilePath = FilepathString(folderFilePath)
+        folderFilePath = os.path.join(functions.containingDir(track.filePath), 
+                                      track.fileName)
+        folderFilePath = os.path.splitext(folderFilePath)[0]
         
         if "date" in track.metadata: # If we know the date, try to remove it...
             date = track.metadata["date"]
             folderFilePath = folderFilePath.replace(date, "")
-        else: # ...otherwise just remove the leftmost four digits.
+        else: # ...otherwise just remove the leftmost set of four digits, if any.
             match = re.findall("\d{4}", folderFilePath)
             if match:
                 folderFilePath = folderFilePath.replace(match[0], "")
                 
-        return folderFilePath
+        return mb.FilepathString(folderFilePath)
