@@ -21,7 +21,7 @@
 This file contains functions which are not specific to one step of the handling
 process but are used throughout. There are two main categories of functions
 present: moving functions (such as acceptItem, rejectItem and deleteItem) and 
-path functions (such as validatePath, filePathsByExt and findFiles)."""
+path functions (such as validatePath and getFilePathsByType)."""
 
 import os
 import shutil
@@ -199,26 +199,6 @@ def validatePath(itemPath, isDirectory=False, isFile=False):
         result = True
         
     return result
-
-def filePathsByExt(filePaths):
-    """Take a list of file paths; return a dictionary of extensions to paths."""
-    
-    filePathsByExt = {}
-    for filePath in filePaths:
-        filesByExt.setdefault(ext(filePath), []).append(filePath)
-    return filePathsByExt
-
-def findFiles(directoryPath):
-    """Take a directory path and return a list of the file paths."""
-    
-    filePaths = []
-    ls = os.listdir(directoryPath)
-    ls.sort()
-    for entry in ls:
-        filePath = os.path.join(directoryPath, entry)
-        if os.path.isfile(filePath):
-            filePaths.append(filePath)
-    return filePaths
 
 def containingDir(filePath):
     """Return the name of the directory which contains filePath."""

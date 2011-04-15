@@ -8,14 +8,14 @@
     
  * Use durations when searching for tracks
 
- * Notice and Where Possible Resolve Potential Problems
+ * Notice and, where possible, resolve potential problems
      
      - Check that there is only one audio format present
         - If not, reject the folder
 
  * If a track is repeated, select the better version
 
- * Handle More Cases
+ * Handle more cases
      - Handle multiple discs
         - Identify when there are multiple discs presents
         - Group audio files into discs
@@ -39,7 +39,7 @@
         - What should we do with files that start with a "."?
 
 
- * Add Merging Functionality
+ * Add merging functionality
      - If the user has specified a collection to merge sorted music into, then
        check whether the album is in collection and if so, choose the better version
         - How do we know the album is already present?
@@ -62,7 +62,7 @@
     - MIME types?
     
 
- * Get HandleIt to Run on Windows
+ * Get Audiolog to Run on Windows
     - The only real problem: the command-line utilities we use. How do replace them on Windows?
     
     
@@ -71,26 +71,7 @@
     - Document the log level argument and particular negative (relative) levels better. 
 
 
- * GUI
-    - LogFrame
-        - General Goal: Make the output as easy to read and find information in as possible
-        - Add a drop-down menu (QComboBox) with a few preset sets of categories (Possible options: "Brief", "Verbose", "Debugging", "All")
-        - Add an option to color-code entries by category
-        - Add an option to display icons next to each entry indicating category (Yellow-Triangle with ! for failure; a bug for debugging)
-        - Add an option to vary entry font sizes by importance/height in hierarchy
-        - (Possibly) Add a filter a la the one above the old Amarok playlist, that filters for entries with that string present
-        - (Most complicated) Add a tree beside (to the left of) the log, so that users can view only the entries below the selected node
-            Example:
-                * Handling "Archives"
-                |---* Traversing "Archives/Beck - Guero"
-                |   |---* Converting
-                |   |   |---* Converting "Archives/Beck - Guero/01 - One.mpc"
-                |   |   |   |---- Success!
-                |   |   |---* Converting "Archives/Beck - Guero/02 - Two.mpc"
-                |   |   ...
-                |   |---* Deleting extra files 
-            Any of the nodes with asterisks would be clickable then the log would only display that entry and those below it.
-                    
+ * GUI                    
     - ConfigurationDialog     
         - Currently, when the basedir path changes all the other fields which are empty are changed relatively
             - This could be done more intelligently
@@ -114,8 +95,7 @@
     - Anything else?
 
         
-        
-    - Set weights of various sources in Finders.
+ * Set weights of various sources in Finders.
     One idea for how we might do that:
         So, weights are a bit weird. The basic idea is to weight the sources we are more confident are correct.
         But deciding the relative weights of the sources is uncertain. What exactly are we trying to do?
@@ -129,8 +109,9 @@
         I'm still not sure whether this is a good for the relative weights...
         Could one quite accurate source overpower two not so accurate sources? Yes. Should it? Uh...
         Regardless, using empirical data to decide the weights is probably a good idea. (A bit of overhead, though.)
+        
 
-        - Think about how we might estimate the certainty that the top-scoring candidate is correct.
+ * Think about how we might estimate the certainty that the top-scoring candidate is correct.
         Three ideas for how we might do that:
             1. Do not filter out the sources that returned None, and if None wins, then we aren't certain enough.
             2. Filter out Nones (as we currently do), then total up the points from the non-None sources.
