@@ -60,7 +60,7 @@ class LogFrame(QFrame):
     def appendToLog(self, message):
         """Add message to entries; call addToLog."""
         
-        self.textLog.append(message)
+        self.textLog.append(message[:-1]) # Remove trailing newline.
         
     def clearLog(self):
         """Clear text edit and entries list."""

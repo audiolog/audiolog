@@ -50,7 +50,7 @@ class Logger(object):
         
     def log(self, msg):
         indent = self.indent * self.level
-        msg = ("\n" + indent + msg[1:]) if msg[0] == "\n" else (indent + msg)
+        msg = ("\n" + indent + msg[1:] + "\n") if msg[0] == "\n" else (indent + msg + "\n")
 
         for output in self.outputs:
             # TODO: Understand and resolve this encoding error.

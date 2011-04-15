@@ -3,6 +3,8 @@
 import os
 import subprocess
 
+# Fixme: This should be replaced by a test of pyofa.
+
 def getPUID(filePath):
 	output = subprocess.Popen([os.path.join(os.getcwd(), "getPUID"), '"' + filePath + '"'], stdout = subprocess.PIPE).communicate()[0]
 	output = output.splitlines()

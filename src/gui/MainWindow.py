@@ -95,34 +95,40 @@ class MainWindow(QMainWindow):
         
     def manageFlow(self):
         """Start a thread if one is not running; toggle pause if one is."""
-
-        if not self.directoryPathsToScan and not configuration.loadConfigFile():
+        
+        if not self.running:                 # Not running, start a new thread
+            self.start()
+        elif not flowcontrol.PAUSED:         # Currently running, pause
+            self.pause()
+        else:                                # Currently paused, unpause  
+            self.unpause()
+            
+    def start(self):
+        if not configuration.PATHS["TO_SCAN"]:
             self.confDialog.show()
             return
         
-        if not self.running:                                # Not running, start a new thread
-            self.running = True
-            self.logFrame.clearLog()
-
-            args = {"directoryPathsToScan": configuration.PATHS["TO_SCAN"]}
-            self.handlerThread = threading.Thread(target=traverse.handleIt, kwargs=args)
-            self.handlerThread.setDaemon(True)
-            self.handlerThread.start()
-            
-            self.statusBar.showMessage("Audiolog running...")
-            self.flowButton.setText("Pause")
-            self.stopButton.setEnabled(True)
-            
-        elif not flowcontrol.PAUSED:                        # Currently running, pause
-            flowcontrol.pause()
-            self.flowButton.setText("Unpause")
-            self.statusBar.showMessage("Current run paused.")
-            
-        else:                                               # Currently paused, unpause  
-            flowcontrol.unpause()
-            self.flowButton.setText("Pause")
-            self.statusBar.showMessage("Audiolog running...")
-
+        self.running = True
+        self.logFrame.clearLog()
+        
+        self.handlerThread = threading.Thread(target=traverse.handleIt)
+        self.handlerThread.setDaemon(True)
+        self.handlerThread.start()
+        
+        self.statusBar.showMessage("Audiolog running...")
+        self.flowButton.setText("Pause")
+        self.stopButton.setEnabled(True)
+        
+    def pause(self):
+        flowcontrol.pause()
+        self.flowButton.setText("Unpause")
+        self.statusBar.showMessage("Current run paused.")
+        
+    def unpause(self):
+        flowcontrol.unpause()
+        self.flowButton.setText("Pause")
+        self.statusBar.showMessage("Audiolog running...")
+    
     def stop(self, cleanly=False):
         """Stop the currently running handler thread."""
         

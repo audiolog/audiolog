@@ -69,8 +69,6 @@ class ConfigurationDialog(QDialog):
     def readCurrent(self):
         """Read the current values in configuration into dialog widgets."""
         
-        configuration.loadConfigFile()
-        
         # Actions
         self.optionsFrame.extractCheck.setChecked(configuration.ACTIONS["EXTRACT"])
         self.optionsFrame.imageCheck.setChecked(configuration.ACTIONS["IMAGE"])

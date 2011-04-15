@@ -30,7 +30,7 @@ import sys
 import time
 import traceback
 
-from PyQt4.QtCore import *
+from PyQt4.QtCore import SIGNAL
 
 from etc import configuration
 from etc import functions
@@ -47,11 +47,11 @@ from etc.utils import *
 from etc.flowcontrol import emitter
 from etc.logger import log, logfn, logSection
 
-def handleIt(directoryPathsToScan):
+def handleIt():
     """Call traverse on directories; when run ends for any reason inform GUI."""
     
     try:
-        for directoryPath in directoryPathsToScan:
+        for directoryPath in configuration.PATHS["TO_SCAN"]:
             with logSection("Traversing %s." % quote(directoryPath)):
                 configuration.PATHS["CURRENT"] = directoryPath
                 traverse(directoryPath)

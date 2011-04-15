@@ -18,27 +18,36 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Audiolog program launcher.
-
-This file has only one function: to start the program."""
+"""Audiolog program launcher."""
 
 import sys
+from optparse import OptionParser
 
 from etc import configuration
 from etc.logger import logOutputs
 import traverse
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        logOutputs.append(sys.stdout)
-        configuration.loadConfigFile()
-        configuration.PATHS["TO_SCAN"] = [sys.argv[-1]]
-        traverse.handleIt([sys.argv[-1]])        
-    else:
-        from PyQt4.QtGui import QApplication
-        from gui.MainWindow import MainWindow
-        
-        app = QApplication(sys.argv)
-        mainWindow = MainWindow()
-        mainWindow.show()
-        app.exec_()
+parser = OptionParser(usage="audiolog [OPTIONS] [DIRS]")
+parser.add_option("--no-gui", action="store_false", dest="showGUI",
+                  default=True, help="run program without GUI (on by default)")
+options, inputs = parser.parse_args()
+
+configuration.loadConfigFile()
+
+if inputs:
+    configuration.PATHS["TO_SCAN"] = inputs
+
+if options.showGUI:
+    from PyQt4.QtGui import QApplication
+    from gui.MainWindow import MainWindow
+    
+    app = QApplication(sys.argv)
+    mainWindow = MainWindow()
+    mainWindow.show()
+    if inputs: 
+        mainWindow.start()
+    app.exec_()
+   
+elif not options.showGUI and inputs:
+    logOutputs.append(sys.stdout)
+    traverse.handleIt()
