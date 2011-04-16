@@ -27,9 +27,10 @@ files, and use the (time-consuming) audio fingerprinter; actions that may or may
 not be taken; the categories of messages which the LogFrame is currently
 displaying; and multiple audio encoding qualities on a scale of 1 to 10."""
 
-import os
 import pickle
 import platform
+
+import functions
 
 LOCAL_OS = platform.system()
 
@@ -53,11 +54,8 @@ for fileType in typeToExts:
 
 # Paths
 PATHS = {
-    "BASE_DIR": "",
-    "REJECTS" : "",
-    "DELETES" : "",
-    "SORTED"  : "",
-    "TO_SCAN" : [""],
+    "SORTED"  : functions.getDefaultSortedPath(LOCAL_OS),
+    "TO_SCAN" : [functions.getDefaultToScanPath(LOCAL_OS)],
     "CURRENT" : ""
 }
 

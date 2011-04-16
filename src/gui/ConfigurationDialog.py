@@ -45,11 +45,9 @@ class ConfigurationDialog(QDialog):
         self.setWindowTitle("Configure Audiolog")
         
         # Tabs
-        self.pathsFrame = PathsFrame(self)
         self.optionsFrame = OptionsFrame(self)
         
         self.tabs = QTabWidget(self)
-        self.tabs.addTab(self.pathsFrame, "&Paths")
         self.tabs.addTab(self.optionsFrame, "Optio&ns")     
        
         # Button Box
@@ -67,7 +65,7 @@ class ConfigurationDialog(QDialog):
         self.readCurrent()
 
     def readCurrent(self):
-        """Read the current values in configuration into dialog widgets."""
+        """Read the current values of configuration into dialog widgets."""
         
         # Actions
         self.optionsFrame.extractCheck.setChecked(configuration.ACTIONS["EXTRACT"])
@@ -80,14 +78,7 @@ class ConfigurationDialog(QDialog):
         # Settings
         self.optionsFrame.recurseCheck.setChecked(configuration.SETTINGS["RECURSE"])
         self.optionsFrame.deleteCheck.setChecked(configuration.SETTINGS["DELETE"])
-        self.optionsFrame.getPrintCheck.setChecked(configuration.SETTINGS["GET_PRINT"])
-        
-        # Paths
-        self.pathsFrame.baseDirPath.setText(configuration.PATHS["BASE_DIR"])
-        self.pathsFrame.rejectsPath.setText(configuration.PATHS["REJECTS"])
-        self.pathsFrame.deletesPath.setText(configuration.PATHS["DELETES"])
-        self.pathsFrame.sortedPath.setText(configuration.PATHS["SORTED"])
-        self.pathsFrame.toScanPath.setText(configuration.PATHS["TO_SCAN"][0])
+        self.optionsFrame.getPrintCheck.setChecked(configuration.SETTINGS["GET_PRINT"])        
 
     def applyChanges(self):
         """Read the content of dialog widgets into configuration then hide dialog."""
@@ -104,20 +95,7 @@ class ConfigurationDialog(QDialog):
         configuration.SETTINGS["RECURSE"] = self.optionsFrame.recurseCheck.isChecked()
         configuration.SETTINGS["DELETE"] = self.optionsFrame.deleteCheck.isChecked()
         configuration.SETTINGS["GET_PRINT"] = self.optionsFrame.getPrintCheck.isChecked()
-        
-        # Paths
-        configuration.PATHS["BASE_DIR"] = str(self.pathsFrame.baseDirPath.text())
-        configuration.PATHS["REJECTS"] = str(self.pathsFrame.rejectsPath.text())
-        configuration.PATHS["DELETES"] = str(self.pathsFrame.deletesPath.text())
-        configuration.PATHS["SORTED"] = str(self.pathsFrame.sortedPath.text())
-        
-        configuration.PATHS["TO_SCAN"][0] = str(self.pathsFrame.toScanPath.text())
-        
-        #toScanPath = str(self.pathsFrame.toScanPath.text())
-        #if toScanPath and toScanPath not in self.parent().directoryPathsToScan:
-            #self.parent().directoryPathsToScan.append(toScanPath)
-            #configuration.PATHS["TO_SCAN"][0] = toScanPath
-        
+                
         configuration.saveConfigFile()
         
         self.hide()
@@ -127,96 +105,7 @@ class ConfigurationDialog(QDialog):
         
         self.hide()
         self.readCurrent()
-     
-
-class PathsFrame(QFrame):
-    """Frame containing widgets to set all paths."""
-
-    def __init__(self, parent=None):
-        super(PathsFrame, self).__init__(parent)
-
-        folderIcon = QFileIconProvider().icon(QFileIconProvider.Folder)
         
-        self.baseDirLabel = QLabel("&Base Directory")
-        self.baseDirPath = QLineEdit()
-        self.baseDirButton = QToolButton()
-        self.baseDirButton.setIcon(folderIcon)
-        
-        self.rejectsLabel = QLabel("&Rejects Path")
-        self.rejectsPath = QLineEdit()
-        self.rejectsButton = QToolButton()
-        self.rejectsButton.setIcon(folderIcon)
-        
-        self.deletesLabel = QLabel("&Deletes Path")
-        self.deletesPath = QLineEdit()
-        self.deletesButton = QToolButton()
-        self.deletesButton.setIcon(folderIcon)
-        
-        self.sortedLabel = QLabel("&Sorted Path")
-        self.sortedPath = QLineEdit()
-        self.sortedButton = QToolButton()
-        self.sortedButton.setIcon(folderIcon)
-        
-        self.toScanLabel = QLabel("&To Scan Path")
-        self.toScanPath = QLineEdit()
-        self.toScanButton = QToolButton()
-        self.toScanButton.setIcon(folderIcon)
-                
-        self.baseDirLabel.setBuddy(self.baseDirPath)
-        self.rejectsLabel.setBuddy(self.rejectsPath)
-        self.sortedLabel.setBuddy(self.sortedPath)
-        self.deletesLabel.setBuddy(self.deletesPath)
-        self.toScanLabel.setBuddy(self.toScanPath)
-
-        pathsLayout = QGridLayout(self)
-        pathsLayout.addWidget(self.baseDirLabel, 0, 0, 1, 2)
-        pathsLayout.addWidget(self.baseDirPath, 1, 0)
-        pathsLayout.addWidget(self.baseDirButton, 1, 1)
-
-        pathsLayout.addWidget(self.rejectsLabel, 2, 0, 1, 2)
-        pathsLayout.addWidget(self.rejectsPath, 3, 0)
-        pathsLayout.addWidget(self.rejectsButton, 3, 1)
-        
-        pathsLayout.addWidget(self.deletesLabel, 4, 0, 1, 2)
-        pathsLayout.addWidget(self.deletesPath, 5, 0)
-        pathsLayout.addWidget(self.deletesButton, 5, 1)
-                
-        pathsLayout.addWidget(self.sortedLabel, 6, 0, 1, 2)
-        pathsLayout.addWidget(self.sortedPath, 7, 0)
-        pathsLayout.addWidget(self.sortedButton, 7, 1)        
-
-        pathsLayout.addWidget(self.toScanLabel, 8, 0, 1, 2)
-        pathsLayout.addWidget(self.toScanPath, 9, 0)
-        pathsLayout.addWidget(self.toScanButton, 9, 1)
-        
-        self.connect(self.baseDirButton, SIGNAL("clicked()"), partial(self.browse, self.baseDirPath))
-        self.connect(self.rejectsButton, SIGNAL("clicked()"), partial(self.browse, self.rejectsPath))
-        self.connect(self.deletesButton, SIGNAL("clicked()"), partial(self.browse, self.deletesPath))
-        self.connect(self.sortedButton, SIGNAL("clicked()"), partial(self.browse, self.sortedPath))
-        self.connect(self.toScanButton, SIGNAL("clicked()"), partial(self.browse, self.toScanPath))
-        
-        # If baseDirPath is changed, these will change relatively (if they are empty)
-        self.relatedPaths = [("Rejects", self.rejectsPath), ("Deletes", self.deletesPath), ("Sorted", self.sortedPath)]
-
-
-    def browse(self, lineEdit):
-        """Open a file dialog to select a directory; place result in lineEdit."""
-        
-        # Start at the current path, if one, or at baseDir, if one, else at CWD
-        startingDirPath = lineEdit.text()
-        if not startingDirPath:
-            startingDirPath = self.baseDirPath.text()
-            
-        directory = QFileDialog.getExistingDirectory(self, "Select Directory", startingDirPath, QFileDialog.ShowDirsOnly)
-        if directory:
-            lineEdit.setText(directory)
-        
-            # If baseDirPath has been changed, change other paths relatively (if they are empty)
-            if lineEdit == self.baseDirPath:
-                for (name, lineEdit) in self.relatedPaths:
-                    if not lineEdit.text():
-                        lineEdit.setText(os.path.join(str(directory), name, ""))
-                        
 
 class OptionsFrame(QFrame):
     """Frame containing checkboxes for actions and settings."""
@@ -256,4 +145,3 @@ class OptionsFrame(QFrame):
         optionsLayout = QVBoxLayout(self)
         optionsLayout.addWidget(self.actionsGroup)
         optionsLayout.addWidget(self.settingsGroup)
-        

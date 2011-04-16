@@ -46,10 +46,11 @@ class LogFrame(QFrame):
         self.textLog = QTextEdit()
         self.textLog.setReadOnly(True)
         self.textLog.setFontFamily("monospace")
+        self.textLog.setFontPointSize(self.textLog.font().pointSizeF()-2)
         self.textLog.setAcceptRichText(True)
         self.textLog.setWordWrapMode(QTextOption.NoWrap)
-        self.textLog.setMinimumHeight(360)
-        self.setMinimumWidth(800)
+        self.textLog.setMinimumHeight(440)
+        self.setMinimumWidth(900)
         self.connect(logger.emitter, SIGNAL("AppendToLog"), self.appendToLog)
         self.connect(logger.emitter, SIGNAL("ClearLog"), self.clearLog)
         

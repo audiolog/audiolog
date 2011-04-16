@@ -210,6 +210,22 @@ def containingDir(filePath):
 
 
 #-------------------------------------------
+# Default path functions (used for initial configuration)
+#-------------------------------------------
+
+def getDefaultSortedPath(localOS):
+    if localOS == "Windows":
+        return os.path.expanduser(os.path.join("~", "My Documents", "My Music"))
+    else:
+        return os.path.expanduser(os.path.join("~", "Music"))
+    
+def getDefaultToScanPath(localOS):
+    if localOS == "Windows":
+        return os.path.expanduser(os.path.join("~", "My Documents", "Downloads"))
+    else:
+        return os.path.expanduser(os.path.join("~", "Downloads"))
+
+#-------------------------------------------
 # File functions
 #-------------------------------------------
 
