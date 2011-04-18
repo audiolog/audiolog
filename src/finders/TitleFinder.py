@@ -148,4 +148,4 @@ class TitleFinder(AbstractTrackFinder):
         if match:
             fileName = fileName.replace(match.group(), "")
         
-        return fileName.strip()
+        return unicode(fileName.strip())

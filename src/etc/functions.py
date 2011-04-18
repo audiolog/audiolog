@@ -85,7 +85,7 @@ def acceptItem(itemPath, destDirectoryRelPath):
     
     if os.path.isdir(itemPath):                         # Directory
         # Recursively accept items in this directory.
-        for itemName in os.listdir(itemPath):
+        for itemName in os.listdir(unicode(itemPath)):
             acceptItem(os.path.join(itemPath, itemName), destDirectoryRelPath)  
         removeDirIfEmpty(itemPath)
 
@@ -102,7 +102,8 @@ def acceptItem(itemPath, destDirectoryRelPath):
 def rejectItem(itemPath):
     """Move a file or directory to the REJECTS folder."""
 
-    moveWithContext(itemPath, conf.PATHS["REJECTS"])
+    rejectsPath = os.path.join(conf.PATHS["CURRENT"], "Audiolog_Rejects")
+    moveWithContext(itemPath, rejectsPath)
 
 def rejectItems(itemPaths):
     """Move a list of items to the REJECTS folder."""
@@ -148,7 +149,8 @@ def deleteItem(itemPath, actuallyDeleteFlag=None):
     if actuallyDeleteFlag:
         actuallyDelete(itemPath)
     else:
-        moveWithContext(itemPath, conf.PATHS["DELETES"])
+        deletesPath = os.path.join(conf.PATHS["CURRENT"], "Audiolog_Deletes")
+        moveWithContext(itemPath, deletesPath)
                 
 def deleteItems(itemPaths, actuallyDelete=None):
     """Either delete or move to DELETES a list of items.
@@ -164,12 +166,16 @@ def deleteItems(itemPaths, actuallyDelete=None):
 # Path functions
 #-------------------------------------------
 
-def getSubdirectories(directoryPath):
-    """Return a list paths to directories inside the given directory."""
+def getValidSubdirectories(directoryPath):
+    """Return a list paths to directories inside the given directory.
+    
+    This function filters out Audiolog system folders (rejects and deletes)
+    that we should not attempt to traverse and sort."""
     
     paths = sorted([os.path.join(directoryPath, name) 
-                    for name in os.listdir(directoryPath)])
-    return [path for path in paths if os.path.isdir(path)]
+                    for name in os.listdir(unicode(directoryPath))])
+    return [path for path in paths 
+            if (os.path.isdir(path) and "Audiolog_" not in path)]
     
 
 def getFilePathsByType(directoryPath):
@@ -179,7 +185,7 @@ def getFilePathsByType(directoryPath):
         return {}
 
     filePathsByType = {}
-    for entry in sorted(os.listdir(directoryPath)):
+    for entry in sorted(os.listdir(unicode(directoryPath))):
         itemPath = os.path.join(directoryPath, entry)
         if os.path.isfile(itemPath):
             fileType = conf.extToType.get(ext(entry), "other")

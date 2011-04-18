@@ -24,6 +24,8 @@ from contextlib import contextmanager
 
 from PyQt4.QtCore import QObject, SIGNAL
 
+from etc.utils import *
+
 class GUILogWriter(object):
     """Provides writeable file-like interface to send text to GUI."""
     
@@ -57,7 +59,7 @@ class Logger(object):
             try: output.write(msg)
             except UnicodeEncodeError:
                 try: output.write(unicode(msg, "UTF_8"))
-                except: output.write("==Line due to encoding errors.==")
+                except: output.write("==Line due to encoding errors.==\n")
                 
     def startSection(self):
         self.level += 1
@@ -120,7 +122,7 @@ def logfn(msg):
             fnlocals.update(kwargs)
             
             def reval(match):
-                return str(eval(match.group()[1:-1], fn.func_globals, fnlocals))
+                return unicode(eval(match.group()[1:-1], fn.func_globals, fnlocals))
             
             log(re.sub(r"\{.*?\}", reval, msg))
             startLogSection()

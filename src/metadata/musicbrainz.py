@@ -90,11 +90,13 @@ import subprocess
 import time
 import re
 import difflib
+from httplib import BadStatusLine
 
 import musicbrainz2.model
 import musicbrainz2.wsxml
 import musicbrainz2.webservice as mbws
 
+from etc.cache import memoizeMB
 from etc import configuration
 from etc import functions
 from etc.utils import *
@@ -400,6 +402,7 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         log("Fuzzy matching failed.")
         return u""
 
+@memoizeMB
 def constructQuery(field, match, preFilter, postFilter):
     """Runs a MusicBrainz query from start to finish.
     
@@ -498,7 +501,7 @@ def applyParams(queryFilter, params, match=None):
 def queryMB(func, params, depth=1):
     """Query the MusicBrainz database robustly."""
 
-    time.sleep(depth**2)
+    time.sleep(depth)
 
     try:
         result = func(*params)
@@ -510,6 +513,14 @@ def queryMB(func, params, depth=1):
         else:
             log("Received WebServiceError 3 times. Returning None.")
             result = None
+    except BadStatusLine:
+        # I started to receieve this error a few times, so I added
+        # these debugging statements to hopefully help resolve it.
+        # I haven't actually seen the error occur since then, however.
+        # I might have unintentionally fixed it through work elsewhere.
+        log("MB func:" % func)
+        log("MB params:" % params)
+        raise
 
     return result
     
@@ -646,10 +657,10 @@ def parseResult(result, field):
         log("Something went wrong in parseResult. Result type: %s  field: %s"
             % (result.__class__, field))
     
-    return finalResult
+    return unicode(finalResult)
 
 
-class FilepathString(str):
+class FilepathString(unicode):
     """Marks a string as being a filepath.
     
     This class is a hack. It's purpose it to allow the Finders to mark a string

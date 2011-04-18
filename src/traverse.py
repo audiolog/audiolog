@@ -48,7 +48,7 @@ from etc.flowcontrol import emitter
 from etc.logger import log, logfn, logSection
 
 def handleIt():
-    """Call traverse on directories; when run ends for any reason inform GUI."""
+    """Call traverse on directories; when run ends for any reason, inform GUI."""
     
     try:
         for directoryPath in configuration.PATHS["TO_SCAN"]:
@@ -70,18 +70,14 @@ def traverse(directoryPath):
     if not functions.validatePath(directoryPath, isDirectory=True):
         return
     
-    subdirectoryPaths = functions.getSubdirectories(directoryPath)
+    subdirectoryPaths = functions.getValidSubdirectories(directoryPath)
     
     # If appropriate, rename and recurse into subdirectories
-    if configuration.SETTINGS["RECURSE"] and subdirectoryPaths:
-        subdirectoryPaths = clean.standardizeFilenames(subdirectoryPaths)
-        for subdirectoryPath in subdirectoryPaths:
+    if subdirectoryPaths:
+        for subdirectoryPath in clean.standardizeFilenames(subdirectoryPaths):
             traverse(subdirectoryPath)
 
     # We are now in a leaf directory with no subdirectories.
-    # FIXME: If user has not chosen to recurse, then the above statement may
-    # actually be false. Should we even allow the user to turn recursion off?
-    # Does that make sense with our album/directory-oriented method?
     with logSection("\nHandling %s." % quote(directoryPath)):
         handleDirectory(directoryPath)
 
@@ -96,9 +92,9 @@ def handleDirectory(directoryPath):
     if configuration.ACTIONS["CLEAN"] and "other" in filePathsByType:           # Delete extra files
         clean.cleanDir(filePathsByType["other"])
     
-    if configuration.ACTIONS["EXTRACT"] and "archive" in filePathsByType:       # Extract archives and scan again
-        extract.extract(filePathsByType["archive"])
-        return handleDirectory(directoryPath)
+    if configuration.ACTIONS["EXTRACT"] and "archive" in filePathsByType:       # Extract archives
+        extract.extract(filePathsByType["archive"])                             # There may be new subdirectories
+        return traverse(directoryPath)                                          # Traverse again
         
     if configuration.ACTIONS["CONVERT"] and "bad_audio" in filePathsByType:     # Convert audio to Ogg and scan again
         convert.convert(filePathsByType["bad_audio"])

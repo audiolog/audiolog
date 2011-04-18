@@ -120,7 +120,7 @@ def getTag(filePath, field, passThrough=False):
     else:
         field = validField(field)
         audioFile = openAudioFile(filePath)
-        return audioFile.get(field, [u""])[0]
+        return unicode(audioFile.get(field, [u""])[0])
 
 def setTag(filePath, field, value, passThrough=False):
     """Set the specified field to value for filePath."""
