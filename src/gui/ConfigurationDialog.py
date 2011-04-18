@@ -76,9 +76,8 @@ class ConfigurationDialog(QDialog):
         self.optionsFrame.audioCheck.setChecked(configuration.ACTIONS["METADATA"])
         
         # Settings
-        self.optionsFrame.recurseCheck.setChecked(configuration.SETTINGS["RECURSE"])
+        self.optionsFrame.getPrintCheck.setChecked(configuration.SETTINGS["GET_PRINT"])
         self.optionsFrame.deleteCheck.setChecked(configuration.SETTINGS["DELETE"])
-        self.optionsFrame.getPrintCheck.setChecked(configuration.SETTINGS["GET_PRINT"])        
 
     def applyChanges(self):
         """Read the content of dialog widgets into configuration then hide dialog."""
@@ -92,10 +91,9 @@ class ConfigurationDialog(QDialog):
         configuration.ACTIONS["METADATA"] = self.optionsFrame.audioCheck.isChecked()        
         
         # Settings
-        configuration.SETTINGS["RECURSE"] = self.optionsFrame.recurseCheck.isChecked()
-        configuration.SETTINGS["DELETE"] = self.optionsFrame.deleteCheck.isChecked()
         configuration.SETTINGS["GET_PRINT"] = self.optionsFrame.getPrintCheck.isChecked()
-                
+        configuration.SETTINGS["DELETE"] = self.optionsFrame.deleteCheck.isChecked()
+        
         configuration.saveConfigFile()
         
         self.hide()
@@ -132,14 +130,12 @@ class OptionsFrame(QFrame):
         
         # Settings
         self.settingsGroup = QGroupBox("Settings")
-        self.recurseCheck = QCheckBox("Recursively handle folders")
-        self.deleteCheck = QCheckBox("Permanently delete unwanted items")
         self.getPrintCheck = QCheckBox("Generate audio fingerprints")
+        self.deleteCheck = QCheckBox("Permanently delete unwanted items")
         
         settingsLayout = QVBoxLayout(self.settingsGroup)
-        settingsLayout.addWidget(self.recurseCheck)
-        settingsLayout.addWidget(self.deleteCheck)
         settingsLayout.addWidget(self.getPrintCheck)
+        settingsLayout.addWidget(self.deleteCheck)
         
         # Layout
         optionsLayout = QVBoxLayout(self)
