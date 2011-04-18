@@ -25,15 +25,19 @@ from optparse import OptionParser
 
 from etc import configuration
 from etc.logger import logOutputs
+
 import traverse
 
-parser = OptionParser(usage="audiolog [OPTIONS] [DIRS]")
+parser = OptionParser(usage="audiolog [OPTIONS] [INPUT_DIR]...")
 parser.add_option("--no-gui", action="store_false", dest="showGUI",
                   default=True, help="run program without GUI (on by default)")
+parser.add_option("-s", metavar="SORTED_DIR", dest="sortedPath", 
+                  help="the directory correctly sorted music should be moved to")
 options, inputs = parser.parse_args()
 
 configuration.loadConfigFile()
-
+if options.sortedPath:
+    configuration.PATHS["SORTED"] = options.sortedPath
 if inputs:
     configuration.PATHS["TO_SCAN"] = inputs
 
