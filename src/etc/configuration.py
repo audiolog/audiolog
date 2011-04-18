@@ -61,7 +61,6 @@ PATHS = {
 
 # Settings
 SETTINGS = {
-    "RECURSE"  : True,
     "DELETE"   : False,
     "GET_PRINT": True
 }
