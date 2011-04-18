@@ -42,13 +42,28 @@ def handleImages(imagePaths):
     If there is more than one image, they will all be deleted."""
     
     if len(imagePaths) == 1:
-        imagePath = imagePaths[0]
-        imageName = os.path.basename(imagePath)
-        root, ext = os.path.splitext(imageName)
-        shutil.move(imagePath, translateForFilename(imagePath.replace(root, "cover")))  # BUG!
+        makeImageCover(imagePaths[0])
     else:
-        functions.deleteItems(imagePaths)
+        # Look for "front" in image name. If there is only one "front",
+        # that is the cover. Otherwise we can't decide.
+        nonfronts = [ip for ip in imagePaths 
+                     if not "front" in os.path.basename(ip).lower()]        
+        functions.deleteItems(nonfronts)
+        
+        fronts = [ip for ip in imagePaths 
+                  if "front" in os.path.basename(ip).lower()]
+        if len(fronts) == 1:
+            makeImageCover(fronts[0])
+        else:
+            functions.deleteItems(fronts)
 
+def makeImageCover(imagePath):
+    """Rename the given image to cover.[ext]."""
+    
+    imageName = os.path.basename(imagePath)
+    root, ext = os.path.splitext(imageName)
+    shutil.move(imagePath, imagePath.replace(root, "cover"))
+        
 @logfn("\nDeleting miscellaneous files.")
 def cleanDir(filePaths):
     """Delete miscellaneous files."""
