@@ -246,10 +246,13 @@ class GraphicsFrame(QFrame):
         self.view.setFrameStyle(QFrame.Plain)
         self.scene = QGraphicsScene(self)
         self.scene.setSceneRect(-100, -100, 200, 200)
+        self.view.setScene(self.scene)
+        
+        self.view.setBackgroundRole(QPalette.Window)
+        
         item = QGraphicsPixmapItem(mgPixmap)
         item.setPos(-128/2, -128/2)
         self.scene.addItem(item)
-        self.view.setScene(self.scene)
         
         layout = QVBoxLayout(self)
         layout.addWidget(self.view)
