@@ -3,7 +3,6 @@ import sys
 import shutil
 import subprocess
 import datetime
-from cStringIO import StringIO
 from os.path import join
 
 import mutagen.id3
@@ -49,33 +48,39 @@ def resultsToText(dirPath):
     return filenames + "\n" + metadata    
 
 attempts = 0
+crashed = 0
+rejected = 0
+incorrect  = 0
 correct = 0
 
-toSortPath = join("samples", "current_input")
-sortedPath = join("samples", "Sorted")
+samplesDirPath = join("..", "audiolog-samples")
+
+inputDirPath = join("testing", "input")
+outputDirPath = join("testing", "output")
 
 testStartTime = datetime.datetime.now()
 audiologRunDuration = datetime.timedelta()
 
-for sample in sorted(os.listdir("samples")):
+for sample in sorted(os.listdir(samplesDirPath)):
     # Make sure this is a numbered (e.g. "02") sample directory.
     if not sample.isdigit():
         continue
     attempts += 1
     
     # Clean up from any previous runs to start fresh.
-    for folder in ("Sorted", "Deletes", "Rejects", "current_input"):
-        shutil.rmtree(join("samples", folder), ignore_errors=True)    
+    for dirPath in (inputDirPath, outputDirPath):
+        shutil.rmtree(dirPath, ignore_errors=True)
+    os.makedirs(inputDirPath)
+    os.makedirs(outputDirPath)
 
-    # Determine necessary filepaths and create potentially missing directories.
-    logPath = join("samples", sample, "log")
-    inputPath = join("samples", sample, "input")
-    correctPath = join("samples", sample, "correct")
-    os.makedirs(toSortPath)
-    os.makedirs(sortedPath)
+    # Determine necessary filepaths.
+    sampleInputPath = join(samplesDirPath, sample, "input")
+    sampleCorrectPath = join(samplesDirPath, sample, "correct")
+    logPath = join(samplesDirPath, sample, "log")
     
     # Find the name of this sample and display it.
-    genre, artist, year_album = [dirs[0] for root, dirs, files in os.walk(correctPath) if dirs]
+    genre, artist, year_album = [dirs[0] for root, dirs, files
+                                 in os.walk(sampleCorrectPath) if len(dirs) == 1]
     name =  "%s - %s" % (artist, year_album[7:])
     if len(name) > 30:
         name = name[:27] + "..."
@@ -85,16 +90,17 @@ for sample in sorted(os.listdir("samples")):
     sys.stdout.flush()
     
     # Copy the sample into the current input folder.
-    contentDirName = os.listdir(inputPath)[0]
-    sourcePath = join(inputPath, contentDirName)
-    destPath = join(toSortPath, contentDirName)
-    shutil.copytree(sourcePath, destPath)
+    contentDirName = os.listdir(unicode(sampleInputPath))[0]
+    sourcePath = join(sampleInputPath, contentDirName)
+    destPath = join(inputDirPath, contentDirName)
+    shutil.copytree(unicode(sourcePath), unicode(destPath))
     
     # Run Audiolog on this sample
     out = open(join(logPath, "output"), "w+")
     err = open(join(logPath, "error"), "w+")
+    cmd = ["python", "src/audiolog.py", "--no-gui", "-s", outputDirPath, inputDirPath]
     runStartTime = datetime.datetime.now()
-    subprocess.Popen(["src/audiolog.py", toSortPath], stdout=out, stderr=err).wait()
+    subprocess.Popen(cmd, stdout=out, stderr=err).wait()
     audiologRunDuration += datetime.datetime.now() - runStartTime
     
     # Now let's get the error results (we'll use those) and close the files.
@@ -104,20 +110,21 @@ for sample in sorted(os.listdir("samples")):
     err.close()
     
     # Check for whether the sample was sorted at all.
-    # The next line is needed until libofa (getPUID) error is resolved.
-    if not os.listdir(sortedPath):
-    #error = "\n".join([line for line in error.splitlines() if not "libofa" in line])
-    #if error:
-        print "program crashed" if "Traceback" in error else "not sorted"
-        # TODO: Possibly say where to look for more info.
+    if not os.listdir(outputDirPath):
+        if "Traceback" in error:
+            crashed += 1
+            print "program crashed"
+        else:
+            rejected += 1
+            print "not sorted"
         continue
 
     # Create a text representation of the file names and audio metadata
     # for both the known correct output and the actual output.
     # These text representations can then be sent to a text comparision program
     # (diff) to find whether and where they differ.
-    correctResults = resultsToText(correctPath)
-    actualResults = resultsToText(sortedPath)
+    correctResults = resultsToText(sampleCorrectPath)
+    actualResults = resultsToText(outputDirPath)
             
     # Now we write the texts to text files because that's how diff likes things.
     for name, text in (("correct", correctResults), ("actual", actualResults)):
@@ -132,32 +139,22 @@ for sample in sorted(os.listdir("samples")):
                          stdout=diff)
     p.wait()
     if correctResults != actualResults:
+        incorrect += 1
         print "sorted incorrectly"
         # TODO: Possibly say where to look for more info.
         continue
     
     # If we got this far, then nothing went wrong. 
-    print "sorted correctly!"
     correct += 1
+    print "sorted correctly!"
     
 testDuration = datetime.datetime.now() - testStartTime
-print "\nCorrectly sorted %d of %d." % (correct, attempts)
+print "\nOf %d total:" % attempts
+print "  %d crashed" % crashed
+print "  %d not sorted" % rejected
+print "  %d sorted incorrectly" % incorrect
+print "  %d sorted correctly"
 print "Tests took %.1f minutes" % (testDuration.seconds/60.0),
 print "(%.2f minutes per attempt)." % (testDuration.seconds*1.0/attempts/60.0)
 print "Audiolog took %.1f minutes" % (audiologRunDuration.seconds/60.0),
 print "(%.2f minutes per attempt)." % (audiologRunDuration.seconds*1.0/attempts/60.0)
-
-
-# Run Audiolog on this sample
-#out = StringIO()
-#err = StringIO()
-#p = subprocess.Popen(["python", "src/audiolog.py", toSortPath], 
-                     #stdout=out, stderr=errs)
-#p.wait()
-#output = out.getvalue()
-#error = err.getvalue()
-
-# Run Audiolog on this sample
-#p = subprocess.Popen(["python", "src/audiolog.py", toSortPath], 
-                     #stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#output, error = p.communicate()
