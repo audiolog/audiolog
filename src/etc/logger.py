@@ -55,11 +55,7 @@ class Logger(object):
         msg = ("\n" + indent + msg[1:] + "\n") if msg[0] == "\n" else (indent + msg + "\n")
 
         for output in self.outputs:
-            # TODO: Understand and resolve this encoding error.
-            try: output.write(msg)
-            except UnicodeEncodeError:
-                try: output.write(unicode(msg, "UTF_8"))
-                except: output.write("==Line due to encoding errors.==\n")
+            output.write(toUnicode(msg).encode("UTF-8"))
                 
     def startSection(self):
         self.level += 1
@@ -122,7 +118,7 @@ def logfn(msg):
             fnlocals.update(kwargs)
             
             def reval(match):
-                return unicode(eval(match.group()[1:-1], fn.func_globals, fnlocals))
+                return toUnicode(eval(match.group()[1:-1], fn.func_globals, fnlocals))
             
             log(re.sub(r"\{.*?\}", reval, msg))
             startLogSection()

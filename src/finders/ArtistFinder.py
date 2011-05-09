@@ -24,6 +24,7 @@ from metadata import tagging
 from metadata import musicbrainz as mb
 from etc import functions
 from etc.logger import log, logfn, logSection
+from etc.utils import *
 
 from AbstractFinder import AbstractReleaseFinder
 
@@ -127,4 +128,4 @@ class ArtistFinder(AbstractReleaseFinder):
             if match:
                 folderFilePath = folderFilePath.replace(match[0], "")
                 
-        return mb.FilepathString(folderFilePath)
+        return mb.FilepathString(toUnicode(folderFilePath))

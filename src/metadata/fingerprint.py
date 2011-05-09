@@ -114,12 +114,12 @@ def askMusicDNS(filePath):
     If the process fails for any reason, it returns None."""
     
     fileName = os.path.basename(filePath)
-    try:
-        filePath = str(filePath)
-    except:
-        log("Filepaths to be fingerprinted must contain only ASCII chars.")
-        log("Bad filepath: %s" % filePath)
-        return None
+    #try:
+    filePath = toUnicode(filePath).encode("UTF-8")
+    #except:
+    #    log("Filepaths to be fingerprinted must contain only ASCII chars.")
+    #    log("Bad filepath: %s" % filePath)
+    #    return None
     
     log("Generating an audio fingerprint for %s." % quote(fileName))
     try:

@@ -57,9 +57,9 @@ def handleIt():
                 traverse(directoryPath)
     except flowcontrol.StopException:
         emitter.emit(SIGNAL("RunEnded"), "stopped")
-    except:
-        traceback.print_exc()
-        emitter.emit(SIGNAL("RunEnded"), "failed")
+    #except:
+    #    traceback.print_exc()
+    #    emitter.emit(SIGNAL("RunEnded"), "failed")
     else:
         emitter.emit(SIGNAL("RunEnded"), "complete")
 

@@ -20,6 +20,8 @@
 import os
 import string
 
+import chardet
+
 def translateForFilename(fileName):
     """Replace special filesystem characters with dashes when renaming files.
     
@@ -48,6 +50,40 @@ def quote(string):
     This is used on file names and paths whenever they are shown to the user."""
     
     return '"%s"' % string
+
+def toUnicode(obj, knownEncoding=None):
+    """Takes an object and returns a Unicode.
+    
+    If obj is a str, care is taken to determine the best encoding, using the 
+    encoding passed by the caller (if any), an encoding detection algorithm, 
+    and the knowledge that UTF-8 is very common."""
+    
+    if isinstance(obj, unicode):
+        return obj
+    
+    elif isinstance(obj, str):
+        encodings = [knownEncoding] if knownEncoding else []
+        detected = chardet.detect(obj)
+        if detected["confidence"] > 0.9:
+            encodings.extend([detected["encoding"], "UTF-8"])
+        else:
+            encodings.extend(["UTF-8", detected["encoding"]])
+        
+        # Try encodings is order of likeliness. If we recieve an error,
+        # that encoding probably wasn't correct.
+        for enc in encodings:
+            try:
+                return obj.decode(enc)
+            except UnicodeDecodeError:
+                pass
+            
+        # All the encodings failed. (This should happen very rarely).
+        # As a last resort, we'll just leave out the broken characters.
+        return obj.decode(encodings[0], "ignore")
+    
+    else:
+        return toUnicode(str(obj))
+    
 
 def aboutEqual(str1, str2):
     """Return True if the strings are nearly or exactly equal, else False.

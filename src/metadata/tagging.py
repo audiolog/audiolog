@@ -31,7 +31,6 @@ from mutagen.mp3 import MP3
 from mutagen.oggvorbis import OggVorbis as Ogg
 from mutagen.easyid3 import EasyID3
 
-from etc import functions
 from etc.utils import *
 from etc.logger import log, logfn, logSection
 
@@ -120,7 +119,7 @@ def getTag(filePath, field, passThrough=False):
     else:
         field = validField(field)
         audioFile = openAudioFile(filePath)
-        return unicode(audioFile.get(field, [u""])[0])
+        return toUnicode(audioFile.get(field, [u""])[0])
 
 def setTag(filePath, field, value, passThrough=False):
     """Set the specified field to value for filePath."""
@@ -132,7 +131,7 @@ def setTag(filePath, field, value, passThrough=False):
     else:
         field = validField(field)
         audioFile = openAudioFile(filePath)
-        audioFile[field] = unicode(value)
+        audioFile[field] = toUnicode(value)
         audioFile.save()
     
 def clearTags(filePath):

@@ -172,8 +172,8 @@ def getValidSubdirectories(directoryPath):
     This function filters out Audiolog system folders (rejects and deletes)
     that we should not attempt to traverse and sort."""
     
-    paths = sorted([os.path.join(directoryPath, name) 
-                    for name in os.listdir(unicode(directoryPath))])
+    paths = sorted([os.path.join(directoryPath, toUnicode(name)) 
+                    for name in os.listdir(directoryPath)])
     return [path for path in paths 
             if (os.path.isdir(path) and "Audiolog_" not in path)]
     
@@ -185,8 +185,8 @@ def getFilePathsByType(directoryPath):
         return {}
 
     filePathsByType = {}
-    for entry in sorted(os.listdir(unicode(directoryPath))):
-        itemPath = os.path.join(directoryPath, entry)
+    for entry in sorted(os.listdir(directoryPath)):
+        itemPath = os.path.join(directoryPath, toUnicode(entry))
         if os.path.isfile(itemPath):
             fileType = conf.extToType.get(ext(entry), "other")
             filePathsByType.setdefault(fileType, []).append(itemPath)     

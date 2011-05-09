@@ -110,7 +110,6 @@ def standardizeFilenames(itemPaths, rename=True):
                     lonePeriodRegex = r"(?<!\.)\.(?!\.)"
                     root = " ".join(re.split(lonePeriodRegex, root))
         
-        #root = restrictChars(root)
         root = re.sub(" {2,}", " ", root)   # Replace 2 or more spaces with 1
         root = root.strip()
         

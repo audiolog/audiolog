@@ -657,7 +657,7 @@ def parseResult(result, field):
         log("Something went wrong in parseResult. Result type: %s  field: %s"
             % (result.__class__, field))
     
-    return unicode(finalResult)
+    return toUnicode(finalResult)
 
 
 class FilepathString(unicode):
@@ -665,7 +665,7 @@ class FilepathString(unicode):
     
     This class is a hack. It's purpose it to allow the Finders to mark a string
     as being a filepath (as opposed to a tag value or a filename) because later 
-    the musicbrainz fuzzy matcher treats these differently. Explicitly passing 
+    the MusicBrainz fuzzy matcher treats these differently. Explicitly passing 
     this metadata would muck up multiple function interfaces, hence this class."""
     
     pass

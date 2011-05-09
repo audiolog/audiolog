@@ -23,23 +23,23 @@
 import sys
 from optparse import OptionParser
 
+import traverse
 from etc import configuration
 from etc.logger import logOutputs
-
-import traverse
+from etc.utils import *
 
 parser = OptionParser(usage="audiolog [OPTIONS] [INPUT_DIR]...")
 parser.add_option("--no-gui", action="store_false", dest="showGUI",
                   default=True, help="run program without GUI (on by default)")
 parser.add_option("-s", metavar="SORTED_DIR", dest="sortedPath", 
                   help="the directory correctly sorted music should be moved to")
-options, inputs = parser.parse_args()
+options, inputPaths = parser.parse_args()
 
 configuration.loadConfigFile()
 if options.sortedPath:
-    configuration.PATHS["SORTED"] = options.sortedPath
-if inputs:
-    configuration.PATHS["TO_SCAN"] = inputs
+    configuration.PATHS["SORTED"] = toUnicode(options.sortedPath)
+if inputPaths:
+    configuration.PATHS["TO_SCAN"] = [toUnicode(path) for path in inputPaths]
 
 if options.showGUI:
     from PyQt4.QtGui import QApplication
@@ -48,10 +48,10 @@ if options.showGUI:
     app = QApplication(sys.argv)
     mainWindow = MainWindow()
     mainWindow.show()
-    if inputs: 
+    if inputPaths: 
         mainWindow.start()
     app.exec_()
    
-elif not options.showGUI and inputs:
+elif not options.showGUI and inputPaths:
     logOutputs.append(sys.stdout)
     traverse.handleIt()
