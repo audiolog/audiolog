@@ -2,3 +2,4 @@
 *.wpr
 .audiolog
 testing/
+*.sqlite3
