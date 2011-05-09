@@ -5,31 +5,19 @@ import subprocess
 import datetime
 from os.path import join
 
-import mutagen.id3
-from mutagen.mp3 import MP3
-from mutagen.oggvorbis import OggVorbis as Ogg
-from mutagen.easyid3 import EasyID3
+# Allows us to import functions from Audiolog
+sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+from metadata.tagging import openAudioFile
+from etc.utils import toUnicode
 
-def openAudioFile(filePath):
-    """Return, based on extension, an MP3 or Ogg Mutagen object."""
+def log(msg):
+    """Write msg to stdout and log file."""
     
-    extension = os.path.splitext(filePath)[1].lower() 
-    if extension == ".mp3":
-        return MP3(filePath, ID3=EasyID3)
-    elif extension == ".ogg":
-        return Ogg(filePath)
-    else:
-        raise NotImplementedError
-    
-def metadataToText(filePath):
-    """Given file path, write audio tag metadata to text."""
-    
-    audioFile = openAudioFile(filePath)
-    text = ""
-    for field in sorted(audioFile.keys()):
-        if not field == "genre":
-            text += field.ljust(16) + str(audioFile[field]).ljust(40) + "\n"
-    return text
+    global logFile
+    utf8_msg = toUnicode(msg).encode("UTF-8")
+    print utf8_msg,
+    sys.stdout.flush()
+    logFile.write(utf8_msg)
 
 def resultsToText(dirPath):
     """Given a directory path, write file names and audio metadata to text."""
@@ -43,9 +31,12 @@ def resultsToText(dirPath):
         for file in sorted(files):
             filenames += (indent + file).ljust(50) + "\n"
             if os.path.splitext(file)[1].lower() in (".ogg", ".mp3"):
-                metadata += metadataToText(join(root, file)) + "\n"
+                audioFile = openAudioFile(join(root, file))
+                md = "\n".join([field.ljust(16) + value[0].ljust(40) 
+                                for field, value in sorted(audioFile.items())])
+                metadata += md + "\n"
         indent += "  "
-    return filenames + "\n" + metadata    
+    return toUnicode(filenames) + "\n" + toUnicode(metadata)
 
 attempts = 0
 crashed = 0
@@ -59,11 +50,16 @@ inputDirPath = join("testing", "input")
 outputDirPath = join("testing", "output")
 
 testStartTime = datetime.datetime.now()
-audiologRunDuration = datetime.timedelta()
+logFileName = testStartTime.strftime("%Y-%m-%d %H-%m") + ".txt"
+logFilePath = join(samplesDirPath, logFileName)
+logFile = open(logFilePath, "w")
 
 for sample in sorted(os.listdir(samplesDirPath)):
     # Make sure this is a numbered (e.g. "02") sample directory.
     if not sample.isdigit():
+        continue
+    num = int(sample)
+    if not num in (28,): #(2, 28, 63):
         continue
     attempts += 1
     
@@ -86,22 +82,20 @@ for sample in sorted(os.listdir(samplesDirPath)):
         name = name[:27] + "..."
         
     # Print the sample we are sorting and make sure it's displayed immediately.
-    print "\n", sample, name.ljust(30), 
+    log("\n%s %s" % (sample, name.ljust(30)))
     sys.stdout.flush()
     
     # Copy the sample into the current input folder.
-    contentDirName = os.listdir(unicode(sampleInputPath))[0]
+    contentDirName = os.listdir(sampleInputPath)[0]
     sourcePath = join(sampleInputPath, contentDirName)
     destPath = join(inputDirPath, contentDirName)
-    shutil.copytree(unicode(sourcePath), unicode(destPath))
+    shutil.copytree(sourcePath, destPath)
     
     # Run Audiolog on this sample
     out = open(join(logPath, "output"), "w+")
     err = open(join(logPath, "error"), "w+")
     cmd = ["python", "src/audiolog.py", "--no-gui", "-s", outputDirPath, inputDirPath]
-    runStartTime = datetime.datetime.now()
     subprocess.Popen(cmd, stdout=out, stderr=err).wait()
-    audiologRunDuration += datetime.datetime.now() - runStartTime
     
     # Now let's get the error results (we'll use those) and close the files.
     err.seek(0)
@@ -113,10 +107,10 @@ for sample in sorted(os.listdir(samplesDirPath)):
     if not os.listdir(outputDirPath):
         if "Traceback" in error:
             crashed += 1
-            print "program crashed"
+            log("program crashed\n")
         else:
             rejected += 1
-            print "not sorted"
+            log("not sorted\n")
         continue
 
     # Create a text representation of the file names and audio metadata
@@ -129,7 +123,7 @@ for sample in sorted(os.listdir(samplesDirPath)):
     # Now we write the texts to text files because that's how diff likes things.
     for name, text in (("correct", correctResults), ("actual", actualResults)):
         f = open(join(logPath, name), "w")
-        f.write(text)
+        f.write(toUnicode(text).encode("UTF-8"))
         f.close()
         
     # Now let's diff the filenames.
@@ -140,21 +134,18 @@ for sample in sorted(os.listdir(samplesDirPath)):
     p.wait()
     if correctResults != actualResults:
         incorrect += 1
-        print "sorted incorrectly"
-        # TODO: Possibly say where to look for more info.
+        log("sorted incorrectly\n")
         continue
     
     # If we got this far, then nothing went wrong. 
     correct += 1
-    print "sorted correctly!"
+    log("sorted correctly!\n")
     
 testDuration = datetime.datetime.now() - testStartTime
-print "\nOf %d total:" % attempts
-print "  %d crashed" % crashed
-print "  %d not sorted" % rejected
-print "  %d sorted incorrectly" % incorrect
-print "  %d sorted correctly"
-print "Tests took %.1f minutes" % (testDuration.seconds/60.0),
-print "(%.2f minutes per attempt)." % (testDuration.seconds*1.0/attempts/60.0)
-print "Audiolog took %.1f minutes" % (audiologRunDuration.seconds/60.0),
-print "(%.2f minutes per attempt)." % (audiologRunDuration.seconds*1.0/attempts/60.0)
+log("\nOf %d total:\n" % attempts)
+log("  %d crashed\n" % crashed)
+log("  %d not sorted\n" % rejected)
+log("  %d sorted incorrectly\n" % incorrect)
+log("  %d sorted correctly\n" % correct)
+log("Tests took %.1f minutes" % (testDuration.seconds/60.0))
+log("(%.2f minutes per attempt).\n" % (testDuration.seconds*1.0/attempts/60.0))
