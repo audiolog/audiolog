@@ -1,94 +1,129 @@
 import os
-import cPickle
+import json
+import sqlite3
+import StringIO
+from time import sleep
 from functools import wraps
-from copy import copy
 
 from logger import log
+from utils import toUnicode
 
-dirPath = os.path.dirname(__file__)
+dbConn = None
+c = None  # Database cursor
 
-mbCache = {}
-fpCache = {}
-
-def loadCache():
-    global mbCache, fpCache
+class Stats(object):
+    """Wrapper around some ints."""
     
-    try:
-        mb = open(os.path.join(dirPath, "mb.cache"), "r")
-        mbCache = cPickle.load(mb)
-    except:
-        pass
+    def __init__(self):
+        self.hits = 0
+        self.calls = 0
+        
+    def __str__(self):
+        return "%d hits of %d calls" % (self.hits, self.calls)
+
+
+def loadCacheDB():
+    global dbConn, c
     
-    try:
-        fp = open(os.path.join(dirPath, "fp.cache"), "r")
-        fpCache = cPickle.load(fp)
-    except:
-        pass
-
-def saveCache():
-    global mbCache, fpCache
-
-    mb = open(os.path.join(dirPath, "mb.cache"), "w")
-    cPickle.dump(mbCache, mb)
+    dbPath = os.path.join(os.path.dirname(__file__), "..", "..", "cache.sqlite3")
+    exists = os.path.exists(dbPath)
+    dbConn = sqlite3.connect(dbPath)
+    c = dbConn.cursor()
     
-    fp = open(os.path.join(dirPath, "fp.cache"), "w")
-    cPickle.dump(fpCache, fp)
+    if not exists:
+        c.execute("create table fp (path text, result text)")
+        c.execute("create table mb (url text, result text)")
+        
+def saveCacheDB():
+    if dbConn:
+        dbConn.commit()
 
+        
 def memoizeFP(fn):
-    global fpCache
+    global dbConn
+    
+    cache = {}
     @wraps(fn)
-    def decorated_function(path):
-        if path in fpCache:
-            return fpCache[path]
+    def locallyMemoizedFunction(path):
+        if path in cache:
+            return cache[path]
         else:
-            val = fn(path)
-            fpCache[path] = val
-            return val
-    return decorated_function
+            result = fn(path)
+            cache[path] = result
+            return result
+    
+    @wraps(fn)
+    def dbMemoizedFunction(path):
+        c.execute("select result from fp where path=?", (path,))
+        result = c.fetchone()
+        
+        if result:
+            return json.loads(result[0])
+        else:
+            result = fn(path)
+            c.execute("insert into fp values (?, ?)", (path, json.dumps(result)))
+            return result
+        
+    # This dispatch function is necessary because the status of the database
+    # connection can change while the program is running.
+    def dispatchFunction(path):
+        if dbConn:
+            return dbMemoizedFunction(path)
+        else:
+            return locallyMemoizedFunction(path)
+
+    return dispatchFunction
 
 def memoizeMB(fn):
     """Decorator that makes fn remember and return the results of previous calls.
     
-    This helpful because calls to MusicBrainz are time-consuming (at least one 
-    second), so not actually have to make that call saves us a lot of time."""
+    This is helpful because calls to MusicBrainz are time-consuming (at least 
+    one second), so not actually have to make that call saves us a lot of time."""
     
-    #global mbCache
-    mbCache = {}
-    stats = {"hits": 0,
-             "calls": 0}
+    global dbConn
     
-    def hashDict(d):
-        return hash(tuple(sorted(d.items())))
+    stats = Stats()
     
-    def fixPostFilter(post):
-        d = copy(post)
-        if "tracks" in d:
-            if (hasattr(d["tracks"][0], "metadata") and 
-                "title" in d["tracks"][0].metadata):
-                d["tracks"] = str([t.metadata["title"] for t in d["tracks"]])
-            else:
-                del d["tracks"]
-        return d
+    cache = {}
+    @wraps(fn)
+    def locallyMemoizedFunction(self, url):
+        stats.calls += 1
+        if url in cache:
+            stats.hits += 1
+            log("Hit MusicBrainz cache (%s)." % stats)
+            text = cache[url]
+        else:
+            log("Missed MusicBrainz cache (%s)." % stats)
+            result = fn(self, url)
+            text = result.read()
+            cache[url] = text
+        return StringIO.StringIO(text)  # fn must return a file-like object
     
     @wraps(fn)
-    def decoratedFunction(f, m, pre, post):
-        stats["calls"] = stats["calls"] + 1
+    def dbMemoizedFunction(self, url):
+        stats.calls += 1
+        c.execute("select result from mb where url=?", (url,))
+        result = c.fetchone()
         
-        hashable = True
-        try:
-            cargs = f, m, hashDict(pre), hashDict(fixPostFilter(post))
-        except Exception, e:
-            hashable = False
-            log("Not hashable: %s" % e)
-            
-        if hashable and cargs in mbCache:
-            stats["hits"] = stats["hits"] + 1
-            log("Hit MusicBrainz cache (%d hits of %d tries)." % (stats["hits"], stats["calls"]))
-            return mbCache[cargs]
+        if result:
+            stats.hits += 1
+            log("Hit MusicBrainz cache (%s)." % stats)
+            text = result[0].encode("UTF-8")
         else:
-            log("Missed MusicBrainz cache (%d hits of %d tries)." % (stats["hits"], stats["calls"]))
-            val = fn(f, m, pre, post)
-            if hashable:
-                mbCache[cargs] = val
-            return val
-    return decoratedFunction
+            log("Missed MusicBrainz cache (%s)." % stats)
+            sleep(1)
+            result = fn(self, url)
+            text = result.read()
+            c.execute("insert into mb values (?, ?)", (url, toUnicode(text)))
+        return StringIO.StringIO(text)   # fn must return a file-like object
+    
+    # This dispatch function is necessary because the status of the database
+    # connection can change while the program is running.
+    def dispatchFunction(self, url):
+        if dbConn:
+            return dbMemoizedFunction(self, url)
+        else:
+            return locallyMemoizedFunction(self, url)
+
+    return dispatchFunction 
+    

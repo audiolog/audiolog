@@ -33,6 +33,7 @@ except ImportError:
 import musicdns
 
 from etc.utils import *
+from etc.cache import memoizeFP
 from etc.logger import log, logfn, logSection
 
 def lookup_fingerprint_metadata(fingerprint, duration, musicdns_key, **opt):
@@ -101,6 +102,7 @@ def lookup_fingerprint_metadata(fingerprint, duration, musicdns_key, **opt):
 
     return metadata
 
+@memoizeFP
 def askMusicDNS(filePath):
     """Fingerprint audio file; look for match in MusicDNS database.
     

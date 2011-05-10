@@ -35,6 +35,7 @@ from PyQt4.QtCore import SIGNAL
 from etc import configuration
 from etc import functions
 from etc import flowcontrol
+from etc import cache
 
 from filehandling import extract
 from filehandling import clean
@@ -50,6 +51,7 @@ from etc.logger import log, logfn, logSection
 def handleIt():
     """Call traverse on directories; when run ends for any reason, inform GUI."""
     
+    cache.loadCacheDB()
     try:
         for directoryPath in configuration.PATHS["TO_SCAN"]:
             with logSection("Traversing %s." % quote(directoryPath)):
@@ -57,11 +59,12 @@ def handleIt():
                 traverse(directoryPath)
     except flowcontrol.StopException:
         emitter.emit(SIGNAL("RunEnded"), "stopped")
-    #except:
-    #    traceback.print_exc()
-    #    emitter.emit(SIGNAL("RunEnded"), "failed")
+    except:
+        traceback.print_exc()
+        emitter.emit(SIGNAL("RunEnded"), "failed")
     else:
         emitter.emit(SIGNAL("RunEnded"), "complete")
+    cache.saveCacheDB()
 
 def traverse(directoryPath):
     """Recursively traverse directories."""

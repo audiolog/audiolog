@@ -102,6 +102,8 @@ from etc import functions
 from etc.utils import *
 from etc.logger import log, logfn, logSection
 
+mbws.WebService._openUrl = memoizeMB(mbws.WebService._openUrl)
+
 #-------------------------------------------
 # Externally-called functions
 #-------------------------------------------
@@ -402,7 +404,6 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         log("Fuzzy matching failed.")
         return u""
 
-@memoizeMB
 def constructQuery(field, match, preFilter, postFilter):
     """Runs a MusicBrainz query from start to finish.
     
@@ -498,7 +499,7 @@ def applyParams(queryFilter, params, match=None):
     return queryFilter(**newParams)
 
 @logfn("Querying MusicBrainz database.")
-def queryMB(func, params, depth=1):
+def queryMB(func, params, depth=0):
     """Query the MusicBrainz database robustly."""
 
     time.sleep(depth)
@@ -506,7 +507,7 @@ def queryMB(func, params, depth=1):
     try:
         result = func(*params)
     except mbws.WebServiceError, e:
-        if depth < 4:
+        if depth < 3:
             log("Received WebServiceError: %s." % quote(str(e)))
             log("Waiting, then trying again.")
             result = queryMB(func, params, depth+1)
