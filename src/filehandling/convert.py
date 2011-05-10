@@ -38,7 +38,9 @@ convertorCommands = {
     ".ape" : [['mac', '$$.ape', '$$.wav', '-d'],
               ['oggenc', '-q', str(conf.ENCODING_QUALITY["HIGH"]), '$$.wav']],
     ".mpc" : [['mpc123', '-w', '$$.wav', '$$.mpc'],
-              ['oggenc', '-q', str(conf.ENCODING_QUALITY["MEDIUM"]), '$$.wav']]
+              ['oggenc', '-q', str(conf.ENCODING_QUALITY["MEDIUM"]), '$$.wav']],
+    ".wv"  : [['wvunpack', '$$.wv', '-o', '$$.wav'],
+              ['oggenc', '-q', str(conf.ENCODING_QUALITY["HIGH"]), '$$.wav']]
 }
 
 @logfn("\nConverting audio to Ogg.")
