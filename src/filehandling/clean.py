@@ -60,9 +60,9 @@ def handleImages(imagePaths):
 def makeImageCover(imagePath):
     """Rename the given image to cover.[ext]."""
     
-    imageName = os.path.basename(imagePath)
-    root, ext = os.path.splitext(imageName)
-    shutil.move(imagePath, imagePath.replace(root, "cover"))
+    dirPath, name = os.path.split(imagePath)
+    root, ext = os.path.splitext(name)
+    shutil.move(imagePath, os.path.join(dirPath, "cover" + ext))
         
 @logfn("\nDeleting miscellaneous files.")
 def cleanDir(filePaths):
