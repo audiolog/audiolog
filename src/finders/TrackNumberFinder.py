@@ -91,10 +91,16 @@ class TrackNumberFinder(AbstractTrackFinder):
         """Find one or two consecutive digits in the filename."""
         
         tracknum = re.compile("(?<!\d)\d{1,2}(?=\D)") # One or two digits, but
-        match = tracknum.search(track.fileName)       # not more. No years.
-        if match:
-            digits = match.group()
-            return unicode(digits).zfill(2)
+        matches = tracknum.findall(track.fileName)    # not more. No years.
+        if matches:
+            # If there is more than one match, prefer 2-digit matches over 
+            # 1-digit matches.
+            for match in matches:
+                if len(match) == 2:
+                    return match
+                
+            # All the matches are 1 digit. Take the leftmost.
+            return unicode(matches[0]).zfill(2)
         else:
             return None
 
