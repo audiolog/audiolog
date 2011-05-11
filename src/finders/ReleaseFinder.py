@@ -41,12 +41,12 @@ class ReleaseFinder(AbstractReleaseFinder):
     fieldName = "release"
         
     def __init__(self):
-        self.getters = [(self.getTag, 1),                   # In AbstractFinder
-                        (self.getMBTag, 3),                 # In AbstractFinder
-                        (self.getMBKnownData, 3),
-                        (self.getMBTagWithKnownData, 4),
-                        (self.getMBFilename, 2),
-                        (self.getMBFilenameWithKnownData, 3.5)]
+        self.getters = [(self.getTag, 2),                   # In AbstractFinder
+                        (self.getMBTag, 6),                 # In AbstractFinder
+                        (self.getMBKnownData, 6),
+                        (self.getMBTagKnownData, 8),
+                        (self.getMBFilename, 4),
+                        (self.getMBFilenameKnownData, 7)]
     
     @logfn("Searching MusicBrainz with the currently known data.")
     def getMBKnownData(self, track):
@@ -69,7 +69,7 @@ class ReleaseFinder(AbstractReleaseFinder):
         return result
     
     @logfn("Matching the current tag value with MusicBrainz using known data.")
-    def getMBTagWithKnownData(self, track):
+    def getMBTagKnownData(self, track):
         """Query MB using known data and the current tag."""
                 
         releaseTag = tagging.getTag(track.filePath, "release")
@@ -101,7 +101,7 @@ class ReleaseFinder(AbstractReleaseFinder):
         return mb.askMB(self.fieldName, folderFilePath, track)
 
     @logfn("Matching the filepath to a MusicBrainz release using known data.")
-    def getMBFilenameWithKnownData(self, track):
+    def getMBFilenameKnownData(self, track):
         """Attempt to fuzzily match release name from filepath using MusicBrainz.
        
         We look for the release name in the folder and file name."""

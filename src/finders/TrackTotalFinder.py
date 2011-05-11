@@ -38,7 +38,7 @@ class TrackTotalFinder(AbstractReleaseFinder):
     def __init__(self):
         self.getters = [(self.getTag, 1),                   # In AbstractFinder
                         (self.getMBKnownData, 3),
-                        (self.getMBTagWithKnownData, 4),
+                        (self.getMBTagKnownData, 4),
                         (self.getNumTracksInDir, 2),
                         (self.getMBNumTracksInDir, 6)]
     
@@ -63,7 +63,7 @@ class TrackTotalFinder(AbstractReleaseFinder):
         return result
     
     @logfn("Matching the current tag value with MusicBrainz using known data.")
-    def getMBTagWithKnownData(self, track):
+    def getMBTagKnownData(self, track):
         """Query MB using known data and the current tag."""
         
         tracktotalTag = tagging.getTag(track.filePath, "tracktotal")

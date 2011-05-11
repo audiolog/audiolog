@@ -39,7 +39,7 @@ class DateFinder(AbstractReleaseFinder):
         self.getters = [(self.getMusicDNS, 3),
                         (self.getTag, 2),                   # In AbstractFinder
                         (self.getMBKnownData, 4),
-                        (self.getMBTagWithKnownData, 3)]
+                        (self.getMBTagKnownData, 3)]
         
     @logfn("Looking in MusicDNS results.")
     def getMusicDNS(self, track):
@@ -68,7 +68,7 @@ class DateFinder(AbstractReleaseFinder):
         return result
     
     @logfn("Matching the current tag value with MusicBrainz using known data.")
-    def getMBTagWithKnownData(self, track):
+    def getMBTagKnownData(self, track):
         """Query MB using known data and the current tag."""
 
         dateTag = tagging.getTag(track.filePath, "date")

@@ -48,8 +48,12 @@ class AbstractFinder(object):
         """Logs the results in a tabular format."""
         
         log("\nResults:")
-        for (candidate, weight, name, fileName) in results:
-            log("     %s%s%s" % (name.ljust(30), fileName.ljust(80), candidate))
+        maxGetter = max([len(getter) for _, _, getter, _ in results])
+        maxFilename = max([len(filename) for _, _, _, filename in results])
+        for (candidate, weight, getter, fileName) in results:
+            log("     %s%s%s" % (getter[3:].ljust(maxGetter), 
+                                 fileName.ljust(maxFilename+3), 
+                                 candidate))
     
     @logfn("\nFinding the result which recieved the most points.")
     def findConsensus(self, data):
@@ -76,9 +80,9 @@ class AbstractFinder(object):
         
         # Display the results.
         topScore, winningCandidate = listed[0]
-        log("Candidates: %s" % listed)
-        log("Top Score: %d" % topScore)
-        log("Winning Candidate: %s" % winningCandidate)
+        log("Scores:" % listed)
+        for score, candidate in listed:
+            log("  %s  %s" % (str(score).rjust(4), candidate))
         
         return winningCandidate
         

@@ -37,7 +37,7 @@ The rest must be used in post processing.
 
 A query is executed by first mapping Audiolog's standardized naming convention 
 to MusicBrainz' (somewhat arbitrary) naming convention, depending on the 
-requested record. The query is executed with the queryMB wrapper.
+requested record. Actually connecting to MusicBrainz occurs in contactMB.
 
 Dates, track numbers, and titles are verified in post processing. For titles 
 specifically, the contents of each release must be received and the titles must 
@@ -70,13 +70,13 @@ The system for using MusicBrainz is designed with 3 goals:
               |          |                 |
     findExactMatch    findFuzzyMatch       |
               |          |                 |
-             constructQuery                |
+              executeQuery                 |
                    |                       |
           getFunctionAndFilter           Time
                    |                       |
               applyParams                  |
                    |                       |
-                queryMB                    |
+               contactMB                   |
                    |                       |
            requireDesiredInfo              |
                    |                       |
@@ -117,7 +117,7 @@ def getMBPUID(puid, field):
     
     query = mbws.Query()
     params = [mbws.TrackFilter(puid=puid, limit=1)]
-    result = queryMB(query.getTracks, params)
+    result = contactMB(query.getTracks, params)
     
     if not result:
         log("MusicBrainz did not recognize the PUID.") 
@@ -201,7 +201,7 @@ def constructFilter(field, match, track, relevantFields):
 def findExactMatch(field, match, track, preFilter, postFilter):
     """Non-fuzzy matching is easy..."""
     
-    return constructQuery(field, match, preFilter, postFilter)
+    return executeQuery(field, match, preFilter, postFilter)
 
 @logfn("Fuzzily matching the string {quote(match)} on {field}.")
 def findFuzzyMatch(field, match, track, preFilter, postFilter):
@@ -229,52 +229,36 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         log("Splitting path into directory and file name, then trying each.")
         dirName, fileName = os.path.split(match)
         
-        # First, try to fetch result with the full string(s).
-        dirResult = constructQuery(field, dirName, preFilter, postFilter)
+        dirResult = executeQuery(field, dirName, preFilter, postFilter)
         if dirResult:
-            log("MB found a match for the directory %s." % quote(dirName))
-        
-        fileResult = constructQuery(field, fileName, preFilter, postFilter)
-        if fileResult:
-            log("MB found a match for the file name %s." % quote(fileName))
-        
-        if xor(dirResult, fileResult):
-            # Only one matched; return it.
-            return dirResult or fileResult
-        
-        elif dirResult and fileResult:
-            # Both full strings matched. The directory generally has better odds 
-            # of containing what we want for an artist or release.
-            # (And know we are looking for an artist or release, because only 
-            # requests for those fields pass in a filepath with the containing
-            # dir name and file name. Track title requests just pass in the
-            # file name.)
+            # We won't look to see if the filename matches, because even if it
+            # did, the directory generally has better odds of containing 
+            # an artist or release anyway. (We know we are looking for an 
+            # artist or release, because only requests for those fields pass in 
+            # a filepath. Track title requests just pass in the file name.)
             return dirResult
-            
-        else:
-            log("Neither the full directory or full file name matched.")
+        
+        fileResult = executeQuery(field, fileName, preFilter, postFilter)
+        if fileResult:
+            return fileResult
     
     else:
-        result = constructQuery(field, match, preFilter, postFilter)
+        result = executeQuery(field, match, preFilter, postFilter)
         if result:
-            log("MB found a match for the full string %s." % quote(match))
             return result
-        else:
-            log("MB did not find a match for the full string.")
-    
-    log("Searching for a match in substrings.")
     
     delimiters = r"[/()\-~+_\[\]\{\}*]"
     substrings = re.split(delimiters, match)
-    
-    # Strip whitespace and remove empty strings
     substrings = [string.strip() for string in substrings if string.strip()]
-    log("Substrings: %s" % substrings)
+    
+    log("MB did not find a match for the full string.")    
+    log("Searching for a match in substrings.")
+    log("Substrings: %s\n" % substrings)
 
     matches = set()
     whatFromWhere = {}
     for substring in substrings:
-        result = constructQuery(field, substring, preFilter, postFilter)
+        result = executeQuery(field, substring, preFilter, postFilter)
         if result:
             whatFromWhere[result] = substring
             matches.add(result)
@@ -397,21 +381,22 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         log("Fuzzy matching failed.")
         return u""
 
-def constructQuery(field, match, preFilter, postFilter):
+@logfn("Querying MusicBrainz.")
+def executeQuery(field, match, preFilter, postFilter):
     """Runs a MusicBrainz query from start to finish.
     
     Starts with finding which query function to use and finishing with
     extracting the correct data."""
 
-    log("MusicBrainz query:")
     query, queryFunction, queryFilter = getFunctionAndFilter(field, match)
     queryFilter = applyParams(queryFilter, preFilter, match)
-    log("    Pre-query filter: %s" % preFilter)
-    log("    Post-query filter: %s" % postFilter)
-    log("    Match: %s" % match)
+    log("Field:  %s" % field)
+    if preFilter:  log("Pre:    %s" % preFilter)
+    if postFilter: log("Post:   %s" % postFilter)
+    if match:      log("Match:  %s" % match)
     
     finalResult = None
-    results = queryMB(queryFunction, [queryFilter])
+    results = contactMB(queryFunction, [queryFilter])
     results = requireDesiredInfo(field, results)
     if results:
         result = postProcessResults(results, **postFilter)
@@ -491,9 +476,9 @@ def applyParams(queryFilter, params, match=None):
     
     return queryFilter(**newParams)
 
-@logfn("Querying MusicBrainz database.")
-def queryMB(func, params, depth=0):
-    """Query the MusicBrainz database robustly."""
+#@logfn("Accessing MusicBrainz web service.")
+def contactMB(func, params, depth=0):
+    """Robustly connect to MusicBrainz through the MB WebService."""
 
     time.sleep(depth)
 
@@ -503,7 +488,7 @@ def queryMB(func, params, depth=0):
         if depth < 3:
             log("Received ConnectionError: %s." % quote(str(e)))
             log("Waiting, then trying again.")
-            result = queryMB(func, params, depth+1)
+            result = contactMB(func, params, depth+1)
         else:
             log("Received ConnectionError 3 times. Returning None.")
             result = None
@@ -598,8 +583,8 @@ def getReleaseWithTracks(release):
     release to get that info. So, when applying post-processing that requires
     track info, this function is used."""
     
-    return queryMB(mbws.Query().getReleaseById, 
-                   [release.id, mbws.ReleaseIncludes(tracks=True)])
+    return contactMB(mbws.Query().getReleaseById, 
+                     [release.id, mbws.ReleaseIncludes(tracks=True)])
 
 #@logfn("Parsing MB results.")
 def parseResult(result, field):

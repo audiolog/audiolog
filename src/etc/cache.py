@@ -90,10 +90,10 @@ def memoizeMB(fn):
         stats.calls += 1
         if url in cache:
             stats.hits += 1
-            log("Hit MusicBrainz cache (%s)." % stats)
+            #log("Hit MusicBrainz cache (%s)." % stats)
             text = cache[url]
         else:
-            log("Missed MusicBrainz cache (%s)." % stats)
+            #log("Missed MusicBrainz cache (%s)." % stats)
             result = fn(self, url)
             text = result.read()
             cache[url] = text
@@ -107,10 +107,10 @@ def memoizeMB(fn):
         
         if result:
             stats.hits += 1
-            log("Hit MusicBrainz DB cache (%s)." % stats)
+            #log("Hit MusicBrainz DB cache (%s)." % stats)
             text = result[0].encode("UTF-8")
         else:
-            log("Missed MusicBrainz DB cache (%s)." % stats)
+            #log("Missed MusicBrainz DB cache (%s)." % stats)
             sleep(1)
             result = fn(self, url)
             text = result.read()

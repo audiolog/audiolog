@@ -41,14 +41,14 @@ class TitleFinder(AbstractTrackFinder):
     fieldName = "title"
         
     def __init__(self):
-        self.getters = [(self.getMusicDNS, 3),
-                        (self.getMBPUID, 3),
-                        (self.getTag, 1),                   # In AbstractFinder
-                        (self.getMBTag, 3),                 # In AbstractFinder
-                        (self.getMBKnownData, 2),
-                        (self.getMBTagWithKnownData, 4),
-                        (self.getMBFilename, 2),
-                        (self.getMBFilenameWithKnownData, 3.5)]
+        self.getters = [(self.getMusicDNS, 6),
+                        (self.getMBPUID, 6),
+                        (self.getTag, 2),                   # In AbstractFinder
+                        (self.getMBTag, 6),                 # In AbstractFinder
+                        (self.getMBKnownData, 4),
+                        (self.getMBTagKnownData, 8),
+                        (self.getMBFilename, 4),
+                        (self.getMBFilenameKnownData, 7)]
     
     @logfn("Looking in MusicDNS results.")
     def getMusicDNS(self, track):
@@ -86,7 +86,7 @@ class TitleFinder(AbstractTrackFinder):
         return result
     
     @logfn("Matching the current tag value with MusicBrainz using known data.")
-    def getMBTagWithKnownData(self, track):
+    def getMBTagKnownData(self, track):
         """Query MB using known data and the current tag."""
         
         titleTag = tagging.getTag(track.filePath, "title")
@@ -115,7 +115,7 @@ class TitleFinder(AbstractTrackFinder):
         return mb.askMB(self.fieldName, fileName, track)
 
     @logfn("Matching the filename with MusicBrainz using the known data.")
-    def getMBFilenameWithKnownData(self, track):
+    def getMBFilenameKnownData(self, track):
         """Try to match the file name to a title using MB."""
                 
         if not ("release" in track.metadata and "tracknumber" in track.metadata):

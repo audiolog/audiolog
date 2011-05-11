@@ -48,7 +48,7 @@ class ArtistFinder(AbstractReleaseFinder):
                         (self.getTag, 1),                   # In AbstractFinder
                         (self.getMBTag, 3),                 # In AbstractFinder
                         (self.getMBKnownData, 2),
-                        (self.getMBTagWithKnownData, 4),
+                        (self.getMBTagKnownData, 4),
                         (self.getMBFilename, 2)]
     
     @logfn("Looking in MusicDNS results.")
@@ -85,7 +85,7 @@ class ArtistFinder(AbstractReleaseFinder):
         return result
     
     @logfn("Matching the current tag value with MusicBrainz using known data.")
-    def getMBTagWithKnownData(self, track):
+    def getMBTagKnownData(self, track):
         """Query MB using known data and the current tag."""
         
         artistTag = tagging.getTag(track.filePath, "artist")

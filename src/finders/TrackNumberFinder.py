@@ -39,10 +39,10 @@ class TrackNumberFinder(AbstractTrackFinder):
     fieldName = "tracknumber"
         
     def __init__(self):
-        self.getters = [(self.getTag, 1), 
-                        (self.getMBKnownData, 2), 
-                        (self.getMBTagWithKnownData, 3),
-                        (self.getFilename, 1.5)]
+        self.getters = [(self.getTag, 2), 
+                        (self.getMBKnownData, 4), 
+                        (self.getMBTagKnownData, 6),
+                        (self.getFilename, 3)]
     
     @logfn("Searching MusicBrainz with the currently known data.")
     def getMBKnownData(self, track):
@@ -65,7 +65,7 @@ class TrackNumberFinder(AbstractTrackFinder):
         return result
     
     @logfn("Matching the current tag value with MusicBrainz using known data.")
-    def getMBTagWithKnownData(self, track):
+    def getMBTagKnownData(self, track):
         """Query MB using known data and the current tag."""
         
         tracknumberTag = tagging.getTag(track.filePath, "tracknumber")

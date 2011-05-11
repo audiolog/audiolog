@@ -216,6 +216,7 @@ class ReleaseManager(object):
             flowcontrol.checkpoint(pauseOnly=True)
             track.writeTags()
             track.rename()
+            log(" ")
             
     def getNewPath(self):
         """Return the new path to the album based on the metadata.
@@ -314,5 +315,5 @@ class Track(object):
 class TrackList(list):
     """Subclass of list to print list of tracks nicely."""
     
-    def __str__(self):
+    def __repr__(self):
         return "<%d Tracks>" % len(self)
