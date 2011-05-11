@@ -103,7 +103,7 @@ def openAudioFile(filePath):
             # Mutagen supports lots of formats.
             raise NotImplementedError
     except HeaderNotFoundError:
-        log("Attempt to open %s failed. File seems corrupted." % quote(filePath))
+        log("Could not open %s. File seems corrupted." % quote(filePath))
 
 #-------------------------------------------
 # Public Functions

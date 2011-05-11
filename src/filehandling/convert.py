@@ -52,7 +52,7 @@ def convert(audioFilePaths):
     
     for audioFilePath in audioFilePaths:
         fileName = os.path.basename(audioFilePath)
-        with logSection("Attempting to convert %s." % quote(fileName)):
+        with logSection("Converting %s." % quote(fileName)):
             filePathWithoutExtension, extension = os.path.splitext(audioFilePath)
             commands = convertorCommands[extension]
             
@@ -71,10 +71,9 @@ def convert(audioFilePaths):
             
             if not success:
                 # FIXME: Should we reject this file or this entire directory?
-                log("Attempt to convert failed.")
+                log("Unable to convert %s." % quote(fileName))
                 functions.rejectItem(audioFilePath)
             else:
-                log("Attempt to convert succeeded.")
                 functions.deleteItem(audioFilePath)
             
             if len(commands) > 1: # If we created an intermediate wav file

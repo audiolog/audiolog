@@ -52,7 +52,7 @@ def extract(archivePaths):
     
     for archivePath in archivePaths:
         fileName = os.path.basename(archivePath)
-        with logSection("Attempting to extract %s." % quote(fileName)):
+        with logSection("Extracting %s." % quote(fileName)):
             destDirectoryPath, ext = os.path.splitext(archivePath)
             if not os.path.exists(destDirectoryPath):
                 os.mkdir(destDirectoryPath)   
@@ -74,5 +74,4 @@ def extract(archivePaths):
                 functions.deleteItem(destDirectoryPath)
                 functions.rejectItem(archivePath)
             else:
-                log("Extraction succeeded.")
                 functions.deleteItem(archivePath)

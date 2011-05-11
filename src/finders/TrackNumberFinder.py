@@ -44,7 +44,7 @@ class TrackNumberFinder(AbstractTrackFinder):
                         (self.getMBTagWithKnownData, 3),
                         (self.getFilename, 1.5)]
     
-    @logfn("Searching in MusicBrainz using the currently known data.")
+    @logfn("Searching MusicBrainz with the currently known data.")
     def getMBKnownData(self, track):
         """Query MB using known data.
         
@@ -53,36 +53,35 @@ class TrackNumberFinder(AbstractTrackFinder):
             Can Use: A release, an artist"""
         
         if not "title" in track.metadata:
-            log("Attempt failed because our currently known data does not "
-                "include the field we need -- the track title.")
+            log("The currently known data does not include the field we need --"
+                " the track title.")
             result = None
         else:
             result = mb.askMB(self.fieldName, None, track, 
-                                    ["title", "artist", "release"])
+                              ["title", "artist", "release"])
             if result:
                 result = result.zfill(2)
             
         return result
     
-    @logfn("Attempting to match the current tag value with MusicBrainz using "
-           "the currently known data.")
+    @logfn("Matching the current tag value with MusicBrainz using known data.")
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
         
         tracknumberTag = tagging.getTag(track.filePath, "tracknumber")
 
         if not tracknumberTag:
-            log("Attempt failed because current tag is empty.")
+            log("The current tag is empty.")
             result = None
             
         elif not "title" in track.metadata:
-            log("Attempt failed because our currently known data does not "
-                "include the field we need -- the track title.")
+            log("The currently known data does not include the fields we need --"
+                " the track title.")
             result = None
             
         else:
             result = mb.askMB(self.fieldName, tracknumberTag, track, 
-                                    ["title", "artist", "release", "tracknumber"])
+                              ["title", "artist", "release", "tracknumber"])
             if result:
                 result = result.zfill(2)
         

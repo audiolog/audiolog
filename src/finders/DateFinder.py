@@ -47,7 +47,7 @@ class DateFinder(AbstractReleaseFinder):
 
         return track.musicDNS["year"]
     
-    @logfn("Searching in MusicBrainz using the currently known data.")
+    @logfn("Searching MusicBrainz with the currently known data.")
     def getMBKnownData(self, track):
         """Query MB using known data.
         
@@ -57,34 +57,33 @@ class DateFinder(AbstractReleaseFinder):
             Might Use: Tracknames"""
         
         if not "release" in track.metadata:
-            log("Attempt failed because our currently known data does not "
-                "include the field we need -- the release.")
+            log("The currently known data does not include the field we need --"
+                " the release.")
             result = None
             
         else:
             result = mb.askMB("date", None, track, 
-                                    ["release", "artist", "tracktotal"])
+                              ["release", "artist", "tracktotal"])
         
         return result
     
-    @logfn("Attempting to match the current tag value with MusicBrainz using "
-           "the currently known data.")
+    @logfn("Matching the current tag value with MusicBrainz using known data.")
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
 
         dateTag = tagging.getTag(track.filePath, "date")
 
         if not dateTag:
-            log("Attempt failed because current tag is empty.")
+            log("The current tag is empty.")
             result = None
             
         elif not "release" in track.metadata:
-            log("Attempt failed because our currently known data does not "
-                "include the field we need -- the release.")
+            log("The currently known data does not include the field we need --"
+                " the release.")
             result = None
             
         else:
             result = mb.askMB("date", dateTag, track, 
-                                    ["release", "artist", "tracktotal", "date"])
+                              ["release", "artist", "tracktotal", "date"])
         
         return result

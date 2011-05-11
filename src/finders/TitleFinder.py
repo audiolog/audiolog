@@ -62,7 +62,7 @@ class TitleFinder(AbstractTrackFinder):
 
         return mb.getMBPUID(track.musicDNS["puid"], "title")
     
-    @logfn("Searching in MusicBrainz using the currently known data.")
+    @logfn("Searching MusicBrainz with the currently known data.")
     def getMBKnownData(self, track):
         """Query MB using known data.
             
@@ -72,65 +72,62 @@ class TitleFinder(AbstractTrackFinder):
             Can Use: date, artist, tracktotal"""
 
         if not ("release" in track.metadata and "tracknumber" in track.metadata):
-            log("Attempt failed because our currently known data does not "
-                "include the fields we need -- the release and track number.")
+            log("The currently known data does not include the fields we need --"
+                " the release and track number.")
             result = None
             
         else:
-            result = mb.askMB(self.fieldName, None, track, 
-                                    ["release", "tracknumber", "date", "artist", 
-                                     "tracktotal"])
             # We can use these extra fields because we are searching for a 
             # release, not a track.
+            result = mb.askMB(self.fieldName, None, track, 
+                              ["release", "tracknumber", "date", "artist", 
+                               "tracktotal"])
         
         return result
     
-    @logfn("Attempting to match the current tag value with MusicBrainz using "
-           "the currently known data.")
+    @logfn("Matching the current tag value with MusicBrainz using known data.")
     def getMBTagWithKnownData(self, track):
         """Query MB using known data and the current tag."""
         
         titleTag = tagging.getTag(track.filePath, "title")
 
         if not titleTag:
-            log("Attempt failed because current tag is empty.")
+            log("The current tag is empty.")
             result = None
             
-        elif not ("release" in track.metadata and 
-                  "tracknumber" in track.metadata):
-            log("Attempt failed because our currently known data does not "
-                "include the fields we need -- the release and track number.")
+        elif not ("release" in track.metadata and "tracknumber" in track.metadata):
+            log("The currently known data does not include the fields we need --"
+                " the release and track number.")
             result = None
             
         else:
-            result = mb.askMB(self.fieldName, titleTag, track, 
-                                    ["release", "tracknumber", "artist"]) 
             # Here we're searching for a track.
+            result = mb.askMB(self.fieldName, titleTag, track, 
+                              ["release", "tracknumber", "artist"])
         
         return result
     
-    @logfn("Attempting to match the filepath to an release using MusicBrainz.")
+    @logfn("Matching the filename to a title using MusicBrainz.")
     def getMBFilename(self, track):
         """Try to match the file name to a title using MB."""
         
         fileName = self.getFilenameForMB(track)
         return mb.askMB(self.fieldName, fileName, track)
 
-    @logfn("Attempting to match the filepath with MusicBrainz using the "
-           "currently known data.")
+    @logfn("Matching the filename with MusicBrainz using the known data.")
     def getMBFilenameWithKnownData(self, track):
         """Try to match the file name to a title using MB."""
                 
         if not ("release" in track.metadata and "tracknumber" in track.metadata):
-            log("Attempt failed because our currently known data does not "
-                "include the fields we need -- the release and track number.")
+            log("The currently known data does not include the fields we need --"
+                " the release and track number.")
             result = None
             
         else:
             fileName = self.getFilenameForMB(track)
-            result = mb.askMB(self.fieldName, fileName, track, 
-                                    ["release", "tracknumber", "artist"]) 
             # Here we're searching for a track.
+            result = mb.askMB(self.fieldName, fileName, track, 
+                              ["release", "tracknumber", "artist"])
         
         return result
     

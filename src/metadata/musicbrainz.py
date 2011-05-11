@@ -195,19 +195,15 @@ def constructFilter(field, match, track, relevantFields):
             else:
                 postFilter[relevantField] = track.metadata.get(relevantField)
     
-    #log("Pre-query filter: %s" % preFilter)
-    #log("Post-query filter: %s" % postFilter)
-    #log("Match: %s" % match)
-    
     return (preFilter, postFilter, match)
 
-@logfn("Attempting to match the string {quote(match)} on {field}.")
+@logfn("Matching the string {quote(match)} on {field}.")
 def findExactMatch(field, match, track, preFilter, postFilter):
     """Non-fuzzy matching is easy..."""
     
     return constructQuery(field, match, preFilter, postFilter)
 
-@logfn("Attempting to fuzzily match the string {quote(match)} on {field}.")
+@logfn("Fuzzily matching the string {quote(match)} on {field}.")
 def findFuzzyMatch(field, match, track, preFilter, postFilter):
     """Fuzzily match unreliable data (from tags and filename) to MusicBrainz.
 
@@ -264,7 +260,7 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
             log("MB found a match for the full string %s." % quote(match))
             return result
         else:
-            log("MB did not find a match for the full string %s." % quote(match))
+            log("MB did not find a match for the full string.")
     
     log("Searching for a match in substrings.")
     
@@ -322,8 +318,8 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         #   - result is (about) equal to already known artist, release or title
         #   - substring was ... artist, release, title
     
-        log("Multiple substrings matched. Attempting to remove bogus matches.")
-        log("Current matches: %s" % matches)
+        log("Multiple substrings matched: %s" % matches)
+        log("Removing matches which are probably wrong.")
         
         # Remove matches which are either a tracknumber or a year.
         # Tracknumbers are identified by being one or two digits (possibly with
@@ -397,7 +393,7 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         log("%d substrings matched." % len(matches))
         if matches:
             log("Unable to select between them.")
-            log("Bogus-filtered matches: %s" % matches)
+            log("Filtered matches: %s" % matches)
         log("Fuzzy matching failed.")
         return u""
 
@@ -407,23 +403,23 @@ def constructQuery(field, match, preFilter, postFilter):
     Starts with finding which query function to use and finishing with
     extracting the correct data."""
 
-    log("Constructing MusicBrainz query.")
+    log("MusicBrainz query:")
     query, queryFunction, queryFilter = getFunctionAndFilter(field, match)
     queryFilter = applyParams(queryFilter, preFilter, match)
+    log("    Pre-query filter: %s" % preFilter)
+    log("    Post-query filter: %s" % postFilter)
+    log("    Match: %s" % match)
     
+    finalResult = None
     results = queryMB(queryFunction, [queryFilter])
-    
     results = requireDesiredInfo(field, results)
+    if results:
+        result = postProcessResults(results, **postFilter)
+        if result:
+            finalResult = parseResult(result, field)
     
-    if not results:
-        return None
-    
-    result = postProcessResults(results, **postFilter)
-    
-    if not result:
-        return None
-    
-    return parseResult(result, field)
+    log("Result: %s\n" % finalResult)
+    return finalResult
 
 def getFunctionAndFilter(field, match):
     """Return proper query function & filter based on field & whether we are matching."""
@@ -503,22 +499,14 @@ def queryMB(func, params, depth=0):
 
     try:
         result = func(*params)
-    except mbws.WebServiceError, e:
+    except mbws.ConnectionError, e:
         if depth < 3:
-            log("Received WebServiceError: %s." % quote(str(e)))
+            log("Received ConnectionError: %s." % quote(str(e)))
             log("Waiting, then trying again.")
             result = queryMB(func, params, depth+1)
         else:
-            log("Received WebServiceError 3 times. Returning None.")
+            log("Received ConnectionError 3 times. Returning None.")
             result = None
-    except BadStatusLine:
-        # I started to receieve this error a few times, so I added
-        # these debugging statements to hopefully help resolve it.
-        # I haven't actually seen the error occur since then, however.
-        # I might have unintentionally fixed it through work elsewhere.
-        log("MB func:" % func)
-        log("MB params:" % params)
-        raise
 
     return result
     
@@ -533,7 +521,7 @@ def requireDesiredInfo(field, results):
     
     return results
 
-@logfn("Applying postquery filter to MB results.")
+#@logfn("Applying postquery filter to MB results.")
 def postProcessResults(results, date=None, tracknumber=None, tracks=None):
     """Apply the postquery filter to the result returned by the MB query."""
         
@@ -613,7 +601,7 @@ def getReleaseWithTracks(release):
     return queryMB(mbws.Query().getReleaseById, 
                    [release.id, mbws.ReleaseIncludes(tracks=True)])
 
-@logfn("Parsing MB results.")
+#@logfn("Parsing MB results.")
 def parseResult(result, field):
     """Pull from the result the data field and return it.
     

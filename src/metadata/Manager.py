@@ -195,14 +195,14 @@ class ReleaseManager(object):
         
         for i in range(tracknumbers[-1]):
             if not (i + 1) in tracknumbers:
-                s = "The release is missing one or more tracks."
-                s += "Track numbers:" + str(tracknumbers)
+                s = "The release is missing one or more tracks. "
+                s += "Track numbers: " + str(tracknumbers)
                 raise ReleaseManagerError, s
 
         if len(tracknumbers) > tracknumbers[-1]:
             # TODO: Choose the better version of the repeated track
-            s = "The release has one or more repeated tracks."
-            s += "Track numbers:" + str(tracknumbers)
+            s = "The release has one or more repeated tracks. "
+            s += "Track numbers: " + str(tracknumbers)
             raise ReleaseManagerError, s
                 
         # TODO: One master MB sanity check, coming up... later.
@@ -239,7 +239,8 @@ class Release(object):
         - the Track objects representing the tracks"""
     
     def __init__(self, directoryPath, audioFilePaths):
-        self.tracks = [Track(self, filePath) for filePath in audioFilePaths]
+        tracks = [Track(self, filePath) for filePath in audioFilePaths]
+        self.tracks = TrackList(tracks)
         self.metadata = {}
         self.directoryPath = directoryPath
         self.directoryName = os.path.basename(directoryPath)
@@ -308,3 +309,10 @@ class Track(object):
             log("There already exists a file with the target filename.")
             log("Target filename: %s" % quote(newBaseName))
             raise ReleaseManagerError, "Target filename already exists."
+
+        
+class TrackList(list):
+    """Subclass of list to print list of tracks nicely."""
+    
+    def __str__(self):
+        return "<%d Tracks>" % len(self)

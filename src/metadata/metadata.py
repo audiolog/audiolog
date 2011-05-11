@@ -37,10 +37,9 @@ def handleMetadata(directoryPath, audioFilePaths):
     try:
         releaseManager.run()
     except Manager.ReleaseManagerError, e:
-        log("Attempt to identify and tag audio failed.")
+        log("Could not identify and tag audio.")
         log(str(e))
         functions.rejectItem(directoryPath)
     else:
-        log("Attempt to identify and tag audio succeeded.")
         log("Directory has been sorted successfully.")
         functions.acceptItem(directoryPath, releaseManager.getNewPath())

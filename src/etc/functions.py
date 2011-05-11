@@ -122,14 +122,14 @@ def actuallyDelete(itemPath):
     if os.path.isdir(itemPath):                 # Directory
         if not removeDirIfEmpty(itemPath):
             # TODO: Handle non-empty dirs.
-            s = "Attempt to delete the folder %s failed. " % quote(itemPath)
+            s = "Could not delete the folder %s. " % quote(itemPath)
             s += "It's probably not empty."
             log(s)
     else:                                       # File
         try: 
             os.remove(itemPath)
         except OSError:
-            log("Attempt to delete the file %s failed." % quote(itemPath))
+            log("Could not delete the file %s." % quote(itemPath))
 
 @logfn("Removing {quote(itemPath)}.")
 def deleteItem(itemPath, actuallyDeleteFlag=None):
