@@ -75,7 +75,7 @@ inputDirPath = join("testing", "input")
 outputDirPath = join("testing", "output")
 
 testStartTime = datetime.datetime.now()
-logFileName = testStartTime.strftime("%Y-%m-%d %H-%m") + ".txt"
+logFileName = testStartTime.strftime("%Y-%m-%d %H-%M") + ".txt"
 logFilePath = join(samplesDirPath, logFileName)
 logFile = open(logFilePath, "w")
 
