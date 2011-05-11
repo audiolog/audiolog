@@ -230,7 +230,7 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
     these are the only fields with strings to fuzzily match against."""
     
     isFilePath = isinstance(match, FilepathString)
-    match = functions.restrictChars(match) # Remove special characters.
+    #match = functions.restrictChars(match) # Remove special characters.
     
     if isFilePath:
         log("Splitting path into directory and file name, then trying each.")
