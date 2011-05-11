@@ -43,7 +43,7 @@ else:
 typeToExts = {"archive"   : [".zip", ".rar", ".tar", ".gz", ".bz2", ".ace", ".7z"],
               "good_audio": [".ogg", ".mp3"],
               "bad_audio" : [".ape", ".flac", ".wav", ".mpc", ".wv"],
-              "image"     : [".jpg", ".jpeg", ".png"], 
+              "image"     : [".jpg", ".jpeg", ".png", ".bmp"], 
               "cue"       : [".cue"]}
 
 # Extensions to Types
