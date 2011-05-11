@@ -348,9 +348,15 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         # Remove matches which are the same as the already known artist, 
         # release or title intelligently.
         # TODO: Figure out how to make TODOs highlighted in yellow.
+        def equal(match, datum):
+            return match == datum
+        
+        def inside(match, datum):
+            return datum.lower() in match.lower()
+        
         if len(matches) > 1:
             for datum in relatedData:
-                for equivalenceFunc in (lambda a, b: a==b, aboutEqual):
+                for equivalenceFunc in (equal, aboutEqual, inside):
                     for match in matches.copy():
                         if len(matches) > 1:
                             if equivalenceFunc(match, datum):
