@@ -405,7 +405,7 @@ def executeQuery(field, match, preFilter, postFilter):
     results = contactMB(queryFunction, [queryFilter])
     results = requireDesiredInfo(field, results)
     if results:
-        result = postProcessResults(results, **postFilter)
+        result = postProcessResults(results, field, **postFilter)
         if result:
             finalResult = parseResult(result, field)
     
@@ -513,7 +513,7 @@ def requireDesiredInfo(field, results):
     return results
 
 #@logfn("Applying postquery filter to MB results.")
-def postProcessResults(results, date=None, tracknumber=None, tracks=None):
+def postProcessResults(results, field, date=None, tracknumber=None, tracks=None):
     """Apply the postquery filter to the result returned by the MB query."""
         
     dateResult = None
@@ -576,9 +576,14 @@ def postProcessResults(results, date=None, tracknumber=None, tracks=None):
     
     elif isinstance(results[0], musicbrainz2.wsxml.TrackResult):
         if tracknumber:
-            # FIXME: Is there a good reason why we only check the 0-th release?
-            if finalResult.getTrack().getReleases()[0].getTracksOffset() + 1 != int(tracknumber):
-                return None
+            for result in results:
+                for release in result.getTrack().getReleases():
+                    if release.getTracksOffset() + 1 == int(tracknumber):
+                        if field == "tracknumber":
+                            return release  # HACK: Returning a mb2.model.Release!
+                        else:
+                            return result
+            return None
     
     return dateResult or finalResult
 
@@ -617,7 +622,6 @@ def parseResult(result, field):
         if field == "title":
             finalResult = result.getTrack().getTitle()
         elif field == "tracknumber":
-            # TODO: Make sure it's the right release (if we know it).
             # Track numbers are zero-indexed.
             tracknumber = result.getTrack().getReleases()[0].getTracksOffset()+1
             finalResult = unicode(tracknumber).rjust(2, u"0")
@@ -629,6 +633,13 @@ def parseResult(result, field):
     # Why we would we ever get a Track here instead of a TrackResult?
     elif isinstance(result, musicbrainz2.model.Track):
         finalResult = result.getTitle()
+        
+    # HACK: This is used when matching tracknumbers, because if this function
+    # recieved a TrackResult it would look only at the 0-th release, which may
+    # not be correct.
+    elif isinstance(result, musicbrainz2.model.Release):
+        if field == "tracknumber":
+            finalResult = unicode(result.getTracksOffset()+1).rjust(2, u"0")
     
     if not finalResult:
         log("Something went wrong in parseResult. Result type: %s  field: %s"
