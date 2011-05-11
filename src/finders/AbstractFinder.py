@@ -53,36 +53,61 @@ class AbstractFinder(object):
         for (candidate, weight, getter, fileName) in results:
             log("     %s%s%s" % (getter[3:].ljust(maxGetter), 
                                  fileName.ljust(maxFilename+3), 
-                                 candidate))
+                                 candidate if candidate else ""))
     
-    @logfn("\nFinding the result which recieved the most points.")
+    @logfn("\nFinding the result which received the most points.")
     def findConsensus(self, data):
-        """Take data from getters and find the value with the highest score."""
+        """Take data from getters and find the value with the highest score.
         
+        Candidates that differ by only capitalization and punctuation are
+        grouped together for scoring.
+        
+        Example:
+        If the scores come back
+            5  Chick Corea
+            4  Song of Singing
+            3  Song Of Singing
+        then the "song of singing" group will win with 7 points and the
+        "Song of Singing" candidate will be chosen because it is the highest
+        scoring candidate of that group."""
+    
         flowcontrol.checkpoint()
         
         # Create a dict of values to sums of weights while removing null results.
         scores = {}
+        groupScores = {}
         for (candidate, weight, name, track) in data:
             if candidate:
+                group = restrictChars(candidate, punctuation=False).lower()
                 scores[candidate] = scores.get(candidate, 0) + weight
-        
+                groupScores[group] = groupScores.get(group, 0) + weight
+                
         # Ensure that we have data, otherwise return None indicating failure
         if not scores:
             log("Unable to find consensus -- no getters returned valid results.")
             return None
         
-        # Put the results in a list so we can sort.
-        listed = [(scores[candidate], candidate) for candidate in scores]
-        listed.sort(reverse=True)
+        # Rank the groups and the candidates
+        groups = [(score, group) for group, score in groupScores.items()]
+        groups.sort(reverse=True)
+        candidates = [(score, candidate) for candidate, score in scores.items()]
+        candidates.sort(reverse=True)
         
-        # TODO: Check that result meets some threshold.
-        
-        # Display the results.
-        topScore, winningCandidate = listed[0]
-        log("Scores:" % listed)
-        for score, candidate in listed:
+        # Display candidates (and groups, if different).
+        log("Candidates:")
+        for score, candidate in candidates:
             log("  %s  %s" % (str(score).rjust(4), candidate))
+            
+        if len(groups) != len(candidates):
+            log("\nGroups:")
+            for score, group in groups:
+                log("  %s  %s" % (str(score).rjust(4), group))
+        
+        # Pick the highest member of the winning group.
+        topGroupScore, topGroup = groups[0]
+        for score, candidate in candidates:
+            if restrictChars(candidate, punctuation=False).lower() == topGroup:
+                return candidate
         
         return winningCandidate
         
