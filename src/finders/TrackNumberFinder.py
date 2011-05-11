@@ -42,7 +42,8 @@ class TrackNumberFinder(AbstractTrackFinder):
         self.getters = [(self.getTag, 2), 
                         (self.getMBKnownData, 4), 
                         (self.getMBTagKnownData, 6),
-                        (self.getFilename, 3)]
+                        (self.getFilename, 3),
+                        (self.getMBFilenameKnownData, 3)]
     
     @logfn("Searching MusicBrainz with the currently known data.")
     def getMBKnownData(self, track):
@@ -87,6 +88,7 @@ class TrackNumberFinder(AbstractTrackFinder):
         
         return result
     
+    @logfn("Looking for a track number in the filename.")
     def getFilename(self, track):
         """Find one or two consecutive digits in the filename."""
         
@@ -103,7 +105,30 @@ class TrackNumberFinder(AbstractTrackFinder):
             return unicode(matches[0]).zfill(2)
         else:
             return None
+        
+    @logfn("Matching track number from filename with MusicBrainz and known data.")
+    def getMBFilenameKnownData(self, track):
+        """Match track number from filename against MB using known data."""
 
+        tracknumber = self.getFilename(track)
+        if not tracknumber:
+            log("Unable to match because no track number was found in filename.")
+            result = None
+        
+        elif not "title" in track.metadata:
+            log("The currently known data does not include the fields we need --"
+                " the track title.")
+            result = None
+            
+        else:
+            result = mb.askMB(self.fieldName, tracknumber, track, 
+                              ["title", "artist", "release", "tracknumber"])
+            if result:
+                result = result.zfill(2)
+        
+        return result
+        
+    @logfn("Getting current value of tag.")
     def getTag(self, track):
         """Get tag and left-zero-pad it."""
         
