@@ -104,5 +104,5 @@ class TrackNumberFinder(AbstractTrackFinder):
         
         tag = AbstractFinder.getTag(self, track)
         if tag:
-            tag.zfill(2)
+            tag = tag.zfill(2)
         return tag
