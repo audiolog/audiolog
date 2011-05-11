@@ -17,8 +17,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import re
+
 from metadata import tagging
 from metadata import musicbrainz as mb
+from etc import functions
 from etc.logger import log, logfn, logSection
 
 from AbstractFinder import AbstractReleaseFinder
@@ -39,7 +43,8 @@ class DateFinder(AbstractReleaseFinder):
         self.getters = [(self.getMusicDNS, 3),
                         (self.getTag, 2),                   # In AbstractFinder
                         (self.getMBKnownData, 4),
-                        (self.getMBTagKnownData, 3)]
+                        (self.getMBTagKnownData, 3),
+                        (self.getFilepath, 2)]
         
     @logfn("Looking in MusicDNS results.")
     def getMusicDNS(self, track):
@@ -86,4 +91,21 @@ class DateFinder(AbstractReleaseFinder):
             result = mb.askMB("date", dateTag, track, 
                               ["release", "artist", "tracktotal", "date"])
         
+        return result
+
+    @logfn("Looking for a year in the directory and file name.")
+    def getFilepath(self, track):
+        """Find instances of 4 consecutive digits in the dir and file names.
+        
+        If there are multiple instances, this function currently favors the 
+        leftmost, but this may not be optimal."""
+        
+        folderFilePath = os.path.join(functions.containingDir(track.filePath), 
+                                      track.fileName)
+        
+        result = None
+        match = re.findall("\d{4}", folderFilePath)
+        if match:
+            result = match[0]
+                
         return result
