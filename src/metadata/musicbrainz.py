@@ -229,10 +229,7 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
     Fuzzy matching is only used for artist, release and title fields, because
     these are the only fields with strings to fuzzily match against."""
     
-    isFilePath = isinstance(match, FilepathString)
-    #match = functions.restrictChars(match) # Remove special characters.
-    
-    if isFilePath:
+    if isinstance(match, FilepathString):
         log("Splitting path into directory and file name, then trying each.")
         dirName, fileName = os.path.split(match)
         
