@@ -10,6 +10,31 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 from metadata.tagging import openAudioFile
 from etc.utils import toUnicode
 
+def timeToStr(t):
+    """Display time in format appropriate for its size."""
+    
+    def pluralize(unit, num):
+        return unit + "s" if num != 1 else unit
+    
+    days = t.days
+    hours, seconds = divmod(t.seconds, 60*60)
+    minutes, seconds = divmod(seconds, 60)
+    if days:
+        return "%d %s, %d %s" % (days, pluralize("day", days), 
+                                 hours, pluralize("hour", hours))
+    elif hours:
+        return "%d %s, %d %s" % (hours, pluralize("hour", hours),
+                                 minutes, pluralize("minute", minutes))
+    elif minutes:
+        return "%d %s, %d %s" % (minutes, pluralize("minute", minutes),
+                                 seconds, pluralize("second", seconds))
+    else:
+        seconds = seconds + t.microseconds/1000000.0
+        if seconds > 10:
+            return "%.1f seconds" % seconds
+        else:
+            return "%.2f seconds" % seconds
+
 def log(msg):
     """Write msg to stdout and log file."""
     
@@ -34,7 +59,7 @@ def resultsToText(dirPath):
                 audioFile = openAudioFile(join(root, file))
                 md = "\n".join([field.ljust(16) + value[0].ljust(40) 
                                 for field, value in sorted(audioFile.items())])
-                metadata += md + "\n"
+                metadata += md + "\n\n"
         indent += "  "
     return toUnicode(filenames) + "\n" + toUnicode(metadata)
 
@@ -59,8 +84,8 @@ for sample in sorted(os.listdir(samplesDirPath)):
     if not sample.isdigit():
         continue
     num = int(sample)
-    if not num in (28,): #(2, 28, 63):
-        continue
+    #if not num in (99,):
+    #    continue
     attempts += 1
     
     # Clean up from any previous runs to start fresh.
@@ -77,13 +102,10 @@ for sample in sorted(os.listdir(samplesDirPath)):
     # Find the name of this sample and display it.
     genre, artist, year_album = [dirs[0] for root, dirs, files
                                  in os.walk(sampleCorrectPath) if len(dirs) == 1]
-    name =  "%s - %s" % (artist, year_album[7:])
+    name =  toUnicode("%s - %s" % (artist, year_album[7:]))
     if len(name) > 30:
         name = name[:27] + "..."
-        
-    # Print the sample we are sorting and make sure it's displayed immediately.
-    log("\n%s %s" % (sample, name.ljust(30)))
-    sys.stdout.flush()
+    log("\n%s %s " % (sample, name.ljust(30)))
     
     # Copy the sample into the current input folder.
     contentDirName = os.listdir(sampleInputPath)[0]
@@ -147,5 +169,5 @@ log("  %d crashed\n" % crashed)
 log("  %d not sorted\n" % rejected)
 log("  %d sorted incorrectly\n" % incorrect)
 log("  %d sorted correctly\n" % correct)
-log("Tests took %.1f minutes" % (testDuration.seconds/60.0))
-log("(%.2f minutes per attempt).\n" % (testDuration.seconds*1.0/attempts/60.0))
+log("Tests took %s " % (timeToStr(testDuration)))
+log("(%s per attempt).\n" % (timeToStr(testDuration/attempts)))
