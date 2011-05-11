@@ -35,9 +35,9 @@ def test_standardizeFilenames():
     ]
     
     for baseDirPath in ("C:\\test\\", "/test/"):
-            for (givenName, expectedName) in itemNamePairs:
-                givenPath = os.path.join(baseDirPath, givenName)
-                expectedPath = os.path.join(baseDirPath, expectedName)
-                assert clean.standardizeFilenames([givenPath], False) == [expectedPath]
+        for (givenName, expectedName) in itemNamePairs:
+            givenPath = os.path.join(baseDirPath, givenName)
+            expectedPath = os.path.join(baseDirPath, expectedName)
+            assert clean.standardizeFilenames([givenPath], False) == [expectedPath]
                 
     

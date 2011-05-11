@@ -6,7 +6,7 @@ import datetime
 from os.path import join
 
 # Allows us to import functions from Audiolog
-sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 from metadata.tagging import openAudioFile
 from etc.utils import toUnicode
 
