@@ -102,19 +102,19 @@ def memoizeMB(fn):
     @wraps(fn)
     def dbMemoizedFunction(self, url):
         stats.calls += 1
-        c.execute("select result from mb where url=?", (url,))
+        c.execute("select result from mb where url=?", (toUnicode(url),))
         result = c.fetchone()
         
         if result:
             stats.hits += 1
-            log("Hit MusicBrainz cache (%s)." % stats)
+            log("Hit MusicBrainz DB cache (%s)." % stats)
             text = result[0].encode("UTF-8")
         else:
-            log("Missed MusicBrainz cache (%s)." % stats)
+            log("Missed MusicBrainz DB cache (%s)." % stats)
             sleep(1)
             result = fn(self, url)
             text = result.read()
-            c.execute("insert into mb values (?, ?)", (url, toUnicode(text)))
+            c.execute("insert into mb values (?, ?)", (toUnicode(url), toUnicode(text)))
         return StringIO.StringIO(text)   # fn must return a file-like object
     
     # This dispatch function is necessary because the status of the database
