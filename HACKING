@@ -1,3 +1,10 @@
+Here is an outline of the actions that Audiolog takes and where that
+functionality can be found in the source files.
+
+Each of the actions is fairly independent, so you should be able to dive into
+a section and understand it in isolation pretty quickly.
+
+
 #The Steps
 #-------------------------------------------
 0. Traverse It
@@ -25,22 +32,16 @@
 
 #How Those Steps Are Spread Across Our Files
 #-------------------------------------------
-Meta-Documents
-A list of the steps to do and the files we've written           Outline
-A list of things to do                                          TODO
-A place to leave each other notes and record ideas              Discussion
-A record of our stylistic, design and methodology decisions     Notes
-A list of changes made in standard open source style            ChangeLog
-
 Common Files
 Constants, settings and paths                                   configuration.py
 Functions used across multiple files                            functions.py
 Short function imported using from x import * for convenience   utils.py
 Sending messages to log                                         logger.py
 Pausing and stopping                                            flowcontrol.py
+Memoization of MusicDNS and MusicBrainz for speed               cache.py
 
 Procedural Steps and Files
-Main program file, starts the GUI                               audiolog.py
+Program entry point, reads command-line args, starts program    audiolog.py
 Traverse through folders calling need functions                 traverse.py
     (If necessary) Extract archives                             extract.py
     (If necessary) Convert (or delete) unwanted music formats   convert.py
@@ -59,4 +60,4 @@ Writing and reading ID3 and Vorbis tags                         tagging.py
 GUI
 Graphical interface main window                                 MainWindow.py
 Graphical configuration dialog                                  ConfigurationDialog.py
-Log designed to maximize readability and allow filtering        LogFrame.py 
+Log designed to maximize readability                            LogFrame.py 

@@ -118,3 +118,20 @@
             Enforce that for a candidate to win it must have x% of the all the points in play. (Maybe 50%)
             3. Look at how many points are possible (if all the sources on all the tracks returned the same result).
             Enforce some minimum percent of that. (Which would be much lower than above. Maybe 20%)
+
+
+ * Scan, standardize and error-check an existing collection.
+
+ * Master MB sanity check.
+
+ * "Audiolog It" option in right-click menu in file browser on Windows and Linux (KDE and Gnome).
+
+ * Log full initial state of tags, filenames and MusicDNS results.
+
+ * For rejected releases, write relevant and useful error messages.
+
+ * Process individual songs as well as full releases.
+
+ * Give users much greater ability to configure how Audiolog works.
+
+ * Create new UI which is simple, pretty and effective at communicating what is happening. 

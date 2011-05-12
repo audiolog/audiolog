@@ -1,23 +1,3 @@
-#Meta-Documents
-#-------------------------------------------
-There are now five meta-documents:
-    1. Outline
-        This file contains the steps of the music handling process.
-        It also documents how those functions are spread amongst our files.
-        This could become more detailed as we understand our design better.
-    2. TODO 
-        Self-explanatory.
-    3. Discussion 
-        This is an area where we can leave each other notes and write down ideas.
-        Facilitates our asynchronous communication.
-    4. Notes
-        The results of the discussion page end up here in condensed form. 
-        Stylistic and design decisions can be documented here.
-    5. ChangeLog
-        A record of each file and function that has been changed along with a
-        description of the changes and (if appropriate) commentary. 
-        
-
 #Stylistic Conventions
 #-------------------------------------------
 Capitalization and indentation:
@@ -41,13 +21,6 @@ On files:
     - paths should be named filePath(s), directoryPath(s) or itemPath(s) when type is ambiguous
     - filenames, which do not contain "/", should be named fileName(s), directoryNames(s) or itemNames(s)
     - entry is acceptable for elements in listdir results
-
-
-#Lessons
-#-------------------------------------------
-    - List comprehensions are cool 
-        Example - turning a dictionary of lists into a 1-D array:
-        [filePath for key in filePathsByType for filePath in filePathsByType[key]]
 
 
 #The Finished Product
