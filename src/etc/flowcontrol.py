@@ -35,7 +35,10 @@ in this file but currently there is nowhere better to put it."""
 
 import threading
 
-from PyQt4.QtCore import QObject
+try:
+    from PyQt4.QtCore import QObject
+except ImportError:
+    QObject = object
 
 PAUSED = False
 PAUSE_LOCK = threading.Lock()

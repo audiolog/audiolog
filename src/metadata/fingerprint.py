@@ -30,7 +30,10 @@ except ImportError:
     from elementtree.ElementTree import iterparse
     from elementtree.ElementPath import Path
 
-import musicdns
+try:
+    import musicdns
+except ImportError:
+    musicdns = None
 
 from etc.utils import *
 from etc.cache import memoizeFP
@@ -114,6 +117,10 @@ def askMusicDNS(filePath):
     If so, it returns a dictionary of metadata including the PUID and (if found) 
     the artist, song title, genre and year of first release.    . 
     If the process fails for any reason, it returns None."""
+    
+    if not musicdns:
+        log("Cannot fingerprint; pyofa is not installed.")
+        return None
     
     fileName = os.path.basename(filePath)
     #try:

@@ -62,8 +62,13 @@ def convert(audioFilePaths):
                        for arg in command]
                 
                 log(" ".join(cmd))
-                p = subprocess.Popen(cmd)
-                p.wait()
+                try:
+                    p = subprocess.Popen(cmd)
+                    p.wait()
+                except OSError:
+                    log("% command not found." % cmd[0])
+                    success = False
+                    break
                 
                 if p.returncode != 0:
                     success = False

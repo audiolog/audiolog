@@ -30,7 +30,11 @@ import sys
 import time
 import traceback
 
-from PyQt4.QtCore import SIGNAL
+try:
+    from PyQt4.QtCore import SIGNAL
+    gui = True
+except:
+    gui = False
 
 from etc import configuration
 from etc import functions
@@ -58,12 +62,12 @@ def handleIt():
                 configuration.PATHS["CURRENT"] = directoryPath
                 traverse(directoryPath)
     except flowcontrol.StopException:
-        emitter.emit(SIGNAL("RunEnded"), "stopped")
+        if gui: emitter.emit(SIGNAL("RunEnded"), "stopped")
     except:
         traceback.print_exc()
-        emitter.emit(SIGNAL("RunEnded"), "failed")
+        if gui: emitter.emit(SIGNAL("RunEnded"), "failed")
     else:
-        emitter.emit(SIGNAL("RunEnded"), "complete")
+        if gui: emitter.emit(SIGNAL("RunEnded"), "complete")
     cache.saveCacheDB()
 
 def traverse(directoryPath):

@@ -63,10 +63,15 @@ def split(cuePaths, audioFilePaths):
         command = ['mp3splt', '-d', directoryPath, '-c', cuePath, audioFilePath]
         log(" ".join(command))
         
-        p = subprocess.Popen(command)
-        p.wait()
+        try:
+            p = subprocess.Popen(command)
+            p.wait()
+            success = p.returncode == 0
+        except OSError:
+            log("%s command not found." % command[0])
+            success = False
 
-        if p.returncode == 0:
+        if success:
             log("Successfully split %s." % quote(audioFilePath))
             functions.deleteItem(cuePath)
             functions.deleteItem(audioFilePath)

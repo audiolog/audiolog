@@ -66,10 +66,15 @@ def extract(archivePaths):
             
             log(" ".join(command))
             
-            p = subprocess.Popen(command)
-            p.wait()
+            try:
+                p = subprocess.Popen(command)
+                p.wait()
+                success = p.returncode == 0
+            except OSError:
+                log("%s command not found." % command[0])
+                success = False
             
-            if p.returncode != 0:
+            if not success:
                 log("Unable to extract %s." % quote(archivePath))
                 functions.deleteItem(destDirectoryPath)
                 functions.rejectItem(archivePath)

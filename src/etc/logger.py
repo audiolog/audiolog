@@ -22,7 +22,11 @@ import sys
 from functools import wraps
 from contextlib import contextmanager
 
-from PyQt4.QtCore import QObject, SIGNAL
+try:
+    from PyQt4.QtCore import QObject, SIGNAL
+    gui = True
+except ImportError:
+    gui = False
 
 from utils import *
 
@@ -68,7 +72,8 @@ class Logger(object):
             output.close()
             
 logger = Logger()
-logger.outputs.append(GUILogWriter())
+if gui:
+    logger.outputs.append(GUILogWriter())
 
 # Create aliases so we can treat these as functions provided by this module
 # instead of methods of a particular class instance.

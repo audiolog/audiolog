@@ -34,7 +34,8 @@ def checkDependencies():
     
     # First, try all of the dependency commands.
     cmds = {"extract": ["tar", "unzip", "bunzip2", "gunzip", "unrar", "unace"],
-            "decode":  ["oggenc", "oggdec", "mpc123", "mac", "lame", "wvunpack"]}
+            "decode":  ["oggenc", "oggdec", "mpc123", "mac", "lame", "wvunpack"],
+            "split":   ["mp3splt"]}
     
     for category in cmds:
         for cmd in cmds[category]:
@@ -112,6 +113,16 @@ def checkDependencies():
         error = True
         
     # TODO: Possibly test that pyofa works.
+    
+    try:
+        import chardet
+    except:
+        print "You do not chardet installed."
+        print "chardet is not necessary but can improve the handling of files",
+        print "with special characters."
+        print "You can download it from:"
+        print "http://chardet.feedparser.org/"
+        print
     
     if not error:
         print "Congratulations! Your system is ready to sort some music!"

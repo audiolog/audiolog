@@ -20,7 +20,10 @@
 import os
 import string
 
-import chardet
+try:
+    import chardet
+except ImportError:
+    chardet = None
 
 def translateForFilename(fileName):
     """Replace special filesystem characters with dashes when renaming files.
@@ -63,11 +66,14 @@ def toUnicode(obj, knownEncoding=None):
     
     elif isinstance(obj, str):
         encodings = [knownEncoding] if knownEncoding else []
-        detected = chardet.detect(obj)
-        if detected["confidence"] > 0.9:
-            encodings.extend([detected["encoding"], "UTF-8"])
+        if chardet:
+            detected = chardet.detect(obj)
+            if detected["confidence"] > 0.9:
+                encodings.extend([detected["encoding"], "UTF-8"])
+            else:
+                encodings.extend(["UTF-8", detected["encoding"]])
         else:
-            encodings.extend(["UTF-8", detected["encoding"]])
+            encodings.append("UTF-8")
         
         # Try encodings is order of likeliness. If we recieve an error,
         # that encoding probably wasn't correct.
