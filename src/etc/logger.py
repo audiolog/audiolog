@@ -24,7 +24,7 @@ from contextlib import contextmanager
 
 from PyQt4.QtCore import QObject, SIGNAL
 
-from etc.utils import *
+from utils import *
 
 class GUILogWriter(object):
     """Provides writeable file-like interface to send text to GUI."""

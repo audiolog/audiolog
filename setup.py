@@ -21,7 +21,10 @@
 """This file figures out if the system has the correct dependencies."""
 
 import os
+import sys
+import glob
 import subprocess
+from distutils.core import setup
 
 def checkDependencies():
     """Determine whether essential and non-essential dependencies are present."""
@@ -126,8 +129,20 @@ def checkDependencies():
             print "Audiolog will still run but you will be not be able to",
             print "perform all of the actions that Audiolog provides."
             print "We recommend you install the missing libraries."
+            print 
     
     return not fatal
 
-if __name__ == '__main__':
-    checkDependencies()
+
+if not checkDependencies():
+    sys.exit(1)
+    
+setup(name="Audiolog",
+      version='0.3.0',
+      description='Automated music identification and sorting',
+      url='http://azul.sf.net',
+      packages=['audiolog', 'audiolog.etc', "audiolog.filehandling",
+                'audiolog.finders', 'audiolog.gui', 'audiolog.metadata'],
+      package_dir={'audiolog': 'src'},
+      scripts=[os.path.join('scripts', 'audiolog')],
+      data_files=[('icons', glob.glob('icons/*.png'))])

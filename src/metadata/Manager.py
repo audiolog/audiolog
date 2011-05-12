@@ -66,10 +66,6 @@ from etc import configuration
 from etc.utils import *
 from etc.logger import log, logfn, logSection
 
-import fingerprint
-import getters
-import tagging
-
 from finders.ArtistFinder import ArtistFinder
 from finders.ReleaseFinder import ReleaseFinder
 from finders.DateFinder import DateFinder
@@ -77,6 +73,9 @@ from finders.TrackTotalFinder import TrackTotalFinder
 from finders.TitleFinder import TitleFinder
 from finders.TrackNumberFinder import  TrackNumberFinder
 from finders.GenreFinder import GenreFinder
+
+import fingerprint
+import tagging
 
 class ReleaseManagerError(Exception):
     """Raised when a problem will keep the release from being tagged."""

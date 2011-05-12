@@ -33,9 +33,9 @@ from PyQt4.QtGui import *
 from etc import configuration
 from etc import flowcontrol
 
-import traverse
-from LogFrame import LogFrame
+from filehandling import traverse
 
+from LogFrame import LogFrame
 from ConfigurationDialog import ConfigurationDialog
 
 class MainWindow(QMainWindow):

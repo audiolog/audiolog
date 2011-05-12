@@ -25,7 +25,7 @@ class Stats(object):
 def loadCacheDB():
     global dbConn, c
     
-    dbPath = os.path.join(os.path.dirname(__file__), "..", "..", "cache.sqlite3")
+    dbPath = os.path.expanduser(os.path.join("~", "cache.sqlite3"))
     exists = os.path.exists(dbPath)
     dbConn = sqlite3.connect(dbPath)
     c = dbConn.cursor()

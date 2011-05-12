@@ -1,0 +1,23 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# This a hack. Anyone know a better way?
+
+import os
+import sys
+import imp
+import subprocess
+
+try:
+    audiologPath = imp.find_module("audiolog")[1]
+except ImportError:
+    print "The audiolog package is not installed."
+    print "Run `python setup.py install` in the source directory."
+    sys.exit(1)
+
+mainPath = os.path.join(audiologPath, "main.py")
+
+cmd = ["python", mainPath] + sys.argv[1:]
+retcode = subprocess.call(cmd)
+
+sys.exit(retcode)

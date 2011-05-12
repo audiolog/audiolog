@@ -90,7 +90,6 @@ import subprocess
 import time
 import re
 import difflib
-from httplib import BadStatusLine
 
 import musicbrainz2.model
 import musicbrainz2.wsxml

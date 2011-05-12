@@ -5,10 +5,7 @@ import subprocess
 import datetime
 from os.path import join
 
-# Allows us to import functions from Audiolog
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
-from metadata.tagging import openAudioFile
-from etc.utils import toUnicode
+from helpers import openAudioFile, toUnicode
 
 def timeToStr(t):
     """Display time in format appropriate for its size."""
@@ -116,7 +113,7 @@ for sample in sorted(os.listdir(samplesDirPath)):
     # Run Audiolog on this sample
     out = open(join(logPath, "output"), "w+")
     err = open(join(logPath, "error"), "w+")
-    cmd = ["python", "src/audiolog.py", "--no-gui", "-s", outputDirPath, inputDirPath]
+    cmd = ["audiolog", "--no-gui", "-s", outputDirPath, inputDirPath]
     subprocess.Popen(cmd, stdout=out, stderr=err).wait()
     
     # Now let's get the error results (we'll use those) and close the files.

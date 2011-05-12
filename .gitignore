@@ -3,3 +3,4 @@
 .audiolog
 testing/
 *.sqlite3
+build/*
