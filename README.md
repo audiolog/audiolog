@@ -12,6 +12,7 @@ Installing Audiolog
 For Windows
 ----------------
 Before you can run Audiolog, you'll need to download:
+
 * [Python 2.x](http://python.org/download/) 
 * [PyQt 4](http://www.riverbankcomputing.co.uk/software/pyqt/download)
 * [Mutagen](http://code.google.com/p/mutagen/)
@@ -21,6 +22,7 @@ Before you can run Audiolog, you'll need to download:
 For Linux
 ----------------
 Linux users will need to install:
+
 * PyQt 4
 * Mutagen
 * MusicBrainz2
@@ -31,16 +33,19 @@ On Ubuntu Linux run *sudo apt-get install python-pyqt4 python-mutagen python-mus
 Both
 ---------------
 Once the dependencies are installed, both Windows and Linux users will:
+
 * Download the audiolog-0.3.0.zip (above)
 * Extract the archive where ever you wish
 * Open a command prompt in this folder
 * Run *python setup.py install*
+
 Now running *audiolog* at the command prompt will start Audiolog.
 
 
 Extra Tools
 --------------
 The following are optional but will add functionality to Audiolog:
+
 * Extracting
     * tar
     * unrar
