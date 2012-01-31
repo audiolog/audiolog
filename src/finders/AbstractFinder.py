@@ -47,7 +47,7 @@ class AbstractFinder(object):
     def logResults(self, results):
         """Logs the results in a tabular format."""
         
-        log("\nResults:")
+        log("\n\n\n%s Results:" % self.fieldName.upper())
         maxGetter = max([len(getter) for _, _, getter, _ in results])
         maxFilename = max([len(filename) for _, _, _, filename in results])
         for (candidate, weight, getter, fileName) in results:
@@ -102,7 +102,7 @@ class AbstractFinder(object):
             log("\nGroups:")
             for score, group in groups:
                 log("  %s  %s" % (str(score).rjust(4), group))
-        
+
         # Pick the highest member of the winning group.
         topGroupScore, topGroup = groups[0]
         for score, candidate in candidates:
@@ -151,7 +151,7 @@ class AbstractReleaseFinder(AbstractFinder):
         self.logResults(data)
         
         consenus = self.findConsensus(data)
-        log(" ")
+        log("\n\n\n")
         
         if consenus:
             release.storeData(self.fieldName, consenus)
@@ -183,6 +183,7 @@ class AbstractTrackFinder(AbstractFinder):
                 self.logResults(data)
                 
                 consensus = self.findConsensus(data)
+                log("\n\n\n")
     
                 if consensus:
                     results.append((track, consensus))
