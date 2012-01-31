@@ -485,17 +485,17 @@ def applyParams(queryFilter, params, match=None):
 def contactMB(func, params, depth=0):
     """Robustly connect to MusicBrainz through the MB WebService."""
 
-    time.sleep(depth)
+    time.sleep(depth*2)
 
     try:
         result = func(*params)
-    except mbws.ConnectionError, e:
+    except Exception, e:
         if depth < 3:
-            log("Received ConnectionError: %s." % quote(str(e)))
+            log("Received error: %s." % quote(str(e)))
             log("Waiting, then trying again.")
             result = contactMB(func, params, depth+1)
         else:
-            log("Received ConnectionError 3 times. Returning None.")
+            log("Failed 3 times. Returning None.")
             result = None
 
     return result
