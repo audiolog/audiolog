@@ -58,3 +58,29 @@ def openAudioFile(filePath):
             raise NotImplementedError
     except HeaderNotFoundError:
         log("Could not open %s. File seems corrupted." % quote(filePath))
+
+def timeToStr(t):
+    """Display time in format appropriate for its size."""
+    
+    def pluralize(unit, num):
+        return unit + "s" if num != 1 else unit
+    
+    days = t.days
+    hours, seconds = divmod(t.seconds, 60*60)
+    minutes, seconds = divmod(seconds, 60)
+    if days:
+        return "%d %s, %d %s" % (days, pluralize("day", days), 
+                                 hours, pluralize("hour", hours))
+    elif hours:
+        return "%d %s, %d %s" % (hours, pluralize("hour", hours),
+                                 minutes, pluralize("minute", minutes))
+    elif minutes:
+        return "%d %s, %d %s" % (minutes, pluralize("minute", minutes),
+                                 seconds, pluralize("second", seconds))
+    else:
+        seconds = seconds + t.microseconds/1000000.0
+        if seconds > 10:
+            return "%.1f seconds" % seconds
+        else:
+            return "%.2f seconds" % seconds
+
