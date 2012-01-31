@@ -30,6 +30,14 @@ except ImportError:
 
 from utils import *
 
+def splitLeadingNewlines(s):
+    newlines = ""
+    for c in s:
+        if c != "\n":
+            break
+        newlines += "\n"
+    return newlines, s.lstrip("\n")
+
 class GUILogWriter(object):
     """Provides writeable file-like interface to send text to GUI."""
     
@@ -56,10 +64,11 @@ class Logger(object):
         
     def log(self, msg):
         indent = self.indent * self.level
-        msg = ("\n" + indent + msg[1:] + "\n") if msg[0] == "\n" else (indent + msg + "\n")
+        newlines, content = splitLeadingNewlines(msg)
+        result = newlines + indent + content + "\n"
 
         for output in self.outputs:
-            output.write(toUnicode(msg).encode("UTF-8"))
+            output.write(toUnicode(result).encode("UTF-8"))
                 
     def startSection(self):
         self.level += 1
