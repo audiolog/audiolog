@@ -24,11 +24,9 @@ import urllib
 try:
     from xml.etree import ElementTree
     from xml.etree.ElementTree import iterparse
-    from xml.etree.ElementPath import Path
 except ImportError:
     from elementtree import ElementTree
     from elementtree.ElementTree import iterparse
-    from elementtree.ElementPath import Path
 
 try:
     import musicdns
