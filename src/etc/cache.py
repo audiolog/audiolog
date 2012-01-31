@@ -3,13 +3,12 @@ import json
 import sqlite3
 import StringIO
 from time import sleep
-from functools import wraps
 
 from logger import log
 from utils import toUnicode
 
 dbConn = None
-c = None  # Database cursor
+cursor = None
 
 class Stats(object):
     """Wrapper around some ints."""
@@ -23,16 +22,16 @@ class Stats(object):
 
 
 def loadCacheDB():
-    global dbConn, c
+    global dbConn, cursor
     
     dbPath = os.path.expanduser(os.path.join("~", "cache.sqlite3"))
     exists = os.path.exists(dbPath)
     dbConn = sqlite3.connect(dbPath)
-    c = dbConn.cursor()
+    cursor = dbConn.cursor()
     
     if not exists:
-        c.execute("create table fp (path text, result text)")
-        c.execute("create table mb (url text, result text)")
+        cursor.execute("create table fp (path text, result text)")
+        cursor.execute("create table mb (url text, result text)")
         
 def saveCacheDB():
     if dbConn:
@@ -40,28 +39,17 @@ def saveCacheDB():
 
         
 def memoizeFP(fn):
-    global dbConn
+    global dbConn, cursor
     
-    cache = {}
-    @wraps(fn)
-    def locallyMemoizedFunction(path):
-        if path in cache:
-            return cache[path]
-        else:
-            result = fn(path)
-            cache[path] = result
-            return result
-    
-    @wraps(fn)
     def dbMemoizedFunction(path):
-        c.execute("select result from fp where path=?", (path,))
-        result = c.fetchone()
+        cursor.execute("select result from fp where path=?", (path,))
+        result = cursor.fetchone()
         
         if result:
             return json.loads(result[0])
         else:
             result = fn(path)
-            c.execute("insert into fp values (?, ?)", (path, json.dumps(result)))
+            cursor.execute("insert into fp values (?, ?)", (path, json.dumps(result)))
             return result
         
     # This dispatch function is necessary because the status of the database
@@ -70,7 +58,7 @@ def memoizeFP(fn):
         if dbConn:
             return dbMemoizedFunction(path)
         else:
-            return locallyMemoizedFunction(path)
+            return fn(path)
 
     return dispatchFunction
 
@@ -80,13 +68,12 @@ def memoizeMB(fn):
     This is helpful because calls to MusicBrainz are time-consuming (at least 
     one second), so not actually have to make that call saves us a lot of time."""
     
-    global dbConn
+    global dbConn, cursor
     
     stats = Stats()
     
     cache = {}
-    @wraps(fn)
-    def locallyMemoizedFunction(self, url):
+    def dictMemoizedFunction(self, url):
         stats.calls += 1
         if url in cache:
             stats.hits += 1
@@ -99,11 +86,10 @@ def memoizeMB(fn):
             cache[url] = text
         return StringIO.StringIO(text)  # fn must return a file-like object
     
-    @wraps(fn)
     def dbMemoizedFunction(self, url):
         stats.calls += 1
-        c.execute("select result from mb where url=?", (toUnicode(url),))
-        result = c.fetchone()
+        cursor.execute("select result from mb where url=?", (toUnicode(url),))
+        result = cursor.fetchone()
         
         if result:
             stats.hits += 1
@@ -114,7 +100,7 @@ def memoizeMB(fn):
             sleep(1)
             result = fn(self, url)
             text = result.read()
-            c.execute("insert into mb values (?, ?)", (toUnicode(url), toUnicode(text)))
+            cursor.execute("insert into mb values (?, ?)", (toUnicode(url), toUnicode(text)))
         return StringIO.StringIO(text)   # fn must return a file-like object
     
     # This dispatch function is necessary because the status of the database
@@ -123,7 +109,7 @@ def memoizeMB(fn):
         if dbConn:
             return dbMemoizedFunction(self, url)
         else:
-            return locallyMemoizedFunction(self, url)
+            return dictMemoizedFunction(self, url)
 
     return dispatchFunction 
     
