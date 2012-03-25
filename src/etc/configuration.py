@@ -32,6 +32,9 @@ import platform
 
 import functions
 
+acoustidAppKey = "TaHHkbR5"
+acoustidUserKey = "GlVp11l7"
+
 LOCAL_OS = platform.system()
 
 if LOCAL_OS == "Windows":
