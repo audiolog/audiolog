@@ -1,101 +1,91 @@
-#TODO
 #-------------------------------------------
- * Figure Out What to Add to TODO
+# Meta
+#-------------------------------------------
+* Figure Out What to Add to TODO
     - Think of various input sources and formats input can come in
     - Think of use cases
 
- * Support more audio formats (other than MP3 and Ogg Vorbis)    
-    
- * Use durations when searching for tracks
 
- * Notice and, where possible, resolve potential problems
-     
-     - Check that there is only one audio format present
-        - If not, reject the folder
+#-------------------------------------------
+# Meta-Data Sources
+#-------------------------------------------
+* Musicbrainz
+    - Move from deprecated mb2 interface to NGS interface
 
- * If a track is repeated, select the better version
-
- * Handle more cases
-     - Handle multiple discs
-        - Identify when there are multiple discs presents
-        - Group audio files into discs
-        - Create "Disc 1" through "Disc n" folders
-        - Move files into folders
-        - Append " [Disc i]" to album tags
-        - Make sure track numbers and track number totals are correct
-        
-    - Releases with 2 or many artists
-        - If 2, then probably "Artist 1 & Artist 2"
-        - If many, then probably "Various Artists"
-        - How do we reliably identify these cases?
-        - Are there exceptions? (How do we handle them?)
-        
-    - AlbumWrap
-        - Try to identify if AlbumWrap is being used
-            - All audio files in a folder over 20 minutes.
-        - If so, split use mp3splt -w (if that fails try mp3splt -e)
-        
-    - Hidden files on *nix
-        - What should we do with files that start with a "."?
+* Discogs
+    - Add support for discogs API?
 
 
- * Add merging functionality
-     - If the user has specified a collection to merge sorted music into, then
-       check whether the album is in collection and if so, choose the better version
+#-------------------------------------------
+# Fingerprinting
+#-------------------------------------------
+* MusicDNS
+   - Remove deprecated MusicDNS fingerprinting (Wait til it's dead first?)
+
+* Acoustid
+   - Add Acoustid fingerprinting via pyacoustid
+
+* Echoprint
+   - Add Echoprint fingerprinting?
+
+
+#-------------------------------------------
+# Merge Into Existing Collection
+#-------------------------------------------
+* Add merging functionality
+    - If the user has specified a collection to merge sorted music into, then
+      check whether the album is in collection and if so, choose the better version
         - How do we know the album is already present?
             - We need a database of the current files. (Could we use Amarok's? Would we want to?)
         - How do we choose the better version?
             - If a track is only present in one, preserve that track
             - If the track is in both, take the one that is longer (if one is significantly longer)
             - If present in both and about the same length, take the higher bitrate
- 
- 
- * Find a good way to display the contents of DELETES at the end of a run.
-    - This should help the user decide if they want to look in more detail.
-    - One possibility: Show the user all the file types (according to extension)
-      that are present.
-    - If they don't want to look through the files, allow them to permanently 
-      delete all from within the program.
 
 
- * Use a more robust method (than a hard-coded list of extensions to types) to determine file types:
+#-------------------------------------------
+# Handle More Cases
+#-------------------------------------------
+* Support more audio formats (other than MP3 and Ogg Vorbis)    
+    
+* Use durations when searching for tracks
+
+* Notice and, where possible, resolve potential problems
+     - Check that there is only one audio format present
+        - If not, reject the folder
+
+* If a track is repeated, select the better version
+
+* Handle multiple discs
+    - Identify when there are multiple discs presents
+    - Group audio files into discs
+    - Create "Disc 1" through "Disc n" folders
+    - Move files into folders
+    - Append " [Disc i]" to album tags
+    - Make sure track numbers and track number totals are correct
+    
+* Releases with 2 or many artists
+    - If 2, then probably "Artist 1 & Artist 2"
+    - If many, then probably "Various Artists"
+    - How do we reliably identify these cases?
+    - Are there exceptions? (How do we handle them?)
+    
+* AlbumWrap
+    - Try to identify if AlbumWrap is being used
+	- All audio files in a folder over 20 minutes.
+    - If so, split use mp3splt -w (if that fails try mp3splt -e)
+    
+* Hidden files on *nix
+    - What should we do with files that start with a "."?
+
+* Use a more robust method (than a hard-coded list of extensions to types) to determine file types:
     - MIME types?
-    
-
- * Get Audiolog to Run on Windows
-    - The only real problem: the command-line utilities we use. How do replace them on Windows?
-    
-    
- * Documentation
-    - Improve LogFrame, ConfigurationDialog and split file docstrings.
-    - Document the log level argument and particular negative (relative) levels better. 
 
 
- * GUI                    
-    - ConfigurationDialog     
-        - Currently, when the basedir path changes all the other fields which are empty are changed relatively
-            - This could be done more intelligently
-            - For instance, if all other fields are not empty but are relative to the current basedir
-              and the basedir changes, they should probably change as well (despite not being empty)
-    
-    - (Possibly?) Make a generalized way (class?) for displaying, storing and retrieving configuration settings
-        - See the method used in LogFrame.__init__ lines 27-35
-        - If we used a more dynamic method then we would have less code and less hardcoding
-        - Also if we add/remove a setting then we wouldn't have change the code in 4 places (configuration, __init__, readCurrent, and applyChanges)
-        - We might not be able to make this work
-        
-    
- * Get the Full Open-Source Project Experience
-    - Choose a software license. (GPL?)
-    - Create a project website. (SourceForge?)
-    - Package it (exe, deb, rpm, source tarball).
-    - Set up a (public?) version control system?
-    - Fix user-found bugs and implement user-requested features. 
-    - Accept contributer-submitted patches.
-    - Anything else?
-
-        
- * Set weights of various sources in Finders.
+#-------------------------------------------
+# Improve Success Rate
+#-------------------------------------------
+* Set weights of various sources in Finders.
     One idea for how we might do that:
         So, weights are a bit weird. The basic idea is to weight the sources we are more confident are correct.
         But deciding the relative weights of the sources is uncertain. What exactly are we trying to do?
@@ -111,27 +101,85 @@
         Regardless, using empirical data to decide the weights is probably a good idea. (A bit of overhead, though.)
         
 
- * Think about how we might estimate the certainty that the top-scoring candidate is correct.
-        Three ideas for how we might do that:
-            1. Do not filter out the sources that returned None, and if None wins, then we aren't certain enough.
-            2. Filter out Nones (as we currently do), then total up the points from the non-None sources.
+* Think about how we might estimate the certainty that the top-scoring candidate is correct.
+    Three ideas for how we might do that:
+         1. Do not filter out the sources that returned None, and if None wins, then we aren't certain enough.
+         2. Filter out Nones (as we currently do), then total up the points from the non-None sources.
             Enforce that for a candidate to win it must have x% of the all the points in play. (Maybe 50%)
-            3. Look at how many points are possible (if all the sources on all the tracks returned the same result).
+         3. Look at how many points are possible (if all the sources on all the tracks returned the same result).
             Enforce some minimum percent of that. (Which would be much lower than above. Maybe 20%)
 
+* Intelligently identify "similar enough" results so they count towards the same result and so the process is less rigid.
 
- * Scan, standardize and error-check an existing collection.
+* Perform master MB sanity check at end of process to prevent incongruent data?
 
- * Master MB sanity check.
+ 
+#-------------------------------------------
+# Interface
+#-------------------------------------------
+* Find a good way to display the contents of DELETES at the end of a run.
+    - This should help the user decide if they want to look in more detail.
+    - One possibility: Show the user all the file types (according to extension)
+      that are present.
+    - If they don't want to look through the files, allow them to permanently 
+      delete all from within the program.
 
- * "Audiolog It" option in right-click menu in file browser on Windows and Linux (KDE and Gnome).
+* ConfigurationDialog     
+    - Currently, when the basedir path changes all the other fields which are empty are changed relatively
+        - This could be done more intelligently
+        - For instance, if all other fields are not empty but are relative to the current basedir
+          and the basedir changes, they should probably change as well (despite not being empty)
+    
+* (Possibly?) Make a generalized way (class?) for displaying, storing and retrieving configuration settings
+    - See the method used in LogFrame.__init__ lines 27-35
+    - If we used a more dynamic method then we would have less code and less hardcoding
+    - Also if we add/remove a setting then we wouldn't have change the code in 4 places (configuration, __init__, readCurrent, and applyChanges)
+    - We might not be able to make this work
+        
+* Show progress and possibly process (the steps being taken) to the user
 
- * Log full initial state of tags, filenames and MusicDNS results.
 
- * For rejected releases, write relevant and useful error messages.
+#-------------------------------------------
+# Platforms
+#-------------------------------------------
+* Get Audiolog to run on Windows
+    - The only real problem: the command-line utilities we use. How do replace them on Windows?
 
- * Process individual songs as well as full releases.
+* Create a Audiolog Windows installer    
 
- * Give users much greater ability to configure how Audiolog works.
+* Port to Mac?
 
- * Create new UI which is simple, pretty and effective at communicating what is happening. 
+* Create Mac installer?
+
+* "Audiolog It" option in right-click menu in file browser on all platforms
+
+* Give users greater ability to configure how Audiolog works.
+
+* For rejected releases, write relevant and useful error messages.
+
+
+#-------------------------------------------
+# Etc
+#-------------------------------------------
+* Documentation
+    - Improve ConfigurationDialog and split file docstrings.
+    - Document the log level argument and particular negative (relative) levels better. 
+
+* Get the full Open-Source project experience
+    - Choose a software license. (GPL?)
+    - Create a project website. (SourceForge?)
+    - Package it (exe, deb, rpm, source tarball).
+    - Set up a (public?) version control system?
+    - Fix user-found bugs and implement user-requested features. 
+    - Accept contributer-submitted patches.
+    - Anything else?
+
+* Add ability to scan, standardize and error-check an existing collection.
+    - How does this really differ from running on new downloads? Source and dest are the same?
+
+* Log full initial state of tags, filenames and MusicDNS results.
+
+* Process individual songs as well as full releases.
+    - This would be a huge undertaking, but would useful to many users who don't collect full albums.
+      (At times this group of people may include us.)
+        
