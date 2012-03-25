@@ -121,3 +121,131 @@ def standardizeFilenames(itemPaths, rename=True):
             itemPaths[i] = newItemPath
             
     return itemPaths
+
+
+def canonicalName(name):
+"""Rules:
+
+==Featuring==
+All equal:
+    "Song"
+    "Song ft Artist"
+    "Song ft. Artist"
+    "Song feat Artist"
+    "Song feat. Artist"
+    "Song featuring Artist"
+    "Song (ft Artist)"
+    "Song (ft. Artist)"
+    "Song (feat Artist)"
+    "Song (feat. Artist"
+    "Song (featuring Artist)" 
+    "Song Ft Artist"
+    "Song Ft. Artist"
+    "Song Feat Artist"
+    "Song Feat. Artist"
+    "Song Featuring Artist"
+    "Song (Ft Artist)"
+    "Song (Ft. Artist)"
+    "Song (Feat Artist)"
+    "Song (Feat. Artist"
+    "Song (Featuring Artist)" 
+Canonical:
+    "Song (feat. Artist)"
+Note:
+    The featuring section of song title is optional. It's inclusion is 
+inconsistent so not having the featuring section should not cause track to be 
+rejected. 
+
+==Part X==
+All equal:
+    "Song part 1"
+    "Song part I"
+    "Song part one"
+    "Song Part 1"
+    "Song Part I"
+    "Song Part one"
+    "Song (part 1)"
+    "Song (part I"
+    "Song (part one)"
+    "Song (Part 1)"
+    "Song (Part I)"
+    "Song (Part one)"
+    "Song [part 1]"
+    "Song [part I"
+    "Song [part one]"
+    "Song [Part 1]"
+    "Song [Part I]"
+    "Song [Part one]"
+    "Song, part 1"
+    "Song, part I"
+    "Song, part one"
+    "Song, Part 1"
+    "Song, Part I"
+    "Song, Part one"
+Canonical:
+    "Song, Part 1"
+Notes:
+    All other numbers are, of course, all right.
+    TODO: Consider allowing "Part X of Y" 
+
+==Multi-Part Titles==
+All equal:
+    "Song A/Song B"
+    "Song A / Song B"
+    "Song A-Song B"
+    "Song A - Song B"
+Canonical:
+    "Song A / Song B"
+
+==EP==
+All equal:
+    "Release"
+    "Release ep"
+    "Release (ep)"
+    "Release [ep]"
+    "Release EP"
+    "Release (EP)"
+    "Release [EP]"
+Canonical:
+    "Release" 
+
+==Single==
+All equal:
+    "Release"
+    "Release single"
+    "Release (single)"
+    "Release [single]"
+    "Release Single"
+    "Release (Single)"
+    "Release [Single]"
+Canonical:
+    "Release" 
+
+==Soundtrack Releases==
+All equal:
+    "Release"
+    "Release OST"
+    "Release (OST)"
+    "Release [OST]"
+    "Release Soundtrack"
+    "Release (Soundtrack)"
+    "Release [Soundtrack]"
+Canonical:
+    "Release" ??
+
+==Special Characters==
+Special/foreign characters are preferred but not required.
+
+==Capitalization==
+TODO!!
+
+==Etc==
+- "and", "&", and "+" are equivalent; "and" is preferred
+- Most messages in parentheses or square brackets at the end of titles are optional; TODO: Clarify
+  - "(Live)" and "(Remix)" are required
+  - "(Original Mix)" and its ilk are definitely not required, possible dispreferred
+- TODO: Commas in lists and other places
+- TODO: Backticks and weird quotes become apostrophes 
+- TODO: Question marks?
+
+"""
