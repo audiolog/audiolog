@@ -127,6 +127,7 @@ def getMBPUID(puid, field):
     elif field == "title":
         return result[0].getTrack().getTitle()
 
+
 def askMB(field, match=None, track=None, relevantFields=[]):
     """Interface for Finders to access MusicBrainz.
     
@@ -196,11 +197,13 @@ def constructFilter(field, match, track, relevantFields):
     
     return (preFilter, postFilter, match)
 
+
 @logfn("Matching the string {quote(match)} on {field}.")
 def findExactMatch(field, match, track, preFilter, postFilter):
     """Non-fuzzy matching is easy..."""
     
     return executeQuery(field, match, preFilter, postFilter)
+
 
 @logfn("Fuzzily matching the string {quote(match)} on {field}.")
 def findFuzzyMatch(field, match, track, preFilter, postFilter):
@@ -346,7 +349,6 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         
         # Remove matches which are the same as the already known artist, 
         # release or title intelligently.
-        # TODO: Figure out how to make TODOs highlighted in yellow.
         def equal(match, datum):
             return match == datum
         
@@ -386,6 +388,7 @@ def findFuzzyMatch(field, match, track, preFilter, postFilter):
         log("Fuzzy matching failed.")
         return u""
 
+
 @logfn("Querying MusicBrainz.")
 def executeQuery(field, match, preFilter, postFilter):
     """Runs a MusicBrainz query from start to finish.
@@ -410,6 +413,7 @@ def executeQuery(field, match, preFilter, postFilter):
     
     log("Result: %s\n" % finalResult)
     return finalResult
+
 
 def getFunctionAndFilter(field, match):
     """Return proper query function & filter based on field & whether we are matching."""
@@ -449,6 +453,7 @@ def getFunctionAndFilter(field, match):
     
     return (query, queryFunction, queryFilter)
 
+
 def applyParams(queryFilter, params, match=None):
     """Construct params to MB standards then instantiate filter with params."""
     
@@ -481,6 +486,7 @@ def applyParams(queryFilter, params, match=None):
     
     return queryFilter(**newParams)
 
+
 #@logfn("Accessing MusicBrainz web service.")
 def contactMB(func, params, depth=0):
     """Robustly connect to MusicBrainz through the MB WebService."""
@@ -499,7 +505,8 @@ def contactMB(func, params, depth=0):
             result = None
 
     return result
-    
+
+
 def requireDesiredInfo(field, results):
     """Filter results that don't have the necessary information."""
     
@@ -586,6 +593,7 @@ def postProcessResults(results, field, date=None, tracknumber=None, tracks=None)
     
     return dateResult or finalResult
 
+
 def getReleaseWithTracks(release):
     """Given a release, look up that release with track info.
     
@@ -650,7 +658,7 @@ def parseResult(result, field):
 class FilepathString(unicode):
     """Marks a string as being a filepath.
     
-    This class is a hack. It's purpose it to allow the Finders to mark a string
+    This class is a hack. Its purpose it to allow the Finders to mark a string
     as being a filepath (as opposed to a tag value or a filename) because later 
     the MusicBrainz fuzzy matcher treats these differently. Explicitly passing 
     this metadata would muck up multiple function interfaces, hence this class."""
